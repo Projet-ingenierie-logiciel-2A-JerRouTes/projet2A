@@ -68,7 +68,7 @@ ______________________________________________________________________
 ## Informations techniques utiles
 
 - Pour le linting et le formatage automatique avant chaque commit:
-  [Guide pre-commit](Documentation/infos_divers/pour_pre_commit.md)
+  [Guide pre-commit](Documentation/Infos_divers/pour_pre_commit.md)
 
 ## Compte-rendu réunion
 
