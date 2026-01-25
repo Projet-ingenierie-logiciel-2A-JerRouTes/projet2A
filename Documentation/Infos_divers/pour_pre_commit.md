@@ -162,3 +162,5 @@ mdformat --check README.md
 ```bash
 mdformat README.md
 ```
+
+[⬅ Retour au README](../../README.md)
