@@ -10,7 +10,7 @@ et peuvent être appliquées automatiquement sur l’ensemble du projet.
 
 ### Outils
 
-- **Ruff**  
+- **Ruff**\
   Utilisé comme linter et formatter pour Python.
 
 ### Installation dans projet

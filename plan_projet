@@ -1,0 +1,58 @@
+Projet création logiciel
+
+Structure :
+Vue utilisateur          Métier            BDD (utilisateur / recette / ingredients / corespondance alergene)
+
+Action utilisateur
+niveau 1
+ajouter recettes par utilisateur
+ajouter ingredients
+rechercher recettes avec ingredients totalement présents
+gestion multi-utilisateur
+
+niveau 2
+recherche recette 
+	- ajouter des ingredients a ce que j’ai
+	- ajouter restriction ingredients / calories / origine recettes ….
+gestion de stock (mise a jour du stock)
+ajout des ingredients via ticket de caisse
+
+
+Questions
+- Comment alimenter la BDD recettes (webscrapping, API externe)
+- Repérage de recette similaires
+- Méthode de recherche de recette
+
+
+Interface web 
+Ecran 1 : connection 
+	Sans connection / se connecter / créer compte/ connection admin
+
+Ecran 2a : sans conection je saisie mes ingredients et quantités → rechercher
+Ecran 2b : avec connection (sur profil utilisateur)
+		- ajout ingredient
+		- ajout recettes
+		- recherche recette a partir de mes ingredients
+
+Metier
+Utilisateur (pseudo unique, mdp) → classe abstraite : admin/generique
+Ingredient (nom,unité,liste tag) → classe simple
+Recette (nom, liste ingredient avec quantité, catégories) → classe simple
+Outils recherche (stock, nb pers) → classe abstraite : type de methode (BDD/API ...)
+Stock (nom, liste ingredient /quantité) → classe simple
+
+BDD
+Utilisateur (#id_user, pseudo unique, mdp, id_stock)
+liste_ingredients (#id, nom,unité, liste tag)
+liste_stock (id_stock, objet stock)
+table_relation_stock_utilisateur(#id_stock, #id_utilisateur)
+liste_recette(#id, createur, statut, objet_recette)
+
+Convention : PEP 8 + nom de variable / fonction / classe en anglais
+
+Répartition des tâches pour vendredi 
+* Khalid : shémas BDD, Metier →  recette
+* Maxime : Metier → Outils_recherche, Ingredient
+* Christelle : Métier → Utilisateur, stock
+
+Prochain point 30/01
