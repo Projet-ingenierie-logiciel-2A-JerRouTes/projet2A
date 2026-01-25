@@ -53,7 +53,7 @@ La base de données gère les entités principales du projet :
 - Relations utilisateur / stock
 
 📌 Diagramme de la base de données :
-![Diagramme](Documentation/Images/diagramme.drawio)
+![Diagramme](Documentation/Images/diagramme.drawio.png)
 
 ______________________________________________________________________
 
@@ -63,11 +63,13 @@ ______________________________________________________________________
 
 ### ⚙️ Modèle métier
 
+______________________________________________________________________
+
 ## Informations techniques utiles
 
 - Pour le linting et le formatage automatique avant chaque commit:
-  [Guide pre-commit](Documentation/infos_divers/info_pre-commit.md)
+  [Guide pre-commit](Documentation/infos_divers/info_pre_commit.md)
 
 ## Compte-rendu réunion
 
-- Vendredi 23 janvier [Guide pre-commit](Documentation/reunion_construction/reunion1_23_01.md)
+- Vendredi 23 janvier [Réunion 1](Documentation/reunion_construction/reunion1_23_01.md)
