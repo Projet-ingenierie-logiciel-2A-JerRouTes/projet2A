@@ -1,4 +1,4 @@
-# 📦 Projet : Création d’un logiciel de gestion et recherche de recettes
+# Réunion 1 - Vendredi 23 janvier
 
 ______________________________________________________________________
 

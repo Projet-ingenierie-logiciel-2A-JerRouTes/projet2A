@@ -53,7 +53,7 @@ La base de données gère les entités principales du projet :
 - Relations utilisateur / stock
 
 📌 Diagramme de la base de données :
-![Diagramme](Documentation/Images/diagramme.drawio.png)
+![Diagramme](Documentation/Images/diagramme_bdd.drawio.png)
 
 ______________________________________________________________________
 
@@ -68,7 +68,7 @@ ______________________________________________________________________
 ## Informations techniques utiles
 
 - Pour le linting et le formatage automatique avant chaque commit:
-  [Guide pre-commit](Documentation/infos_divers/info_pre_commit.md)
+  [Guide pre-commit](Documentation/infos_divers/pour_pre_commit.md)
 
 ## Compte-rendu réunion
 
