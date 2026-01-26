@@ -2,6 +2,11 @@
 # Paramètres globaux
 # -------------------------------------------------
 
+include = [
+    "*.py",
+    "*.md",
+]
+
 # Longueur maximale d’une ligne (compatible avec Black)
 line-length = 88
 

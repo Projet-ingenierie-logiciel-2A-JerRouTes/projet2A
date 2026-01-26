@@ -1,0 +1,44 @@
+name: Run tests on changes
+
+on:
+  push:
+    paths:
+      - 'src/business_objects/user.py'
+      - 'src/business_objects/stock.py'
+  pull_request:
+    paths:
+      - 'src/business_objects/user.py'
+      - 'src/business_objects/stock.py'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.13
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Run tests
+        run: |
+          # si user.py a changé, lancer test_user.py
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q 'src/busness_objects/user.py'; then
+            echo "user.py modifié → tests/test_user.py"
+            pytest tests/test_user.py -v
+          fi
+
+          # si stock.py a changé, lancer test_stock.py
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q 'src/busness_objects/stock.py'; then
+            echo "stock.py modifié → tests/test_stock.py"
+            pytest tests/test_stock.py -v
+          fi

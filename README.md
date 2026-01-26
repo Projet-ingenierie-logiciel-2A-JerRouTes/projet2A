@@ -1,56 +1,77 @@
-# Projet 2A
+# 📦 Projet : Logiciel de gestion et de recherche de recettes
 
-## Analyse statique et qualité du code
+Ce projet a pour objectif de développer un logiciel de gestion et de recherche de recettes permettant à des utilisateurs de retrouver des recettes à partir des ingrédients dont ils disposent, tout en gérant un stock personnel et des contraintes alimentaires.
 
-Ce projet met en place des outils d’analyse statique afin d’améliorer la qualité,
-la cohérence et la maintenabilité du code Python.
+Le projet est réalisé dans le cadre du module de création logicielle et suit une approche structurée (architecture MVD, bonnes pratiques de développement, qualité du code).
 
-Les règles de linting et de formatting sont définies de manière centralisée
-et peuvent être appliquées automatiquement sur l’ensemble du projet.
+______________________________________________________________________
 
-### Outils
+## 🎯 Objectifs du projet
 
-- **Ruff**  
-  Utilisé comme linter et formatter pour Python.
+- Permettre la recherche de recettes à partir d’ingrédients disponibles
+- Gérer un stock d’ingrédients par utilisateur
+- Proposer une application multi-utilisateur
+- Mettre en place une architecture claire et évolutive
+- Respecter les conventions de développement Python (PEP 8)
 
-### Installation dans projet
+______________________________________________________________________
 
-```bash
-uv init
-uv sync
-uv add --dev ruff
-```
+## 🧩 Fonctionnalités
 
-### Utilisation
+- Fonctionnalités de base (Niveau 1)
+  - Ajout de recettes par utilisateur
+  - Ajout et gestion des ingrédients
+  - Recherche de recettes dont tous les ingrédients sont disponibles
+  - Gestion multi-utilisateur
+- Fonctionnalités avancées (Niveau 2)
+  - Recherche de recettes avec :
+    - Ajout dynamique d’ingrédients disponibles
+    - Restrictions (ingrédients exclus, calories, origine des recettes…)
+  - Gestion automatique du stock
+  - Ajout d’ingrédients via ticket de caisse
 
-#### Analyse statique (linting)
+______________________________________________________________________
 
-Analyser le code et afficher les problèmes détectés :
+## 🏗️ Architecture générale
 
-```bash
-uv run ruff check
-```
+L’application repose sur une architecture MVD (Modèle – Vue – Données) :
 
-Corriger automatiquement les problèmes simples :
+Interface utilisateur \<-> Métier \<-> Base de données
 
-```bash
-uv run ruff check --fix
-```
+- **Interface utilisateur** : interaction avec l’utilisateur
+- **Métier** : logique applicative et règles de gestion
+- **Base de données** : stockage des utilisateurs, recettes, ingrédients et stocks
 
-#### Formatage du code
+### 🗄️ Base de données
 
-Vérifier que le code respecte les règles de formatage :
+La base de données gère les entités principales du projet :
 
-```bash
-uv run ruff format --check
-```
+- Utilisateurs
+- Ingrédients
+- Stocks
+- Recettes
+- Relations utilisateur / stock
 
-Appliquer le formatage automatique :
+📌 Diagramme de la base de données :
+![Diagramme](Documentation/Images/diagramme_bdd.drawio.png)
 
-```bash
-uv run ruff format
-```
+______________________________________________________________________
 
-### Configuration
+### 🖥️ Interface utilisateur
 
-La configuration de Ruff est définie dans le fichier `ruff.toml` à la racine du projet.
+______________________________________________________________________
+
+### ⚙️ Modèle métier
+
+______________________________________________________________________
+
+## Informations techniques utiles
+
+- Pour le linting et le formatage automatique avant chaque commit:
+  [Guide pre-commit](Documentation/Infos_divers/pour_pre_commit.md)
+- Creation d'un workflows de test en cas de modification :
+  [Workflows test](Documentation/Infos_divers/worklows.md)
+
+## Compte-rendu réunion
+
+- Vendredi 23 janvier [Réunion 1](Documentation/reunion_construction/reunion1_23_01.md)
