@@ -74,7 +74,3 @@ class Admin(User):
     def change_admin_password(self, new_password: str):
         self.password = new_password
         print(f"Mot de passe admin {self.pseudo} modifié.")
-
-
-class Vide(User):
-    pass
