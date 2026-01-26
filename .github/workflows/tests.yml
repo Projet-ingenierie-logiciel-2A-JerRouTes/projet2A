@@ -3,12 +3,12 @@ name: Run tests on changes
 on:
   push:
     paths:
-      - 'src/busness_objects/user.py'
-      - 'src/busness_objects/stock.py'
+      - 'src/business_objects/user.py'
+      - 'src/business_objects/stock.py'
   pull_request:
     paths:
-      - 'src/busness_objects/user.py'
-      - 'src/busness_objects/stock.py'
+      - 'src/business_objects/user.py'
+      - 'src/business_objects/stock.py'
 
 jobs:
   test:
