@@ -69,6 +69,8 @@ ______________________________________________________________________
 
 - Pour le linting et le formatage automatique avant chaque commit:
   [Guide pre-commit](Documentation/Infos_divers/pour_pre_commit.md)
+- Creation d'un workflows de test en cas de modification :
+  [Workflows test](Documentation/Infos_divers/worklows.md)
 
 ## Compte-rendu réunion
 
