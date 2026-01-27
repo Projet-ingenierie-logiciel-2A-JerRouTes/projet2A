@@ -5,22 +5,25 @@ class Ingredient:
     """Objet métier représentant un ingrédient.
 
     Un ingrédient est caractérisé par :
+    - un id unique,
     - un nom,
     - une unité de mesure,
     - une liste optionnelle de tags permettant sa catégorisation.
 
 
     Attributs:
+        id_ingredient : Id unique de l'ingrédient.
         name (str): Nom de l'ingrédient (ex. "Farine", "Lait").
         unit (Unit): Unité de mesure associée à l'ingrédient.
         tags (list[str]): Liste optionnelle de tags décrivant
             l'ingrédient (ex. "bio", "sec", "frais").
     """
 
-    def __init__(self, name: str, unit: Unit, tags=None):
+    def __init__(self, id_ingredient: int, name: str, unit: Unit, tags=None):
         """Initialise une nouvelle instance d'Ingredient.
 
         Args:
+            id_ingredient (int) : Id de l'ingrédient.
             name (str): Nom de l'ingrédient.
             unit (Unit): Unité de mesure de l'ingrédient.
             tags (list[str], optionnel): Liste de tags associés à
@@ -36,6 +39,7 @@ class Ingredient:
         if not isinstance(unit, Unit):
             raise TypeError("unit doit être une instance de Unit")
 
+        self.id_ingredient = id_ingredient
         self.name = name
         self.unit = unit
         self.tags = tags if tags is not None else []
