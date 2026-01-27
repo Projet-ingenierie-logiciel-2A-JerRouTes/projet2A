@@ -1,12 +1,18 @@
 [project]
 name = "projet2a"
 version = "0.1.0"
-description = "Add your description here"
+description = "Gestionnaire de stock"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = []
 
-[dependency-groups]
-dev = [
-    "ruff>=0.14.13",
-]
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]  # pour que pytest trouve les modules
+
+[tool.ruff]
+src = ["."] # pour se placer a la racine du projet (sinon ["src"])

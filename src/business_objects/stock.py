@@ -1,52 +1,96 @@
-class Stock:
-    """
-    Classe représentant le stock d'un utilisateur.
+from collections import defaultdict
+from datetime import date
 
-    Attributs :
-        ingredients (dict) : clé = nom de l'ingrédient, valeur = quantité disponible
+from src.business_objects.ingredient import Ingredient
+from src.business_objects.lot import Lot
+
+
+class Stock:
+    """Gestionnaire de l'inventaire des ingrédients.
+
+    Attributs:
+        ingredients_by_name (dict[str, list[Lot]]): Dictionnaire trié par date de péremption.
     """
 
     def __init__(self):
-        # Stock initial vide
-        self.ingredients: dict[str, float] = {}
+        """Initialise un stock vide."""
+        self.ingredients_by_name: dict[str, list[Lot]] = defaultdict(list)
 
     # -------------------------------------------------
     # Méthodes de gestion du stock
     # -------------------------------------------------
 
-    def add_ingredient(self, name: str, quantity: float):
-        """Ajoute un ingrédient au stock ou augmente sa quantité si déjà présent."""
-        if name in self.ingredients:
-            self.ingredients[name] += quantity
-        else:
-            self.ingredients[name] = quantity
-        print(f"{quantity} {name} ajouté(s). Nouveau total : {self.ingredients[name]}")
+    def add_ingredient(
+        self, ingredient: Ingredient, quantity: float, expiry_date: date
+    ):
+        """Ajoute un nouveau lot au stock après validation des données.
 
-    def remove_ingredient(self, name: str, quantity: float):
-        """Retire une quantité d'ingrédient. Supprime l'ingrédient si la quantité tombe à 0."""
-        if name not in self.ingredients:
-            print(f"{name} n'est pas présent dans le stock.")
-            return
+        Args:
+            ingredient (Ingredient): L'ingrédient à ajouter.
+            quantity (float): La quantité à intégrer.
+            expiry_date (date): La date de péremption du lot.
 
-        if quantity >= self.ingredients[name]:
-            del self.ingredients[name]
-            print(f"{name} supprimé du stock.")
-        else:
-            self.ingredients[name] -= quantity
-            print(
-                f"{quantity} {name} retiré(s). Nouveau total : {self.ingredients[name]}"
+        Raises:
+            TypeError ou ValueError: Si les données du lot sont invalides.
+        """
+        # La validation est déléguée au constructeur de Lot
+        new_lot = Lot(ingredient, quantity, expiry_date)
+
+        self.ingredients_by_name[ingredient.name].append(new_lot)
+        self.ingredients_by_name[ingredient.name].sort(key=lambda x: x.expiry_date)
+
+    def get_total_quantity(self, name: str) -> float:
+        """Calcule la quantité totale disponible pour un ingrédient donné.
+
+        Args:
+            name (str): Nom de l'ingrédient.
+
+        Returns:
+            float: La somme des quantités.
+        """
+        if not isinstance(name, str):
+            raise TypeError(
+                "Le nom de l'ingrédient doit être une chaîne de caractères."
             )
 
-    def update_quantity(self, name: str, quantity: float):
-        """Met à jour la quantité d'un ingrédient, ajoute s'il n'existe pas."""
-        self.ingredients[name] = quantity
-        print(f"Quantité de {name} mise à jour à {quantity}.")
+        return sum(lot.quantity for lot in self.ingredients_by_name.get(name, []))
 
-    def has_ingredient(self, name: str, quantity: float) -> bool:
-        """Vérifie si le stock contient au moins la quantité demandée."""
-        return self.ingredients.get(name, 0) >= quantity
+    def remove_quantity(self, name: str, quantity_to_consume: float):
+        """Consomme une quantité d'ingrédient selon la méthode FEFO.
 
-    def list_ingredients(self):
-        """Affiche tous les ingrédients et leurs quantités."""
-        for name, qty in self.ingredients.items():
-            print(f"{name}: {qty}")
+        Args:
+            name (str): Nom de l'ingrédient à retirer.
+            quantity_to_consume (float): Quantité à déduire (doit être > 0).
+
+        Raises:
+            TypeError: Si la quantité n'est pas un nombre.
+            ValueError: Si la quantité est <= 0 ou si le stock est insuffisant.
+        """
+        if not isinstance(quantity_to_consume, (int, float)):
+            raise TypeError("La quantité à consommer doit être un nombre.")
+
+        if quantity_to_consume <= 0:
+            raise ValueError("La quantité à consommer doit être strictement positive.")
+
+        total_available = self.get_total_quantity(name)
+
+        if quantity_to_consume > total_available:
+            raise ValueError(
+                f"Stock insuffisant pour {name} : demande {quantity_to_consume}, disponible {total_available}."
+            )
+
+        lots = self.ingredients_by_name[name]
+
+        while quantity_to_consume > 0 and lots:
+            current_lot = lots[0]
+
+            if current_lot.quantity > quantity_to_consume:
+                current_lot.quantity -= quantity_to_consume
+                quantity_to_consume = 0
+            else:
+                quantity_to_consume -= current_lot.quantity
+                lots.pop(0)
+
+    # -------------------------------------------------
+    # Méthodes de recherche de recette
+    # -------------------------------------------------
