@@ -8,26 +8,30 @@ class Ingredient:
     - un id unique,
     - un nom,
     - une unité de mesure,
-    - une liste optionnelle de tags permettant sa catégorisation.
-
+    - une liste optionnelle d'identifiants de tags permettant sa catégorisation.
 
     Attributs:
-        id_ingredient : Id unique de l'ingrédient.
+        id_ingredient (int): Id unique de l'ingrédient.
         name (str): Nom de l'ingrédient (ex. "Farine", "Lait").
         unit (Unit): Unité de mesure associée à l'ingrédient.
-        tags (list[str]): Liste optionnelle de tags décrivant
-            l'ingrédient (ex. "bio", "sec", "frais").
+        id_tags (list[int]): Liste optionnelle d'identifiants de tags.
     """
 
-    def __init__(self, id_ingredient: int, name: str, unit: Unit, tags=None):
+    def __init__(
+        self,
+        id_ingredient: int,
+        name: str,
+        unit: Unit,
+        id_tags: list[int] | None = None,
+    ):
         """Initialise une nouvelle instance d'Ingredient.
 
         Args:
-            id_ingredient (int) : Id de l'ingrédient.
+            id_ingredient (int): Id de l'ingrédient.
             name (str): Nom de l'ingrédient.
             unit (Unit): Unité de mesure de l'ingrédient.
-            tags (list[str], optionnel): Liste de tags associés à
-                l'ingrédient. Par défaut, une liste vide est utilisée.
+            id_tags (list[int], optionnel): Liste d'identifiants de tags.
+                Par défaut, une liste vide est utilisée.
 
         Raises:
             ValueError: Si le nom est vide.
@@ -42,34 +46,34 @@ class Ingredient:
         self.id_ingredient = id_ingredient
         self.name = name
         self.unit = unit
-        self.tags = tags if tags is not None else []
+        self.id_tags = id_tags if id_tags is not None else []
 
-    def add_tag(self, tag: str):
-        """Ajoute un tag à l'ingrédient s'il n'existe pas déjà.
-
-        Args:
-            tag (str): Tag à ajouter.
-        """
-
-        tag = tag.lower()
-        if tag not in self.tags:
-            self.tags.append(tag)
-
-    def remove_tag(self, tag: str):
-        """Supprime un tag de l'ingrédient s'il est présent.
+    def add_id_tag(self, id_tag: int):
+        """Ajoute un identifiant de tag à l'ingrédient s'il n'existe pas déjà.
 
         Args:
-            tag (str): Tag à supprimer.
+            id_tag (int): Identifiant du tag à ajouter.
         """
+        if not isinstance(id_tag, int):
+            raise TypeError("id_tag doit être un entier")
 
-        tag = tag.lower()
-        if tag in self.tags:
-            self.tags.remove(tag)
+        if id_tag not in self.id_tags:
+            self.id_tags.append(id_tag)
+
+    def remove_id_tag(self, id_tag: int):
+        """Supprime un identifiant de tag de l'ingrédient s'il est présent.
+
+        Args:
+            id_tag (int): Identifiant du tag à supprimer.
+        """
+        if id_tag in self.id_tags:
+            self.id_tags.remove(id_tag)
 
     def __repr__(self):
         """Retourne une représentation textuelle destinée au debug."""
         return (
-            f"Ingredient(name='{self.name}', "
+            f"Ingredient(id_ingredient={self.id_ingredient}, "
+            f"name='{self.name}', "
             f"unit='{self.unit.value}', "
-            f"tags={self.tags})"
+            f"id_tags={self.id_tags})"
         )
