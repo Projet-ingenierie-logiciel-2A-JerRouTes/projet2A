@@ -1,3 +1,8 @@
+# Retirer étapes
+# Modifier is_status en print_status
+# Ajouter afficher_recette, __str__, changer_statut
+
+
 class Recipe:
     """
     Represents a cooking recipe.
@@ -20,7 +25,7 @@ class Recipe:
         creator_id: int,
         status: str,
         prep_time: int,
-        portions: int
+        portions: int,
     ):
         """
         Initializes a Recipe instance.
@@ -91,10 +96,7 @@ class Recipe:
         :param description: Localized description of the recipe
         """
 
-        self.translations[language_code] = {
-            "name": name,
-            "description": description
-        }
+        self.translations[language_code] = {"name": name, "description": description}
 
     def is_public(self) -> bool:
         """
@@ -124,4 +126,3 @@ class Recipe:
         ]
 
         self.portions = new_portions
-        

@@ -22,31 +22,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout code  # Récupération du code et copie sur machine virtuelle de GitHub
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Set up Python # Installation de Python avec version donnée
         uses: actions/setup-python@v4
         with:
           python-version: 3.13
 
-      - name: Install dependencies
+      - name: Install dependencies # Instalation des même dépendances que dans le projet
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt || true
-          pip install -e .
+          pip install -r requirements.txt || true  # gère si fichier absent ou vide
+          pip install -e . # passage du projet en mode éditable
 
       - name: Run targeted tests
-        run: |
+        run: |  # script bash d'éxécution 
           echo "=== Détection des fichiers modifiés ==="
-          # Liste des fichiers modifiés dans business_objects/
+          # Liste des fichiers modifiés dans business_objects/ renvoie True si aucune modification
           FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^src/business_objects/' || true)
 
+          #  Traitement si aucune modification trouvée
           if [ -z "$FILES" ]; then
             echo "Aucun fichier modifié dans business_objects/, tests ignorés."
             exit 0
           fi
 
+          # Affichage du nom des fichiers modifier
           echo "Fichiers modifiés :"
           echo "$FILES"
           echo

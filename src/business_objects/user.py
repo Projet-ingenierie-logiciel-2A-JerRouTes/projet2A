@@ -1,6 +1,10 @@
 from abc import ABC, abstractmethod
 
 
+# Ajouter __str__ pour test et log
+# modif nom dans display_role
+
+
 class User(ABC):
     """
     Classe abstraite représentant un utilisateur.
@@ -70,7 +74,3 @@ class Admin(User):
 
     def display_role(self) -> str:
         return "Admin"
-
-    def change_admin_password(self, new_password: str):
-        self.password = new_password
-        print(f"Mot de passe admin {self.pseudo} modifié.")

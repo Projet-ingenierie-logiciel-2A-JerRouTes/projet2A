@@ -5,6 +5,11 @@ from src.business_objects.ingredient import Ingredient
 from src.business_objects.lot import Lot
 
 
+# Attention modification nom Lot
+# ajouter nom + id_stock
+# Modifier lot en id_lot
+
+
 class Stock:
     """Gestionnaire de l'inventaire des ingrédients.
 
@@ -14,7 +19,7 @@ class Stock:
 
     def __init__(self):
         """Initialise un stock vide."""
-        self.ingredients_by_name: dict[str, list[Lot]] = defaultdict(list)
+        self.ingredients_by_name: dict[list[Lot]] = defaultdict(list)
 
     # -------------------------------------------------
     # Méthodes de gestion du stock
@@ -91,6 +96,8 @@ class Stock:
                 quantity_to_consume -= current_lot.quantity
                 lots.pop(0)
 
+    # find substitute ou dans recette ou classe à part
+
     # -------------------------------------------------
-    # Méthodes de recherche de recette
+    # Méthodes de recherche de recette -> classe à part
     # -------------------------------------------------

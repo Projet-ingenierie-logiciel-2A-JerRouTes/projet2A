@@ -3,6 +3,10 @@ from datetime import date
 from src.business_objects.ingredient import Ingredient
 
 
+# A modifier nom stock_item
+# modifier ingredient en id_ingredient + ajout id_lot
+
+
 class Lot:
     """Objet métier représentant un lot d'ingrédient spécifique.
 
