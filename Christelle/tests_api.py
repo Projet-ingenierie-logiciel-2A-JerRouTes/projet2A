@@ -1,11 +1,16 @@
+import os
+
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 import httpx
 
 
+load_dotenv()
+
 app = FastAPI()
 
 # Remplacez par votre véritable clé API Spoonacular
-API_KEY = "5b11479bd04e455da1a95a117681bc5e"
+API_KEY = os.getenv("API_KEY")
 BASE_URL = "https://api.spoonacular.com/recipes/findByIngredients"
 
 
