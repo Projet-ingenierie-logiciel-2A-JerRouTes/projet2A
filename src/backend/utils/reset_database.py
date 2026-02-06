@@ -10,7 +10,7 @@ from unittest import mock
 
 from utils.log_decorator import log
 from utils.singleton import Singleton
-from backend.dao.db_connection import DBConnection
+from dao.db_connection import DBConnection
 
 
 class ResetDatabase(metaclass=Singleton):

@@ -2,10 +2,10 @@
 -- INSERT : Users
 -----------------------------------------------------
 
-INSERT INTO app_user (username, email, password_hash, status) VALUES
-('admin', 'admin@mail.com', 'hashed_password_admin', 'admin'),
-('alice', 'alice@mail.com', 'hashed_password_alice', 'user'),
-('bob', 'bob@mail.com', 'hashed_password_bob', 'user');
+INSERT INTO users (username, email, password_hash, status) VALUES
+('admin', 'admin@mail.com', 'mdpAdmin123', 'admin'),
+('alice', 'alice@mail.com', 'mdpAlice123', 'user'),
+('bob', 'bob@mail.com', 'mdpBob123', 'user');
 
 -----------------------------------------------------
 -- INSERT : Stock

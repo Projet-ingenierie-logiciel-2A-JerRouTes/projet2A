@@ -1,3 +1,4 @@
+
 -----------------------------------------------------
 -- TYPE : User Status
 -----------------------------------------------------
@@ -9,8 +10,8 @@ CREATE TYPE user_status AS ENUM ('admin', 'user');
 -- TABLE : User
 -----------------------------------------------------
 
-DROP TABLE IF EXISTS user CASCADE;
-CREATE TABLE user (
+DROP TABLE IF EXISTS users CASCADE;
+CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     username VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -47,7 +48,7 @@ CREATE TABLE ingredient (
 DROP TABLE IF EXISTS recipe CASCADE;
 CREATE TABLE recipe (
     recipe_id SERIAL PRIMARY KEY,
-    fk_user_id INT REFERENCES user(user_id) ON DELETE SET NULL,
+    fk_user_id INT REFERENCES users(user_id) ON DELETE SET NULL,
     name VARCHAR(150) NOT NULL,
     status VARCHAR(50),
     prep_time INT CHECK (prep_time >= 0),          -- temps de préparation en minutes
@@ -75,7 +76,7 @@ CREATE TABLE user_stock (
     fk_user_id INT NOT NULL,
     fk_stock_id INT NOT NULL,
     PRIMARY KEY (fk_user_id, fk_stock_id),
-    FOREIGN KEY (fk_user_id) REFERENCES user(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (fk_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (fk_stock_id) REFERENCES stock(stock_id) ON DELETE CASCADE
 );
 
