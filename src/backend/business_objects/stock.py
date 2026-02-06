@@ -1,103 +1,77 @@
 from collections import defaultdict
 from datetime import date
 
-from src.business_objects.ingredient import Ingredient
-from src.business_objects.lot import Lot
-
-
-# Attention modification nom Lot
-# ajouter nom + id_stock
-# Modifier lot en id_lot
+from src.backend.business_objects.stockItem import StockItem
 
 
 class Stock:
-    """Gestionnaire de l'inventaire des ingrédients.
+    """Gestionnaire de l'inventaire des ingrédients (Entrepôt).
 
     Attributs:
-        ingredients_by_name (dict[str, list[Lot]]): Dictionnaire trié par date de péremption.
+        id_stock (int): Identifiant unique du stock (ex: Stock Central, Stock Cuisine).
+        nom (str): Nom du stock.
+        items_by_ingredient (dict[int, list[StockItem]]): Dictionnaire indexé par id_ingredient.
     """
 
-    def __init__(self):
-        """Initialise un stock vide."""
-        self.ingredients_by_name: dict[list[Lot]] = defaultdict(list)
+    def __init__(self, id_stock: int, nom: str):
+        """Initialise un stock avec un nom et un ID."""
+        self.id_stock = id_stock
+        self.nom = nom
+        # On indexe par id_ingredient pour plus de cohérence avec la BDD
+        self.items_by_ingredient = defaultdict(list)
 
     # -------------------------------------------------
     # Méthodes de gestion du stock
     # -------------------------------------------------
 
-    def add_ingredient(
-        self, ingredient: Ingredient, quantity: float, expiry_date: date
+    def add_item(
+        self, id_ingredient: int, id_lot: int, quantity: float, expiry_date: date
     ):
-        """Ajoute un nouveau lot au stock après validation des données.
+        """Crée et ajoute un StockItem au stock, puis trie par date de péremption (FEFO)."""
 
-        Args:
-            ingredient (Ingredient): L'ingrédient à ajouter.
-            quantity (float): La quantité à intégrer.
-            expiry_date (date): La date de péremption du lot.
+        # On délègue la validation au constructeur de StockItem
+        new_item = StockItem(id_ingredient, id_lot, quantity, expiry_date)
 
-        Raises:
-            TypeError ou ValueError: Si les données du lot sont invalides.
-        """
-        # La validation est déléguée au constructeur de Lot
-        new_lot = Lot(ingredient, quantity, expiry_date)
+        self.items_by_ingredient[id_ingredient].append(new_item)
+        # Tri automatique pour que le prochain lot à périmer soit toujours à l'index 0
+        self.items_by_ingredient[id_ingredient].sort(key=lambda x: x.expiry_date)
 
-        self.ingredients_by_name[ingredient.name].append(new_lot)
-        self.ingredients_by_name[ingredient.name].sort(key=lambda x: x.expiry_date)
+        print(
+            f"Ajout au stock '{self.nom}': {quantity} de l'ingrédient {id_ingredient}."
+        )
 
-    def get_total_quantity(self, name: str) -> float:
-        """Calcule la quantité totale disponible pour un ingrédient donné.
+    def get_total_quantity(self, id_ingredient: int) -> float:
+        """Calcule la quantité totale disponible pour un ingrédient (tous lots confondus)."""
+        return sum(
+            item.quantity for item in self.items_by_ingredient.get(id_ingredient, [])
+        )
 
-        Args:
-            name (str): Nom de l'ingrédient.
-
-        Returns:
-            float: La somme des quantités.
-        """
-        if not isinstance(name, str):
-            raise TypeError(
-                "Le nom de l'ingrédient doit être une chaîne de caractères."
-            )
-
-        return sum(lot.quantity for lot in self.ingredients_by_name.get(name, []))
-
-    def remove_quantity(self, name: str, quantity_to_consume: float):
-        """Consomme une quantité d'ingrédient selon la méthode FEFO.
-
-        Args:
-            name (str): Nom de l'ingrédient à retirer.
-            quantity_to_consume (float): Quantité à déduire (doit être > 0).
-
-        Raises:
-            TypeError: Si la quantité n'est pas un nombre.
-            ValueError: Si la quantité est <= 0 ou si le stock est insuffisant.
-        """
-        if not isinstance(quantity_to_consume, (int, float)):
-            raise TypeError("La quantité à consommer doit être un nombre.")
+    def remove_quantity(self, id_ingredient: int, quantity_to_consume: float):
+        """Consomme la quantité demandée en suivant la méthode FEFO."""
 
         if quantity_to_consume <= 0:
             raise ValueError("La quantité à consommer doit être strictement positive.")
 
-        total_available = self.get_total_quantity(name)
+        total_available = self.get_total_quantity(id_ingredient)
 
         if quantity_to_consume > total_available:
             raise ValueError(
-                f"Stock insuffisant pour {name} : demande {quantity_to_consume}, disponible {total_available}."
+                f"Stock insuffisant (Ingrédient {id_ingredient}) : "
+                f"demande {quantity_to_consume}, disponible {total_available}."
             )
 
-        lots = self.ingredients_by_name[name]
+        items = self.items_by_ingredient[id_ingredient]
 
-        while quantity_to_consume > 0 and lots:
-            current_lot = lots[0]
+        # Logique de consommation FEFO
+        while quantity_to_consume > 0 and items:
+            current_item = items[0]
 
-            if current_lot.quantity > quantity_to_consume:
-                current_lot.quantity -= quantity_to_consume
+            if current_item.quantity > quantity_to_consume:
+                current_item.quantity -= quantity_to_consume
                 quantity_to_consume = 0
             else:
-                quantity_to_consume -= current_lot.quantity
-                lots.pop(0)
+                quantity_to_consume -= current_item.quantity
+                items.pop(0)  # Le lot est vide, on le retire du stock
 
-    # find substitute ou dans recette ou classe à part
-
-    # -------------------------------------------------
-    # Méthodes de recherche de recette -> classe à part
-    # -------------------------------------------------
+    def __repr__(self) -> str:
+        return f"Stock(id={self.id_stock}, nom='{self.nom}', nb_ingredients={len(self.items_by_ingredient)})"
