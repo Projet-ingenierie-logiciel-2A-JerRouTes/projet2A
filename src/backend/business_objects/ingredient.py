@@ -2,11 +2,19 @@ from src.backend.business_objects.unit import Unit
 
 
 class Ingredient:
-    """
-    Représente un ingrédient de base utilisé dans les recettes.
+    """Objet métier représentant un ingrédient.
 
-    Cette classe définit les propriétés fondamentales d'un produit (nom, unité)
-    et gère sa catégorisation via un système d'identifiants de tags.
+    Un ingrédient est caractérisé par :
+    - un id unique,
+    - un nom,
+    - une unité de mesure,
+    - une liste optionnelle d'identifiants de tags permettant sa catégorisation.
+
+    Attributs:
+        id_ingredient (int): Id unique de l'ingrédient.
+        name (str): Nom de l'ingrédient (ex. "Farine", "Lait").
+        unit (Unit): Unité de mesure associée à l'ingrédient.
+        id_tags (list[int]): Liste optionnelle d'identifiants de tags.
     """
 
     def __init__(
@@ -16,75 +24,56 @@ class Ingredient:
         unit: Unit,
         id_tags: list[int] | None = None,
     ):
-        """
-        Initialise une instance d'Ingredient avec validations de type.
+        """Initialise une nouvelle instance d'Ingredient.
 
-        :param id_ingredient: Identifiant unique de l'ingrédient
-        :param name: Nom de l'ingrédient (ex: "Farine")
-        :param unit: Unité de mesure (instance de l'Enum Unit)
-        :param id_tags: Liste d'identifiants de tags (optionnel)
+        Args:
+            id_ingredient (int): Id de l'ingrédient.
+            name (str): Nom de l'ingrédient.
+            unit (Unit): Unité de mesure de l'ingrédient.
+            id_tags (list[int], optionnel): Liste d'identifiants de tags.
+                Par défaut, une liste vide est utilisée.
 
-        :raises ValueError: Si le nom est vide
-        :raises TypeError: Si l'unité n'est pas une instance de Unit
+        Raises:
+            ValueError: Si le nom est vide.
+            TypeError: Si l'unité n'est pas une instance de Unit.
         """
-        if not name or name.strip() == "":
-            raise ValueError("Le nom de l'ingrédient ne peut pas être vide.")
+        if not name:
+            raise ValueError("Le nom de l'ingrédient ne peut pas être vide")
 
         if not isinstance(unit, Unit):
-            raise TypeError("L'argument 'unit' doit être une instance de Unit.")
+            raise TypeError("unit doit être une instance de Unit")
 
-        # --- Attributs ---
-        self._id_ingredient = id_ingredient
+        self.id_ingredient = id_ingredient
         self.name = name
         self.unit = unit
         self.id_tags = id_tags if id_tags is not None else []
 
-    @property
-    def id_ingredient(self) -> int:
-        """L'identifiant BDD est en lecture seule."""
-        return self._id_ingredient
-
-    # -------------------------------------------------
-    # Méthodes de gestion
-    # -------------------------------------------------
-
     def add_id_tag(self, id_tag: int):
-        """
-        Ajoute un identifiant de tag à l'ingrédient s'il n'existe pas déjà.
+        """Ajoute un identifiant de tag à l'ingrédient s'il n'existe pas déjà.
 
-        :param id_tag: Identifiant du tag à ajouter
-        :raises TypeError: Si id_tag n'est pas un entier
+        Args:
+            id_tag (int): Identifiant du tag à ajouter.
         """
         if not isinstance(id_tag, int):
-            raise TypeError("id_tag doit être un entier.")
+            raise TypeError("id_tag doit être un entier")
 
         if id_tag not in self.id_tags:
             self.id_tags.append(id_tag)
 
     def remove_id_tag(self, id_tag: int):
-        """
-        Supprime un identifiant de tag de l'ingrédient.
+        """Supprime un identifiant de tag de l'ingrédient s'il est présent.
 
-        :param id_tag: Identifiant du tag à supprimer
+        Args:
+            id_tag (int): Identifiant du tag à supprimer.
         """
         if id_tag in self.id_tags:
             self.id_tags.remove(id_tag)
 
-    # -------------------------------------------------
-    # Méthodes d'affichage
-    # -------------------------------------------------
-
-    def __str__(self) -> str:
-        """
-        Retourne une représentation lisible de l'ingrédient.
-        """
-        return f"{self.name} (Unité: {self.unit.value})"
-
-    def __repr__(self) -> str:
-        """
-        Retourne une représentation technique destinée au debug.
-        """
+    def __repr__(self):
+        """Retourne une représentation textuelle destinée au debug."""
         return (
-            f"Ingredient(id={self._id_ingredient}, name='{self.name}', "
-            f"unit='{self.unit.value}', tags={self.id_tags})"
+            f"Ingredient(id_ingredient={self.id_ingredient}, "
+            f"name='{self.name}', "
+            f"unit='{self.unit.value}', "
+            f"id_tags={self.id_tags})"
         )
