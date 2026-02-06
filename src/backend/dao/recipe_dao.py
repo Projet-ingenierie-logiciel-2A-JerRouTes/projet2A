@@ -512,3 +512,123 @@ class RecipeDAO:
         finally:
             if should_close:
                 cur.close()
+
+    # ---------------------------------------------------------------------
+    # Recherche : Pour le service
+    # ---------------------------------------------------------------------
+
+    @log
+    def find_recipes_by_ingredients(
+        self,
+        ingredients: list[str],
+        *,
+        limit: int = 10,
+        max_missing: int = 0,
+        strict_only: bool = False,
+        dish_type: str | None = None,
+        # ignore_pantry: bool = True,  # gardé pour compat, non utilisé sans table pantry
+    ) -> list[Recipe]:
+        """
+        Recherche de recettes par ingrédients (approximative).
+        - ingredients: liste de chaînes (noms d'ingrédients)
+        - max_missing: tolérance (0 = strict)
+        - strict_only: si True, force max_missing=0
+        - dish_type: si fourni, filtre par tag (ex: "dessert")
+        """
+
+        ings = [s.strip() for s in ingredients if s and s.strip()]
+        if not ings:
+            return []
+
+        limit = max(1, min(int(limit), 200))
+        max_missing = max(0, int(max_missing))
+        if strict_only:
+            max_missing = 0
+
+        # On match chaque terme avec ILIKE %term%
+        like_terms = [f"%{s}%" for s in ings]
+        n_terms = len(like_terms)
+
+        tag_join = ""
+        tag_where = ""
+        params: list[Any] = []
+
+        if dish_type:
+            # Filtre sur tag.name (ex: dessert)
+            tag_join = """
+            JOIN recipe_tag rt_filter ON rt_filter.fk_recipe_id = r.recipe_id
+            JOIN tag t_filter ON t_filter.tag_id = rt_filter.fk_tag_id
+            """
+            tag_where = "AND t_filter.name ILIKE %s"
+            params.append(f"%{dish_type}%")
+
+        conn = DBConnection().connection
+        with conn.cursor() as cur:
+            # 1) Trouver les recipes + matched_count
+            # matched_count = nombre d'ingrédients distincts de la requête présents dans la recette
+            # On compte un terme comme "matched" si la recette a au moins un ingrédient
+            # dont le nom matche ce terme.
+            cur.execute(
+                f"""
+                WITH matched AS (
+                    SELECT
+                        r.recipe_id,
+                        COUNT(DISTINCT q.term) AS matched_count
+                    FROM recipe r
+                    {tag_join}
+                    JOIN recipe_ingredient ri ON ri.fk_recipe_id = r.recipe_id
+                    JOIN ingredient i ON i.ingredient_id = ri.fk_ingredient_id
+                    JOIN (
+                        SELECT UNNEST(%s::text[]) AS term
+                    ) q ON i.name ILIKE q.term
+                    WHERE 1=1
+                    {tag_where}
+                    GROUP BY r.recipe_id
+                )
+                SELECT
+                    r.recipe_id,
+                    r.fk_user_id,
+                    r.name,
+                    r.status,
+                    r.prep_time,
+                    r.portion,
+                    r.description,
+                    r.created_at,
+                    m.matched_count
+                FROM matched m
+                JOIN recipe r ON r.recipe_id = m.recipe_id
+                WHERE (%s - m.matched_count) <= %s
+                ORDER BY m.matched_count DESC, r.created_at DESC, r.recipe_id DESC
+                LIMIT %s
+                """,
+                (
+                    like_terms,  # %s::text[]
+                    *params,  # éventuellement dish_type
+                    n_terms,  # %s (nb termes)
+                    max_missing,  # %s (tolérance)
+                    limit,  # %s (limit)
+                ),
+            )
+
+            rows = cur.fetchall()
+
+            # 2) Construire les Recipe (avec relations)
+            recipes: list[Recipe] = []
+            for r in rows:
+                row = RecipeRow(
+                    recipe_id=int(r["recipe_id"]),
+                    fk_user_id=r["fk_user_id"],
+                    name=str(r["name"]),
+                    status=r["status"],
+                    prep_time=r["prep_time"],
+                    portion=r["portion"],
+                    description=r["description"],
+                    created_at=r["created_at"],
+                )
+                ingredients_rel = self.get_recipe_ingredients(row.recipe_id, cursor=cur)
+                tags_rel = self.get_recipe_tags(row.recipe_id, cursor=cur)
+                recipes.append(
+                    self._row_to_bo(row, ingredients=ingredients_rel, tags=tags_rel)
+                )
+
+            return recipes
