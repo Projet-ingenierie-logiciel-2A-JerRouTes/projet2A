@@ -11,8 +11,8 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["src"]  # pour que pytest trouve les modules
+pythonpath = ["."] # pour que pytest trouve les modules
+testpaths = ["src/tests"]  
 
 [tool.ruff]
 src = ["."] # pour se placer a la racine du projet (sinon ["src"])
