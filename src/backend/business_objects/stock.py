@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import date
 
-from src.backend.business_objects.stockItem import StockItem
+from src.backend.business_objects.stock_item import StockItem
 
 
 class Stock:
