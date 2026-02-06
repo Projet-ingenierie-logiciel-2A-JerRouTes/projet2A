@@ -2,7 +2,7 @@
 -- INSERT : Users
 -----------------------------------------------------
 
-INSERT INTO app_user (username, email, password_hash, status) VALUES
+INSERT INTO users (username, email, password_hash, status) VALUES
 ('admin', 'admin@mail.com', 'hashed_password_admin', 'admin'),
 ('alice', 'alice@mail.com', 'hashed_password_alice', 'user'),
 ('bob', 'bob@mail.com', 'hashed_password_bob', 'user');

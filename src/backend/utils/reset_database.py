@@ -1,7 +1,7 @@
 import os
 import sys
 
-# Ajoute automatiquement le dossier parent (src/) au PYTHONPATH
+# Ajoute autohttps://github.com/Projet-ingenierie-logiciel-2A-JerRouTes/projet2Amatiquement le dossier parent (src/) au PYTHONPATH
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 import logging
