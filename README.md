@@ -76,3 +76,17 @@ ______________________________________________________________________
 
 - Vendredi 23 janvier [Réunion 1](Documentation/reunion_construction/reunion1_23_01.md)
 - Vendredi 30 janvier [Réunion 2](Documentation/reunion_construction/reunion2_30_01.md)
+
+
+## Elements du .env
+
+PYTHONPATH=src
+
+POSTGRES_HOST=
+POSTGRES_PORT=
+POSTGRES_DATABASE=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+
+POSTGRES_SCHEMA=projet_test_dao
+
