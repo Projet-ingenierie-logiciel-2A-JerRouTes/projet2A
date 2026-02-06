@@ -1,16 +1,18 @@
 import os
 import sys
 
+
 # Ajoute autohttps://github.com/Projet-ingenierie-logiciel-2A-JerRouTes/projet2Amatiquement le dossier parent (src/) au PYTHONPATH
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 import logging
-import dotenv
 from unittest import mock
 
-from utils.log_decorator import log
-from utils.singleton import Singleton
-from dao.db_connection import DBConnection
+import dotenv
+
+from backend.dao.db_connection import DBConnection
+from src.backend.utils.log_decorator import log
+from src.backend.utils.singleton import Singleton
 
 
 class ResetDatabase(metaclass=Singleton):
@@ -40,7 +42,9 @@ class ResetDatabase(metaclass=Singleton):
         """Exécute le drop / create du schéma et les scripts SQL"""
         print(f" Initialisation du schéma : {schema}")
 
-        create_schema = f"DROP SCHEMA IF EXISTS {schema} CASCADE; CREATE SCHEMA {schema};"
+        create_schema = (
+            f"DROP SCHEMA IF EXISTS {schema} CASCADE; CREATE SCHEMA {schema};"
+        )
 
         with open("data/init_db.sql", encoding="utf-8") as f:
             init_db_as_string = f.read()
@@ -59,13 +63,14 @@ class ResetDatabase(metaclass=Singleton):
                 connection.commit()
 
             print(f"Schéma {schema} réinitialisé avec succès !\n")
-        except Exception as e:
-            logging.exception(f"Erreur lors de la réinitialisation du schéma {schema} :")
+        except Exception:
+            logging.exception(
+                f"Erreur lors de la réinitialisation du schéma {schema} :"
+            )
             raise
 
 
 if __name__ == "__main__":
     resetter = ResetDatabase()
     resetter.lancer(False)  # Schéma principal : projet_dao
-    resetter.lancer(True)   # Schéma de test : projet_test_dao
-    
+    resetter.lancer(True)  # Schéma de test : projet_test_dao

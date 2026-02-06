@@ -1,9 +1,10 @@
 import os
+
 import dotenv
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from utils.singleton import Singleton
+from src.backend.utils.singleton import Singleton
 
 
 class DBConnection(metaclass=Singleton):
@@ -35,7 +36,6 @@ class DBConnection(metaclass=Singleton):
         """Retourne la connexion PostgreSQL active."""
         return self.__connection
 
-    def getConnexion(self):
+    def get_connexion(self):
         """Alias pour compatibilité."""
         return self.__connection
-    
