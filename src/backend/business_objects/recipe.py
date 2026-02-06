@@ -1,22 +1,10 @@
-# Retirer étapes
-# Modifier is_status en print_status
-# Ajouter afficher_recette, __str__, changer_statut
-
-
 class Recipe:
     """
-    Represents a cooking recipe.
+    Représente une recette de cuisine.
 
-    This class models the core business logic of a recipe, independently
-    of any database or persistence layer. It stores structural data
-    (status, preparation time, portions) as well as relationships
-    to ingredients, steps, tags, and translations.
-
-    A Recipe:
-    - is created by a single user
-    - can have multiple ingredients with quantities
-    - can be described in multiple languages
-    - can be scaled to a different number of portions
+    Cette classe modélise la logique métier d'une recette, indépendamment
+    de la persistance. Elle gère les caractéristiques de base (portions, temps),
+    les ingrédients associés, ainsi que les traductions en plusieurs langues.
     """
 
     def __init__(
@@ -28,101 +16,118 @@ class Recipe:
         portions: int,
     ):
         """
-        Initializes a Recipe instance.
+        Initialise une instance de Recipe avec validations.
 
-        :param recipe_id: Unique identifier of the recipe
-        :param creator_id: Identifier of the user who created the recipe
-        :param status: Current status of the recipe
-                       (e.g. 'draft', 'public', 'private', 'archived')
-        :param prep_time: Preparation time in minutes
-        :param portions: Number of portions the recipe is designed for
+        :param recipe_id: Identifiant unique de la recette
+        :param creator_id: Identifiant de l'utilisateur créateur
+        :param status: Statut initial (ex: 'draft', 'public')
+        :param prep_time: Temps de préparation en minutes
+        :param portions: Nombre de portions (doit être > 0)
+
+        :raises ValueError: Si le nombre de portions est inférieur ou égal à zéro
         """
+        if portions <= 0:
+            raise ValueError("Le nombre de portions doit être supérieur à zéro.")
 
-        # --- Core attributes ---
-        self.recipe_id = recipe_id
-        self.creator_id = creator_id
+        # --- Attributs de base ---
+        self._recipe_id = recipe_id
+        self._creator_id = creator_id
         self.status = status
         self.prep_time = prep_time
         self.portions = portions
 
-        # --- Relationships ---
-        # List of tuples (ingredient_id, quantity)
-        self.ingredients = []
-
-        # List of associated tag identifiers
+        # --- Relations ---
+        self.ingredients = []  # Liste de tuples (id_ingredient, quantite)
         self.tags = []
-
-        # List of steps as tuples (step_order, description)
-        self.steps = []
-
-        # Dictionary of translations indexed by language code
-        # Example:
-        # {
-        #   "en": {"name": "Pancakes", "description": "Easy recipe"},
-        #   "fr": {"name": "Crêpes", "description": "Recette simple"}
-        # }
         self.translations = {}
+
+    @property
+    def recipe_id(self) -> int:
+        """L'identifiant BDD est en lecture seule."""
+        return self._recipe_id
+
+    # -------------------------------------------------
+    # Méthodes de gestion
+    # -------------------------------------------------
 
     def add_ingredient(self, ingredient_id: int, quantity: float):
         """
-        Adds an ingredient to the recipe.
+        Ajoute un ingrédient à la recette.
 
-        :param ingredient_id: Identifier of the ingredient
-        :param quantity: Quantity required for the current number of portions
+        :param ingredient_id: Identifiant de l'ingrédient
+        :param quantity: Quantité requise (doit être positive)
+        :raises ValueError: Si la quantité est négative ou nulle
         """
-
+        if quantity <= 0:
+            raise ValueError("La quantité doit être positive.")
         self.ingredients.append((ingredient_id, quantity))
-
-    def add_step(self, step_order: int, description: str):
-        """
-        Adds a preparation step to the recipe.
-
-        Steps are automatically kept ordered according to step_order.
-
-        :param step_order: Order number of the step (starting at 1)
-        :param description: Textual description of the step
-        """
-
-        self.steps.append((step_order, description))
-        # Ensure steps remain ordered
-        self.steps.sort(key=lambda x: x[0])
 
     def add_translation(self, language_code: str, name: str, description: str):
         """
-        Adds or updates a translation for the recipe.
+        Ajoute ou met à jour une traduction pour la recette.
 
-        :param language_code: ISO language code (e.g. 'en', 'fr')
-        :param name: Localized name of the recipe
-        :param description: Localized description of the recipe
+        :param language_code: Code langue ISO (ex: 'fr', 'en')
+        :param name: Nom localisé de la recette
+        :param description: Description localisée
         """
-
         self.translations[language_code] = {"name": name, "description": description}
 
-    def is_public(self) -> bool:
+    def changer_statut(self, new_status: str):
         """
-        Checks whether the recipe is publicly visible.
+        Modifie le statut de la recette.
 
-        :return: True if the recipe status is 'public', False otherwise
+        :param new_status: Nouveau statut à appliquer
         """
+        self.status = new_status
+        print(f"Statut de la recette {self._recipe_id} mis à jour : {self.status}")
 
-        return self.status == "public"
+    def print_status(self):
+        """
+        Affiche le statut actuel dans la console.
+        """
+        print(f"Le statut actuel est : {self.status}")
 
     def scale_portions(self, new_portions: int):
         """
-        Scales ingredient quantities to match a new number of portions.
+        Adapte les quantités d'ingrédients pour un nouveau nombre de portions.
 
-        Quantities are multiplied by the ratio:
-            new_portions / current_portions
-
-        :param new_portions: Desired number of portions
+        :param new_portions: Nouveau nombre de portions souhaité
         """
-
+        if new_portions <= 0:
+            return
         factor = new_portions / self.portions
-
-        # Update quantities proportionally
-        self.ingredients = [
-            (ingredient_id, quantity * factor)
-            for ingredient_id, quantity in self.ingredients
-        ]
-
+        self.ingredients = [(i_id, q * factor) for i_id, q in self.ingredients]
         self.portions = new_portions
+
+    # -------------------------------------------------
+    # Méthodes d'affichage
+    # -------------------------------------------------
+
+    def afficher_recette(self, lang: str = "fr"):
+        """
+        Affiche les détails complets de la recette dans la console.
+
+        :param lang: Code langue pour l'affichage (défaut: 'fr')
+        """
+        trans = self.translations.get(lang, self.translations.get("en", {}))
+        name = trans.get("name", "Nom inconnu")
+
+        print(f"--- {name.upper()} ---")
+        print(f"Portions: {self.portions} | Temps: {self.prep_time} min")
+        print(f"Statut: {self.status}")
+        print("Ingrédients (ID | Quantité) :")
+        for i_id, q in self.ingredients:
+            print(f" - {i_id} : {q:.2f}")
+
+    def __str__(self) -> str:
+        """
+        Retourne une représentation lisible (nom traduit ou ID).
+        """
+        name = self.translations.get("fr", {}).get("name", f"Recette {self._recipe_id}")
+        return f"[Recipe {self._recipe_id}] {name} ({self.status})"
+
+    def __repr__(self) -> str:
+        """
+        Retourne une représentation technique destinée au debug.
+        """
+        return f"Recipe(id={self._recipe_id}, status='{self.status}', portions={self.portions})"

@@ -1,65 +1,80 @@
 from abc import ABC, abstractmethod
 
 
-# Ajouter __str__ pour test et log
-# modif nom dans display_role
-
-
 class User(ABC):
-    """
-    Classe abstraite représentant un utilisateur.
-    """
+    """Classe abstraite représentant un utilisateur."""
 
-    def __init__(self, pseudo: str, password: str, id_stock: int | None = None):
+    def __init__(
+        self, id_user: int, pseudo: str, password: str, id_stock: int | None = None
+    ):
+        if not pseudo or len(pseudo) < 3:
+            raise ValueError("Le pseudo doit contenir au moins 3 caractères.")
+
+        self._id_user = id_user
         self.pseudo = pseudo
-        self.password = password
+        self._password = password
         self.id_stock = id_stock
 
-    @abstractmethod
-    def display_role(self) -> str:
-        """
-        Méthode abstraite pour afficher le rôle de l'utilisateur.
-        """
-        pass
+    @property
+    def id_user(self) -> int:
+        return self._id_user
 
-    def change_password(self, old_password: str, new_password: str):
-        """
-        Modifier son propre mot de passe après vérification de l'ancien.
-        """
-        if self.password != old_password:
+    def check_password(self, password_to_test: str) -> bool:
+        """Vérifie le mot de passe sans l'exposer."""
+        return self._password == password_to_test
+
+    def change_password(self, old_password: str, new_password: str) -> bool:
+        """Modifier son propre mot de passe après vérification de l'ancien."""
+        if not self.check_password(old_password):
             print(
                 "Mot de passe actuel incorrect. Impossible de changer le mot de passe."
             )
             return False
-        self.password = new_password
+
+        if len(new_password) < 4:
+            print("Échec : le nouveau mot de passe est trop court.")
+            return False
+
+        self._password = new_password
         print(f"Mot de passe de {self.pseudo} modifié avec succès.")
         return True
 
+    def __str__(self) -> str:
+        return f"[{self.display_role()}] {self.pseudo} (ID: {self._id_user})"
+
+    def __repr__(self) -> str:
+        """Représentation technique pour les listes et le débug."""
+        return f"{self.__class__.__name__}(id={self._id_user}, pseudo='{self.pseudo}')"
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, User):
+            return False
+        return self._id_user == other._id_user
+
+    @abstractmethod
+    def display_role(self) -> str:
+        pass
+
 
 class GenericUser(User):
-    """
-    Classe représentant un utilisateur générique.
-    Peut gérer d'autres utilisateurs (créer/supprimer).
-    """
+    """Utilisateur standard pouvant gérer la liste des utilisateurs."""
 
-    # Liste globale des utilisateurs créés
-    users: list["GenericUser"] = []
+    users: list["User"] = []
 
     def display_role(self) -> str:
-        return "Generic User"
+        return "Utilisateur Générique"
 
-    # -----------------------------
-    # Méthodes de gestion d'utilisateurs
-    # -----------------------------
     @classmethod
-    def create_user(cls, pseudo: str, password: str) -> "GenericUser":
-        user = GenericUser(pseudo, password)
+    def create_user(
+        cls, id_user: int, pseudo: str, password: str, id_stock: int | None = None
+    ) -> "GenericUser":
+        user = cls(id_user, pseudo, password, id_stock)
         cls.users.append(user)
         print(f"Utilisateur {pseudo} créé.")
         return user
 
     @classmethod
-    def delete_user(cls, user: "GenericUser"):
+    def delete_user(cls, user: "User"):
         if user in cls.users:
             cls.users.remove(user)
             print(f"Utilisateur {user.pseudo} supprimé.")
@@ -68,9 +83,15 @@ class GenericUser(User):
 
 
 class Admin(User):
-    """
-    Classe représentant un administrateur.
-    """
+    """Administrateur avec gestion de mot de passe spécifique."""
 
     def display_role(self) -> str:
-        return "Admin"
+        return "Administrateur"
+
+    @property
+    def password(self):
+        return "********"
+
+    @password.setter
+    def password(self, value):
+        self._password = value
