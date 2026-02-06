@@ -335,6 +335,9 @@ def fetch_detailed_recipes_by_ingredients(
     ingredients: Sequence[str],
     n: int = 5,
     *,
+    dish_type: str | None = None,
+    strict_only: bool = False,
+    max_missing_ingredients: int | None = 0,
     sort: str = "max-used-ingredients",
     ignore_pantry: bool = True,
     instructions_required: bool = True,
@@ -342,30 +345,48 @@ def fetch_detailed_recipes_by_ingredients(
     session: requests.Session | None = None,
 ) -> list[DetailedRecipe]:
     """
-    Outil haut niveau :
-    - Recherche des recettes par ingrédients (complexSearch)
-    - Récupère les ingrédients (quantités/unités) + étapes (informationBulk)
+    - Mode normal (strict_only=False): complexSearch (filtre dish_type possible)
+    - Mode strict (strict_only=True): findByIngredients + maxMissingIngredients=0
+      => recettes sans ingrédients manquants (mode frigo).
+    Puis informationBulk pour récupérer ingrédients + étapes.
     """
-    search = search_recipes_by_ingredients(
-        api_key=api_key,
-        ingredients=ingredients,
-        n=n,
-        sort=sort,
-        ignore_pantry=ignore_pantry,
-        instructions_required=instructions_required,
-        # IMPORTANT: on garde la recherche "légère" (moins de quota)
-        fill_ingredients=False,
-        add_recipe_information=False,
-        add_recipe_instructions=False,
-        add_recipe_nutrition=False,
-        timeout=timeout,
-        session=session,
-    )
 
-    ids = [r.id for r in search.results]
+    # 1) Récupération des IDs
+    if strict_only:
+        # NOTE: findByIngredients ne supporte pas directement le filtre type=dessert.
+        # On filtrera après via informationBulk si possible.
+        ids = find_recipe_ids_by_ingredients(
+            api_key=api_key,
+            ingredients=ingredients,
+            n=n,
+            max_missing_ingredients=max_missing_ingredients,
+            ignore_pantry=ignore_pantry,
+            ranking=2,
+            timeout=timeout,
+            session=session,
+        )
+    else:
+        search = search_recipes_by_ingredients(
+            api_key=api_key,
+            ingredients=ingredients,
+            n=n,
+            sort=sort,
+            ignore_pantry=ignore_pantry,
+            instructions_required=instructions_required,
+            type_=dish_type,
+            fill_ingredients=False,
+            add_recipe_information=False,
+            add_recipe_instructions=False,
+            add_recipe_nutrition=False,
+            timeout=timeout,
+            session=session,
+        )
+        ids = [r.id for r in search.results]
+
     if not ids:
         return []
 
+    # 2) Bulk info (ingrédients + étapes)
     url = f"{SPOONACULAR_BASE_URL}/recipes/informationBulk"
     params: dict[str, Any] = {
         "apiKey": api_key,
@@ -392,12 +413,17 @@ def fetch_detailed_recipes_by_ingredients(
 
     detailed: list[DetailedRecipe] = []
     for info in recipes_info:
+        # Filtre dish_type en mode strict (si Spoonacular renvoie dishTypes)
+        if dish_type:
+            dish_types = [str(x).lower() for x in (info.get("dishTypes") or [])]
+            if dish_types and dish_type.lower() not in dish_types:
+                continue
+
         ingredients_out: list[DetailedIngredient] = []
         for ing in info.get("extendedIngredients", []) or []:
             name = str(ing.get("name", "")).strip()
             if not name:
                 continue
-
             try:
                 amount = float(ing.get("amount", 0.0))
             except Exception:
@@ -439,3 +465,62 @@ def fetch_detailed_recipes_by_ingredients(
         )
 
     return detailed
+
+
+def find_recipe_ids_by_ingredients(
+    api_key: str,
+    ingredients: Sequence[str],
+    n: int = 10,
+    *,
+    max_missing_ingredients: int | None = 0,
+    ignore_pantry: bool = True,
+    ranking: int = 2,
+    timeout: float = 30.0,
+    session: requests.Session | None = None,
+) -> list[int]:
+    """
+    Appelle /recipes/findByIngredients et renvoie une liste d'IDs.
+
+    - max_missing_ingredients=0 => recettes faisables sans ingrédients manquants (mode "frigo")
+    - ranking=1 => maximise used ingredients
+      ranking=2 => minimise missing ingredients
+    """
+    if not api_key:
+        raise ValueError("api_key doit être une chaîne non vide.")
+    if not ingredients:
+        raise ValueError("ingredients doit être non vide.")
+    if not (1 <= n <= 100):
+        raise ValueError("n doit être entre 1 et 100.")
+
+    ing_csv = _build_include_ingredients(ingredients)
+
+    url = f"{SPOONACULAR_BASE_URL}/recipes/findByIngredients"
+    params: dict[str, Any] = {
+        "apiKey": api_key,
+        "ingredients": ing_csv,
+        "number": n,
+        "ignorePantry": str(ignore_pantry).lower(),
+        "ranking": ranking,
+    }
+    if max_missing_ingredients is not None:
+        if max_missing_ingredients < 0:
+            raise ValueError("max_missing_ingredients doit être >= 0.")
+        params["maxMissingIngredients"] = max_missing_ingredients
+
+    sess = session or requests.Session()
+    try:
+        resp = sess.get(url, params=params, timeout=timeout)
+    except requests.Timeout as e:
+        raise SpoonacularError(f"Timeout en appelant Spoonacular: {e}") from e
+    except requests.RequestException as e:
+        raise SpoonacularError(f"Erreur réseau en appelant Spoonacular: {e}") from e
+
+    _raise_for_spoonacular_error(resp)
+    data = resp.json()
+
+    if not isinstance(data, list):
+        raise SpoonacularError(
+            "Réponse inattendue de findByIngredients (liste attendue)."
+        )
+
+    return [int(r["id"]) for r in data if "id" in r]
