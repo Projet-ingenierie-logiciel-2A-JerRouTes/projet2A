@@ -167,9 +167,7 @@ class AuthService:
         # rotation
         new_refresh = self._new_refresh_token()
         new_refresh_hash = self._hash_refresh(new_refresh)
-        new_expires_at = datetime.now(UTC) + timedelta(
-            days=self._refresh_ttl_days
-        )
+        new_expires_at = datetime.now(UTC) + timedelta(days=self._refresh_ttl_days)
 
         rotated = self._session_dao.rotate_refresh_token(
             session_id=session.session_id,
