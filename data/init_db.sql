@@ -21,6 +21,29 @@ CREATE TABLE users (
 );
 
 -----------------------------------------------------
+-- TABLE : User Session (refresh tokens)
+-----------------------------------------------------
+
+DROP TABLE IF EXISTS user_session CASCADE;
+CREATE TABLE user_session (
+    session_id SERIAL PRIMARY KEY,
+    fk_user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    refresh_token_hash VARCHAR(64) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    revoked_at TIMESTAMP NULL,
+    last_seen_at TIMESTAMP NULL,
+    ip VARCHAR(64),
+    user_agent TEXT
+);
+
+CREATE INDEX idx_user_session_user_id ON user_session(fk_user_id);
+CREATE INDEX idx_user_session_expires_at ON user_session(expires_at);
+
+ALTER TABLE user_session
+ADD CONSTRAINT uq_user_session_refresh_token_hash UNIQUE (refresh_token_hash);
+
+-----------------------------------------------------
 -- TABLE : Stock
 -----------------------------------------------------
 
