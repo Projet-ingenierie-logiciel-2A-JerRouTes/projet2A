@@ -13,12 +13,15 @@ CREATE TYPE user_status AS ENUM ('admin', 'user');
 DROP TABLE IF EXISTS users CASCADE;
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
-    username VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(255) UNIQUE NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     status user_status DEFAULT 'user',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE users ADD CONSTRAINT uq_users_username UNIQUE (username);
+ALTER TABLE users ADD CONSTRAINT uq_users_email UNIQUE (email);
 
 -----------------------------------------------------
 -- TABLE : User Session (refresh tokens)
