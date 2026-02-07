@@ -18,13 +18,15 @@ class Recipe:
         """
         Initialise une instance de Recipe avec validations.
 
-        :param recipe_id: Identifiant unique de la recette
-        :param creator_id: Identifiant de l'utilisateur créateur
-        :param status: Statut initial (ex: 'draft', 'public')
-        :param prep_time: Temps de préparation en minutes
-        :param portions: Nombre de portions (doit être > 0)
+        Args:
+            recipe_id (int): Identifiant unique de la recette.
+            creator_id (int): Identifiant de l'utilisateur créateur.
+            status (str): Statut initial (ex: 'draft', 'public').
+            prep_time (int): Temps de préparation en minutes.
+            portions (int): Nombre de portions (doit être > 0).
 
-        :raises ValueError: Si le nombre de portions est inférieur ou égal à zéro
+        Raises:
+            ValueError: Si le nombre de portions est inférieur ou égal à zéro.
         """
         if portions <= 0:
             raise ValueError("Le nombre de portions doit être supérieur à zéro.")
@@ -43,7 +45,7 @@ class Recipe:
 
     @property
     def recipe_id(self) -> int:
-        """L'identifiant BDD est en lecture seule."""
+        """Retourne l'identifiant BDD de la recette (lecture seule)."""
         return self._recipe_id
 
     # -------------------------------------------------
@@ -54,9 +56,12 @@ class Recipe:
         """
         Ajoute un ingrédient à la recette.
 
-        :param ingredient_id: Identifiant de l'ingrédient
-        :param quantity: Quantité requise (doit être positive)
-        :raises ValueError: Si la quantité est négative ou nulle
+        Args:
+            ingredient_id (int): Identifiant de l'ingrédient.
+            quantity (float): Quantité requise (doit être positive).
+
+        Raises:
+            ValueError: Si la quantité est négative ou nulle.
         """
         if quantity <= 0:
             raise ValueError("La quantité doit être positive.")
@@ -66,32 +71,36 @@ class Recipe:
         """
         Ajoute ou met à jour une traduction pour la recette.
 
-        :param language_code: Code langue ISO (ex: 'fr', 'en')
-        :param name: Nom localisé de la recette
-        :param description: Description localisée
+        Args:
+            language_code (str): Code langue ISO (ex: 'fr', 'en').
+            name (str): Nom localisé de la recette.
+            description (str): Description localisée.
         """
-        self.translations[language_code] = {"name": name, "description": description}
+        self.translations[language_code] = {
+            "name": name,
+            "description": description,
+        }
 
     def changer_statut(self, new_status: str):
         """
         Modifie le statut de la recette.
 
-        :param new_status: Nouveau statut à appliquer
+        Args:
+            new_status (str): Nouveau statut à appliquer.
         """
         self.status = new_status
         print(f"Statut de la recette {self._recipe_id} mis à jour : {self.status}")
 
     def print_status(self):
-        """
-        Affiche le statut actuel dans la console.
-        """
+        """Affiche le statut actuel dans la console."""
         print(f"Le statut actuel est : {self.status}")
 
     def scale_portions(self, new_portions: int):
         """
         Adapte les quantités d'ingrédients pour un nouveau nombre de portions.
 
-        :param new_portions: Nouveau nombre de portions souhaité
+        Args:
+            new_portions (int): Nouveau nombre de portions souhaité.
         """
         if new_portions <= 0:
             return
@@ -107,7 +116,9 @@ class Recipe:
         """
         Affiche les détails complets de la recette dans la console.
 
-        :param lang: Code langue pour l'affichage (défaut: 'fr')
+        Args:
+            lang (str, optional): Code langue pour l'affichage.
+                Défaut: "fr".
         """
         trans = self.translations.get(lang, self.translations.get("en", {}))
         name = trans.get("name", "Nom inconnu")
@@ -121,7 +132,10 @@ class Recipe:
 
     def __str__(self) -> str:
         """
-        Retourne une représentation lisible (nom traduit ou ID).
+        Retourne une représentation lisible de la recette.
+
+        Returns:
+            str: Nom traduit de la recette ou identifiant si absent.
         """
         name = self.translations.get("fr", {}).get("name", f"Recette {self._recipe_id}")
         return f"[Recipe {self._recipe_id}] {name} ({self.status})"
@@ -129,5 +143,12 @@ class Recipe:
     def __repr__(self) -> str:
         """
         Retourne une représentation technique destinée au debug.
+
+        Returns:
+            str: Représentation technique de l'objet Recipe.
         """
-        return f"Recipe(id={self._recipe_id}, status='{self.status}', portions={self.portions})"
+        return (
+            f"Recipe(id={self._recipe_id}, "
+            f"status='{self.status}', "
+            f"portions={self.portions})"
+        )
