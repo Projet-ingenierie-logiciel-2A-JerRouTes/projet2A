@@ -657,3 +657,230 @@ def test_replace_tags_rollback_on_exception(dao, mock_db):
 
     conn.rollback.assert_called_once()
     conn.commit.assert_not_called()
+
+
+# ---------------------------------------------------------------------
+# Tests : recherche de recettes par ingrédients (logique métier & SQL)
+# ---------------------------------------------------------------------
+
+
+def test_find_recipes_by_ingredients_empty_query_returns_empty(dao, mock_db):
+    _conn, cur = mock_db
+
+    res = dao.find_recipes_by_ingredients([])
+    assert res == []
+
+    # Ne doit même pas exécuter de SQL
+    cur.execute.assert_not_called()
+
+
+def test_find_recipes_by_ingredients_blank_strings_returns_empty(dao, mock_db):
+    _conn, cur = mock_db
+
+    res = dao.find_recipes_by_ingredients(["", "   ", "\n"])
+    assert res == []
+
+    cur.execute.assert_not_called()
+
+
+def test_find_recipes_by_ingredients_clamps_limit_and_max_missing(dao, mock_db):
+    """
+    Vérifie :
+    - limit est clampé (min 1, max 200)
+    - max_missing est >= 0
+    - strict_only force max_missing à 0
+    Et vérifie les paramètres passés à la requête SQL.
+    """
+    _conn, cur = mock_db
+
+    # La requête principale retourne 1 recette
+    cur.fetchall.side_effect = [
+        [
+            {
+                "recipe_id": 1,
+                "fk_user_id": 10,
+                "name": "Crêpes",
+                "status": "draft",
+                "prep_time": 30,
+                "portion": 4,
+                "description": "x",
+                "created_at": "2026-01-01 12:00:00",
+                "matched_count": 1,
+            }
+        ],
+        # get_recipe_ingredients
+        [{"fk_ingredient_id": 101, "quantity": 1.0}],
+        # get_recipe_tags
+        [{"tag_id": 1, "name": "dessert"}],
+    ]
+
+    res = dao.find_recipes_by_ingredients(
+        ["lait"],
+        limit=10_000,  # -> clamp 200
+        max_missing=-5,  # -> clamp 0
+        strict_only=False,
+    )
+
+    assert len(res) == 1
+
+    # Vérifie les paramètres transmis au cur.execute (requête principale)
+    # call_args_list[0] correspond à la requête CTE matched
+    _sql, params = (
+        cur.execute.call_args_list[0][0][0],
+        cur.execute.call_args_list[0][0][1],
+    )
+
+    # params = (like_terms, *tag_params, n_terms, max_missing, limit)
+    assert params[0] == ["%lait%"]
+    assert params[-3] == 1  # n_terms
+    assert params[-2] == 0  # max_missing clampé
+    assert params[-1] == 200  # limit clampé
+
+
+def test_find_recipes_by_ingredients_strict_only_forces_zero_missing(dao, mock_db):
+    _conn, cur = mock_db
+
+    cur.fetchall.side_effect = [
+        [
+            {
+                "recipe_id": 1,
+                "fk_user_id": 10,
+                "name": "Crêpes",
+                "status": "draft",
+                "prep_time": 30,
+                "portion": 4,
+                "description": "x",
+                "created_at": "2026-01-01 12:00:00",
+                "matched_count": 2,
+            }
+        ],
+        [],  # ingredients
+        [],  # tags
+    ]
+
+    dao.find_recipes_by_ingredients(
+        ["lait", "oeuf"],
+        limit=10,
+        max_missing=3,
+        strict_only=True,  # doit forcer max_missing=0
+    )
+
+    sql, params = (
+        cur.execute.call_args_list[0][0][0],
+        cur.execute.call_args_list[0][0][1],
+    )
+
+    assert "WITH matched AS" in sql
+    assert params[0] == ["%lait%", "%oeuf%"]
+
+
+def test_find_recipes_by_ingredients_with_dish_type_adds_tag_filter(dao, mock_db):
+    _conn, cur = mock_db
+
+    cur.fetchall.side_effect = [
+        [
+            {
+                "recipe_id": 2,
+                "fk_user_id": 11,
+                "name": "Brownie",
+                "status": "public",
+                "prep_time": 45,
+                "portion": 6,
+                "description": "y",
+                "created_at": "2026-01-02 10:00:00",
+                "matched_count": 1,
+            }
+        ],
+        [],  # ingredients
+        [{"tag_id": 7, "name": "dessert"}],  # tags
+    ]
+
+    res = dao.find_recipes_by_ingredients(
+        ["chocolat"],
+        dish_type="dessert",
+        limit=10,
+        max_missing=0,
+    )
+    assert len(res) == 1
+    assert res[0].translations["fr"]["name"] == "Brownie"
+
+    sql = cur.execute.call_args_list[0][0][0]
+    params = cur.execute.call_args_list[0][0][1]
+
+    # On doit voir les JOIN tag/recipe_tag de filtrage dans le SQL
+    assert "JOIN recipe_tag rt_filter" in sql
+    assert "JOIN tag t_filter" in sql
+    assert "t_filter.name ILIKE %s" in sql
+
+    # Paramètre dish_type inséré après like_terms
+    assert params[0] == ["%chocolat%"]
+    assert params[1] == "%dessert%"
+
+
+def test_find_recipes_by_ingredients_loads_relations_per_recipe(dao, mock_db):
+    """
+    Vérifie que, pour chaque recette retournée par la requête principale,
+    la DAO recharge ingrédients + tags via get_recipe_ingredients/get_recipe_tags.
+    """
+    _conn, cur = mock_db
+
+    # 2 recettes en sortie de la requête principale
+    cur.fetchall.side_effect = [
+        [
+            {
+                "recipe_id": 1,
+                "fk_user_id": 10,
+                "name": "Crêpes",
+                "status": "draft",
+                "prep_time": 30,
+                "portion": 4,
+                "description": "x",
+                "created_at": "2026-01-01 12:00:00",
+                "matched_count": 1,
+            },
+            {
+                "recipe_id": 2,
+                "fk_user_id": 10,
+                "name": "Omelette",
+                "status": "draft",
+                "prep_time": 10,
+                "portion": 1,
+                "description": "y",
+                "created_at": "2026-01-01 13:00:00",
+                "matched_count": 1,
+            },
+        ],
+        # Pour recipe_id=1 : ingredients
+        [{"fk_ingredient_id": 101, "quantity": 1.0}],
+        # Pour recipe_id=1 : tags
+        [{"tag_id": 1, "name": "rapide"}],
+        # Pour recipe_id=2 : ingredients
+        [{"fk_ingredient_id": 102, "quantity": 2.0}],
+        # Pour recipe_id=2 : tags
+        [],
+    ]
+
+    res = dao.find_recipes_by_ingredients(["oeuf"], limit=10, max_missing=0)
+    assert len(res) == 2
+
+    # La 1ère execute = requête principale
+    # Ensuite, par recette : 1 execute pour ingredients + 1 execute pour tags
+    executed_sql = [str(c[0][0]) for c in cur.execute.call_args_list]
+    assert any("WITH matched AS" in s for s in executed_sql)  # requête principale
+    assert sum("FROM recipe_ingredient" in s for s in executed_sql) == 2
+    assert sum("FROM recipe_tag rt" in s for s in executed_sql) == 2
+
+
+def test_find_recipes_by_ingredients_rollback_not_needed_no_commit(dao, mock_db):
+    """
+    C'est un SELECT-only : pas de commit/rollback attendu.
+    On vérifie qu'on ne commit pas (et pas rollback).
+    """
+    conn, cur = mock_db
+    cur.fetchall.side_effect = [[]]  # aucun résultat
+
+    res = dao.find_recipes_by_ingredients(["x"])
+    assert res == []
+
+    conn.commit.assert_not_called()
+    conn.rollback.assert_not_called()
