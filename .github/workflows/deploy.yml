@@ -26,7 +26,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           # C'est ici qu'on adapte le chemin vers ton backend
-          context: ./src/backend
+          context: "{{defaultContext}}/src/backend"
           # On pousse l'image sur DockerHub
           push: true
           # Le nom complet de ton image
