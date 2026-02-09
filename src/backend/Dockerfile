@@ -6,4 +6,4 @@ RUN pip install -r requirements.txt
 
 ENTRYPOINT ["python", "main.py"]
 
-# on choisit la commande lancée au démarrage
+# on choisit la commande lancée au démarragegit
