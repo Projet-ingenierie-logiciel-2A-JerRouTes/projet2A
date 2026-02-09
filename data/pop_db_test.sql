@@ -1,12 +1,13 @@
 -----------------------------------------------------
--- INSERT : Users
+-- INSERT : Users (Générer avec le script dans les tests)
 -----------------------------------------------------
 
-INSERT INTO users (username, email, password_hash, status) VALUES
-('admin', 'admin@mail.com', 'mdpAdmin123', 'admin'),
-('alice', 'alice@mail.com', 'mdpAlice123', 'user'),
-('bob', 'bob@mail.com', 'mdpBob123', 'user');
-
+INSERT INTO users (username, email, password_hash)
+VALUES
+('alice', 'alice@example.com', '$2b$12$3AT9XjBMYC7SSxzDMWB8SOPwo7h1kbXDGEQbIT3RQyIPE4hdW0VGm'),
+('bob', 'bob@example.com', '$2b$12$.kxjZWdtgCgAnnsaWqZ3Du4izzNhWYFwRyUL.eoi9AEl2EisUiUx.'),
+('admin', 'admin@example.com', '$2b$12$0kpkiPvqOdfvxrm1FfSxCeF5zviYlQ.ulSxYsAqEzLnNzmCahuvC.');
+ 
 -----------------------------------------------------
 -- INSERT : Stock
 -----------------------------------------------------
