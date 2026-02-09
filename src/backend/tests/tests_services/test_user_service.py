@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from src.backend.business_objects.user import GenericUser
 from src.backend.services.user_service import (
     AuthResult,

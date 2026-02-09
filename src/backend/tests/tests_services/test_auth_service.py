@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
 import pytest
-
 from src.backend.services.auth_service import (
     AuthService,
     InvalidCredentialsError,

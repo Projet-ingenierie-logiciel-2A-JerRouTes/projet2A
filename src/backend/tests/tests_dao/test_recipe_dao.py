@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from src.backend.dao.recipe_dao import RecipeDAO
 
 

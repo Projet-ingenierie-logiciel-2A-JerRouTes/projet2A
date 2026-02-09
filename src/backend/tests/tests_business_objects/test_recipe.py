@@ -1,5 +1,4 @@
 import pytest
-
 from src.backend.business_objects.recipe import Recipe
 
 

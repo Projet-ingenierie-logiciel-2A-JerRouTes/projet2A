@@ -1,7 +1,6 @@
 from datetime import date, timedelta
 
 import pytest
-
 from src.backend.business_objects.stock import Stock
 
 

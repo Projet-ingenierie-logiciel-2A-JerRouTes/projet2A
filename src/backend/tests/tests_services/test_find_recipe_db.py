@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from src.backend.services.find_recipe import IngredientSearchQuery
 from src.backend.services.find_recipe_db import DbFindRecipe
 

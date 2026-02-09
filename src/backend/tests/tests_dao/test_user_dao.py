@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from src.backend.business_objects.user import Admin, GenericUser
 from src.backend.dao.user_dao import UserDAO
 
