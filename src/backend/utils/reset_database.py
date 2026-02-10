@@ -10,7 +10,7 @@ from unittest import mock
 
 import dotenv
 
-from backend.dao.db_connection import DBConnection
+from src.backend.dao.db_connection import DBConnection
 from src.backend.utils.log_decorator import log
 from src.backend.utils.singleton import Singleton
 
