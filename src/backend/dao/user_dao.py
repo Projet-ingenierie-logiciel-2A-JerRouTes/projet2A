@@ -29,15 +29,21 @@ class UserDAO:
 
     @staticmethod
     def _row_to_bo(row: UserRow) -> User:
-        """
-        Mapping DB -> Business Object.
-        Ta BO prend (id_user, pseudo, password, id_stock).
-        Ici, on met `password_hash` dans `_password` (attribut interne),
-        comme ça le mot de passe (hash) n'est pas exposé via une propriété.
-        """
         if row.status == "admin":
-            return Admin(row.user_id, row.username, row.password_hash)
-        return GenericUser(row.user_id, row.username, row.password_hash)
+            return Admin(
+                row.user_id,
+                row.username,
+                row.password_hash,
+                email=row.email,
+                status=row.status,
+            )
+        return GenericUser(
+            row.user_id,
+            row.username,
+            row.password_hash,
+            email=row.email,
+            status=row.status,
+        )
 
     @staticmethod
     def _fetch_one_by_id(cur, user_id: int) -> UserRow | None:
