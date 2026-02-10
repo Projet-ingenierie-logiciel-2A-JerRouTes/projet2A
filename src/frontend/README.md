@@ -36,25 +36,39 @@ npm run dev
 ### 🛠 Composant technique
 
 #### 🔐 Authentification et Accès
+```Login.jsx```
+- Gère l'entrée des utilisateurs existants.
+- Endpoints utilisés : POST /login
+- **Dans le main** : Verification si user existe et si mdp bon
+- Codes erreurs gérés :
+   - 404 : Utilisateur inconnu.
+   - 401 : Mot de passe incorrect.
+   - TypeError : Serveur injoignable.
 
-L'accès à l'application est protégé par un écran de connexion (`Login.jsx`) qui gère la transition vers l'interface principale :
+```CreationCompte.jsx```
+- Permet l'enregistrement de nouveaux profils.
+- Endpoints utilisés : POST /register
+- **Dans le main** : Validation de la correspondance des mots de passe, et de l'existant des user déjà existant
+- Codes erreurs gérés : Récupération du message detail envoyé par FastAPI (ex: pseudo déjà utilisé).
 
-- **Rendu Conditionnel** : L'application utilise un état `user` (initialisé à `null`). Tant que cet état n'est pas rempli, seul le formulaire de connexion est injecté dans le DOM.
-- **Communication Inter-Composants** : Le composant `Login` communique avec le parent `App` via une fonction de rappel (*callback*) `onLogin`.
-- **Persistance de session (UX)** : Une fois le pseudo validé, l'interface bascule dynamiquement pour afficher l'inventaire et un bouton de déconnexion permettant de réinitialiser l'état à `null`.
+#### 📦 Gestion de l'Inventaire Intelligent
+La gestion du stock repose sur une synchronisation constante entre le catalogue global des ingrédients et le stock spécifique de l'utilisateur.
 
-#### Gestion de l'Inventaire
+```Stock.jsx``` (Le composant "Cerveau")
+C'est le conteneur principal de l'inventaire.
 
-Le composant `InventaireFrigo` utilise les concepts fondamentaux de React pour gérer les données en temps réel :
+- États complexes :
+   - items : Objet indexé par id_ingredient contenant des listes de lots (quantité + date).
+   - catalogue : Référentiel complet des ingrédients autorisés.
+- Endpoints utilisés :
+   - GET /ingredients : Chargement du catalogue au montage.
+   - GET /stock/{id_stock} : Récupération des lots de l'utilisateur.
+- Logique d'affichage : Réalise une "jointure" côté client entre les IDs du stock et les noms/unités du catalogue via la fonction getIngredientInfo.
 
-1. **États Locaux (`useState`)** :
-   - `stock` : Un tableau d'objets stockant l'intégralité des produits.
-   - `ingredient` / `quantite` : États synchronisés avec les champs de saisie (Two-way data binding).
-
-2. **Logique d'Immuabilité** :
-   - Pour l'ajout, nous utilisons le *Spread Operator* : `setStock([...stock, nouvelArticle])`.
-   - Pour la suppression, nous utilisons la méthode `.filter()`.
-
-3. **Rendu Dynamique** :
-   - Utilisation de `.map()` pour transformer le tableau JavaScript en lignes de tableau HTML (`<tr>`).
-   - Chaque ligne possède une `key` unique (générée par `Date.now()`) pour optimiser les performances de rendu de React.
+```AddIngredientForm.jsx``` (Saisie Assistée)
+- Formulaire avancé facilitant l'ajout de produits.
+- Recherche prédictive : Filtrage dynamique du catalogue à chaque saisie.
+- Gestion des Unités (Sync Python) : Utilise un dictionnaire unitLabels pour convertir les Enums Python (GRAM, LITER, PIECE) en symboles UI (g, L, pcs).
+- Mode Saisie Libre : Si un ingrédient n'est pas dans le catalogue, le composant :
+- Affiche un menu déroulant pour choisir l'unité manuellement.
+- Envoie id_ingredient: null au parent, déclenchant la création d'un nouvel ingrédient côté serveur.
