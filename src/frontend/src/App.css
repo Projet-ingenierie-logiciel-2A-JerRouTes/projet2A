@@ -39,95 +39,166 @@ h1 {
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
-h2 {
-  font-size: 2.4rem;
-  text-align: center;
-}
-
-h3 {
-  font-size: 1.5rem;
-  text-align: center;
-}
-
-/* ==========================================================================
-   3. BOITE PRINCIPALE
-   ========================================================================== */
-
-/* Le conteneur qui définit la largeur pour tout le monde */
-.container-principal{
+.container-principal {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 400px;
-  margin: 0 auto; /* Centre le tout dans la page */
-  gap: 15px; /* Espace entre le formulaire et l'erreur */
+  margin: 0 auto;
+  gap: 15px;
 }
 
 .sous-container {
   background-color: #7f21ab;
   width: 100%;
   display: flex;
-  justify-content: center; /* Centre horizontalement */
-  align-items: center;     /* Centre verticalement (si le container a une hauteur) */
+  justify-content: center;
+  border-radius: 8px; /* Optionnel : pour adoucir les angles */
 }
-
-
 
 .login-form {
   width: 90%;
-  display: flex;        /* INDISPENSABLE pour que flex-direction et gap marchent */
+  display: flex;
   flex-direction: column;
-  align-items: center;  /* Centre les enfants */
+  align-items: center;
   gap: 15px;
-  padding: 20px 0;      /* Ajoute de l'air en haut et en bas */
+  padding: 20px 0;
 }
-/* ==========================================================================
-   4. CHAMP DE SAISIES
-   ========================================================================== */
 
-/* --- STYLE DE LA BOÎTE AUTOUR DE L'INPUT --- */
+/* ==========================================================================
+   3. CHAMPS DE SAISIE (INPUTS)
+   ========================================================================== */
 .input-group {
   width: 100%;
   background-color: #f4f4f4;
   border-radius: 8px;
   display: flex;
-  align-items: center;      /* Aligne le texte au milieu */
-  padding: 0;
-  overflow: hidden; /* Pour que l'input ne dépasse pas des arrondis */
+  align-items: center;
+  overflow: hidden;
+  position: relative; /* Important pour l'autocomplétion */
 }
 
-/* -- STYLE DE L'INPUT LUI-MÊME --- */
 .input-group input {
   width: 100%;
-  padding: 12px 15px;      /* Espace à l'intérieur de la boîte */
-  border: 2px solid transparent; /* Bordure invisible par défaut */
-  border-radius: 8px;      /* Coins arrondis */
-  background-color: #f4f4f4; /* Fond légèrement gris/blanc */
-  color: #333;             /* Couleur du texte saisi */
+  padding: 12px 15px;
+  border: 2px solid transparent;
+  background-color: #f4f4f4;
+  color: #333;
   font-size: 1.8rem;
-  box-sizing: border-box;  /* Pour que le padding ne dépasse pas */
-  transition: all 0.3s ease; /* Animation douce pour les changements */
+  transition: all 0.3s ease;
 }
 
-/* Effet quand on clique dans la boîte (Focus) */
 .input-group input:focus {
-  outline: none;           /* Enlève le contour bleu par défaut du navigateur */
-  background-color: #fff;  /* Devient tout blanc */
-  border-color: #a34cd8;   /* Une bordure violette plus claire apparaît */
-  box-shadow: 0 0 8px rgba(163, 76, 216, 0.3); /* Légère lueur */
+  outline: none;
+  background-color: #fff;
+  border-color: #a34cd8;
+  box-shadow: 0 0 8px rgba(163, 76, 216, 0.3);
 }
 
-/* Style du placeholder (le texte indicatif) */
 .input-group input::placeholder {
   color: #888;
   font-style: italic;
   font-size: 1.6rem;
 }
 
-/* ==========================================================================
-   5. LES BOUTONS
-   ========================================================================== */
+/* Style spécifique pour l'unité à l'intérieur du champ quantité */
+.unit-badge {
+  padding-right: 15px;
+  color: #7f21ab;
+  font-weight: bold;
+  font-size: 1.4rem;
+  user-select: none;
+  background-color: transparent;
+}
 
+/* ==========================================================================
+   4. AUTOCOMPLÉTION (SUGGESTIONS)
+   ========================================================================== */
+.suggestions-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  color: #333;
+  z-index: 100;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.suggestion-item {
+  padding: 12px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  font-size: 1.4rem;
+  transition: background 0.2s;
+}
+
+.suggestion-item:hover {
+  background-color: #f0f0f0;
+}
+
+.suggestion-item small {
+  color: #888;
+  margin-left: 5px;
+}
+
+/* ==========================================================================
+   5. TABLEAUX ET LISTE DE STOCK
+   ========================================================================== */
+.stock-titre {
+  font-size: 1.8rem;
+  margin: 0 0 10px 0;
+  color: white;
+}
+
+.stock-table-container {
+  width: 100%;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-top: 5px;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.stock-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: white;
+  font-size: 1.2rem;
+}
+
+/* En-tête fixe (Sticky) */
+.stock-table thead th {
+  position: sticky;
+  top: 0;
+  background-color: #7f21ab;
+  z-index: 1;
+  padding: 12px 10px;
+  font-size: 1.3rem;
+  color: #a29bfe;
+  text-align: left;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.stock-table td {
+  padding: 15px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ingredient-name {
+  font-weight: bold;
+}
+
+.expiry-date {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* ==========================================================================
+   6. BOUTONS ET MESSAGES
+   ========================================================================== */
 .bouton {
   width: 100%;
   padding: 1.2rem;
@@ -146,94 +217,35 @@ h3 {
   background-color: #2a2a4d;
 }
 
-/* ==========================================================================
-   6. MESSAGE D'ERREUR
-   ========================================================================== */
+.bouton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-   .message-negatif{
-  background-color: #f1c40f;
+.message {
+  background-color: #fff; /* Par défaut blanc */
   color: #1b1b32;
-  padding: 0.8rem;
+  padding: 1.2rem;
   border-radius: 6px;
-  border: 2px solid #ffffff;
   width: 100%;
-  font-size: clamp(1.2rem, 3vw, 1.4rem);
+  font-size: 1.4rem;
   font-weight: bold;
-   }
+  text-align: center;
+}
 
-  .message-positif{
-  background-color: #27ae60;
-  color: #1b1b32;
-  padding: 0.8rem;
-  border-radius: 6px;
-  border: 2px solid #ffffff;
-  width: 100%;
-  font-size: clamp(1.2rem, 3vw, 1.4rem);
-  font-weight: bold;
-   }
+/* Si tu veux garder tes variantes de couleurs pour les messages */
+.message-negatif { background-color: #f1c40f; }
+.message-positif { background-color: #27ae60; }
 
 /* ==========================================================================
-   8. TABLEAUX
-   ========================================================================== */
-
-   /* Style du titre du stock */
-.stock-titre {
-  font-size: 1.8rem;
-  margin: 0 0 10px 0; /* On réduit l'espace sous le titre */
-}
-
-/* Container du tableau */
-.stock-table-container {
-  width: 100%;
-  margin-top: 5px;
-}
-
-/* Le tableau lui-même */
-.stock-table {
-  width: 100%;
-  border-collapse: collapse;
-  color: white;
-  font-size: 1.2rem;
-}
-
-/* En-tête du tableau */
-.stock-table thead tr {
-  border-bottom: 2px solid rgba(255, 255, 255, 0.3); /* Ligne blanche discrète */
-  text-align: left;
-}
-
-.stock-table th {
-  padding: 12px 10px;
-  font-size: 1.3rem;
-  color: #a29bfe; /* Une couleur violette légère pour les titres de colonnes */
-}
-
-/* Cellules du tableau */
-.stock-table td {
-  padding: 15px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Mise en gras du nom de l'ingrédient */
-.ingredient-name {
-  font-weight: bold;
-}
-
-/* Style pour la date (monospace pour l'alignement des chiffres) */
-.expiry-date {
-  font-family: 'Courier New', Courier, monospace;
-}
-
-/* ==========================================================================
-   9. RESPONSIVE DESIGN
+   7. RESPONSIVE DESIGN
    ========================================================================== */
 @media (max-width: 600px) {
-  /* 1. Modifie la taille de base pour tout le document */
   :root { font-size: 8px; }
+  .container-principal { width: 95%; }
+  .login-form { width: 100%; }
 
-  /* 2. Élargit le formulaire pour qu'il prenne presque tout l'écran */
-  .login-form { width: 90%; }
-
-  /* 3. Ajuste la hauteur de la zone d'erreur */
-  .login-error-container { height: 4.5rem; }
+  .stock-table {
+    font-size: 1.4rem; /* Un peu plus grand sur mobile pour la lisibilité */
+  }
 }

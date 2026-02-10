@@ -21,7 +21,7 @@ def get_app_data():
     ingr_beurre = Ingredient(6, "Beurre", Unit.GRAM)
     ingr_pates = Ingredient(7, "Pates", Unit.GRAM)
     ingr_riz = Ingredient(8, "Riz", Unit.GRAM)
-    ingr_tomates = Ingredient(9, "Tomates", Unit.GRAM)
+    ingr_tomates = Ingredient(9, "Tomates", Unit.PIECE)
 
     # 3. Listes des ingredients pour les stocks
     ingredients = [ingr_farine, ingr_lait, ingr_oeufs, ingr_sucre, ingr_levure,
