@@ -1,16 +1,25 @@
 import React, { useState } from "react";
-import PokemonSearch from "./components/PokemonSearch";
-import PokemonDetails from "./components/PokemonDetails";
+import Login from "./components/Login";
+import Test from "./components/Test";
 import "./App.css";
 
 const App = () => {
-  const [pokemon, setPokemon] = useState(null);
+  const [user, setUser] = useState(null); // null = pas connecté
 
   return (
     <div className="app">
-      <h1>Pokédex</h1>
-      <PokemonSearch setPokemon={setPokemon} />
-      <PokemonDetails pokemon={pokemon} />
+      {!user ? (
+        // Si pas d'utilisateur, on affiche le Login
+        <Login onLogin={(pseudo) => setUser(pseudo)} />
+      ) : (
+        // Si connecté, on affiche le contenu
+        <>
+          <h1>Frigo App</h1>
+          <p>Bienvenue, {user} !</p>
+          <Test />
+          <button onClick={() => setUser(null)} className="logout-btn">Déconnexion</button>
+        </>
+      )}
     </div>
   );
 };
