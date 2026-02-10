@@ -173,23 +173,67 @@ h3 {
    }
 
 /* ==========================================================================
-   A. AUTRES (TABLEAUX / RESPONSIVE)
+   8. TABLEAUX
    ========================================================================== */
-table {
+
+   /* Style du titre du stock */
+.stock-titre {
+  font-size: 1.8rem;
+  margin: 0 0 10px 0; /* On réduit l'espace sous le titre */
+}
+
+/* Container du tableau */
+.stock-table-container {
+  width: 100%;
+  margin-top: 5px;
+}
+
+/* Le tableau lui-même */
+.stock-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 2rem;
-  font-size: 1.6rem;
+  color: white;
+  font-size: 1.2rem;
 }
 
-th, td {
-  padding: 1.2rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background-color: #7f21ab;
+/* En-tête du tableau */
+.stock-table thead tr {
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3); /* Ligne blanche discrète */
+  text-align: left;
 }
 
+.stock-table th {
+  padding: 12px 10px;
+  font-size: 1.3rem;
+  color: #a29bfe; /* Une couleur violette légère pour les titres de colonnes */
+}
+
+/* Cellules du tableau */
+.stock-table td {
+  padding: 15px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Mise en gras du nom de l'ingrédient */
+.ingredient-name {
+  font-weight: bold;
+}
+
+/* Style pour la date (monospace pour l'alignement des chiffres) */
+.expiry-date {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* ==========================================================================
+   9. RESPONSIVE DESIGN
+   ========================================================================== */
 @media (max-width: 600px) {
+  /* 1. Modifie la taille de base pour tout le document */
   :root { font-size: 8px; }
+
+  /* 2. Élargit le formulaire pour qu'il prenne presque tout l'écran */
   .login-form { width: 90%; }
+
+  /* 3. Ajuste la hauteur de la zone d'erreur */
   .login-error-container { height: 4.5rem; }
 }

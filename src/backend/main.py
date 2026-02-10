@@ -82,3 +82,24 @@ async def register(request: RegisterRequest):
     new_id = max(u.id_user for u in db_users) + 1 if db_users else 1
     new_user = GenericUser(new_id, request.pseudo, request.password)
     db_users.append(new_user)
+
+@app.get("/ingredients")
+async def get_all_ingredients():
+    # 'data' est le dictionnaire renvoyé par get_app_data()
+    # On renvoie la liste des ingrédients pour que le front connaisse les noms
+    return data["ingredients"]
+
+
+@app.get("/stock/{id_stock}")
+async def get_stock(id_stock: int):
+    # 'data' provient de ton seed_data
+    user_stock = data["stocks"].get(id_stock)
+
+    if not user_stock:
+        raise HTTPException(status_code=404, detail="Stock non trouvé")
+
+    return {
+        "id_stock": user_stock.id_stock,
+        "nom": user_stock.nom,
+        "items_by_ingredient": user_stock.items_by_ingredient
+    }
