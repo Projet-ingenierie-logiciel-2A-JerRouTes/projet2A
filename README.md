@@ -57,12 +57,34 @@ La base de données gère les entités principales du projet :
 
 ______________________________________________________________________
 
+### 🖥️ FrontEnd
+
+[README du frontend](https://github.com/Projet-ingenierie-logiciel-2A-JerRouTes/projet2A/blob/christelle_frontend/src/frontend/README.md)
+
+______________________________________________________________________
+
 ### 🖥️ Interface utilisateur
 
 ______________________________________________________________________
 
 ### ⚙️ Modèle métier
 
+______________________________________________________________________
+
+### ⚙️ Lancement du projet (temporaire)
+
+Terminale 1 :
+
+```
+cd src/frontend
+
+npm run dev
+```
+
+Terminal 2 :
+```
+$env:PYTHONPATH = "$PWD;$PWD/src"; uvicorn src.frontend.src.main_frontend:app --reload
+```
 ______________________________________________________________________
 
 ## Informations techniques utiles
@@ -89,4 +111,3 @@ POSTGRES_USER=
 POSTGRES_PASSWORD=
 
 POSTGRES_SCHEMA=projet_test_dao
-

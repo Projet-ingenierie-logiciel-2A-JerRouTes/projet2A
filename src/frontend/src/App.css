@@ -1,6 +1,9 @@
+/* ==========================================================================
+   1. VARIABLES ET RÉINITIALISATION (RESET)
+   ========================================================================== */
 :root {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
-  font-size: 10px;
+  font-size: 10px; /* 1rem = 10px */
 }
 
 * {
@@ -11,39 +14,238 @@
 
 body {
   background-color: #1b1b32;
-  padding-bottom: 2rem;
+  color: white;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   2. MISE EN PAGE PRINCIPALE (LAYOUT)
+   ========================================================================== */
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100vw;
+  min-height: 100vh;
+  padding: 4rem 2rem;
 }
 
 h1 {
-  font-size: 3.2rem;
-  color: white;
-  width: 40rem;
-  margin: 4rem auto 3rem auto;
+  font-size: 4.5rem;
+  margin-bottom: 3rem;
   text-align: center;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
-img {
-  display: block;
-  width: 25rem;
-  margin: 3rem auto 0 auto;
+.container-principal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 400px;
+  margin: 0 auto;
+  gap: 15px;
 }
 
-table {
-  width: 100%;
-  font-size: 1.6rem;
-  color: white;
-  margin-top: 2rem;
-}
-
-th,
-td {
-  padding: 1rem;
-  text-align: center;
-  border: 2px solid white;
-  border-collapse: collapse;
+.sous-container {
   background-color: #7f21ab;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  border-radius: 8px; /* Optionnel : pour adoucir les angles */
 }
 
-#base {
-  width: 60%;
+.login-form {
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 20px 0;
+}
+
+/* ==========================================================================
+   3. CHAMPS DE SAISIE (INPUTS)
+   ========================================================================== */
+.input-group {
+  width: 100%;
+  background-color: #f4f4f4;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  position: relative; /* Important pour l'autocomplétion */
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid transparent;
+  background-color: #f4f4f4;
+  color: #333;
+  font-size: 1.8rem;
+  transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+  outline: none;
+  background-color: #fff;
+  border-color: #a34cd8;
+  box-shadow: 0 0 8px rgba(163, 76, 216, 0.3);
+}
+
+.input-group input::placeholder {
+  color: #888;
+  font-style: italic;
+  font-size: 1.6rem;
+}
+
+/* Style spécifique pour l'unité à l'intérieur du champ quantité */
+.unit-badge {
+  padding-right: 15px;
+  color: #7f21ab;
+  font-weight: bold;
+  font-size: 1.4rem;
+  user-select: none;
+  background-color: transparent;
+}
+
+/* ==========================================================================
+   4. AUTOCOMPLÉTION (SUGGESTIONS)
+   ========================================================================== */
+.suggestions-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  color: #333;
+  z-index: 100;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.suggestion-item {
+  padding: 12px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  font-size: 1.4rem;
+  transition: background 0.2s;
+}
+
+.suggestion-item:hover {
+  background-color: #f0f0f0;
+}
+
+.suggestion-item small {
+  color: #888;
+  margin-left: 5px;
+}
+
+/* ==========================================================================
+   5. TABLEAUX ET LISTE DE STOCK
+   ========================================================================== */
+.stock-titre {
+  font-size: 1.8rem;
+  margin: 0 0 10px 0;
+  color: white;
+}
+
+.stock-table-container {
+  width: 100%;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-top: 5px;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.stock-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: white;
+  font-size: 1.2rem;
+}
+
+/* En-tête fixe (Sticky) */
+.stock-table thead th {
+  position: sticky;
+  top: 0;
+  background-color: #7f21ab;
+  z-index: 1;
+  padding: 12px 10px;
+  font-size: 1.3rem;
+  color: #a29bfe;
+  text-align: left;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.stock-table td {
+  padding: 15px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ingredient-name {
+  font-weight: bold;
+}
+
+.expiry-date {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* ==========================================================================
+   6. BOUTONS ET MESSAGES
+   ========================================================================== */
+.bouton {
+  width: 100%;
+  padding: 1.2rem;
+  border-radius: 6px;
+  font-size: 1.6rem;
+  outline: none;
+  background-color: #1b1b32;
+  color: white;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.bouton:hover {
+  background-color: #2a2a4d;
+}
+
+.bouton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.message {
+  background-color: #fff; /* Par défaut blanc */
+  color: #1b1b32;
+  padding: 1.2rem;
+  border-radius: 6px;
+  width: 100%;
+  font-size: 1.4rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Si tu veux garder tes variantes de couleurs pour les messages */
+.message-negatif { background-color: #f1c40f; }
+.message-positif { background-color: #27ae60; }
+
+/* ==========================================================================
+   7. RESPONSIVE DESIGN
+   ========================================================================== */
+@media (max-width: 600px) {
+  :root { font-size: 8px; }
+  .container-principal { width: 95%; }
+  .login-form { width: 100%; }
+
+  .stock-table {
+    font-size: 1.4rem; /* Un peu plus grand sur mobile pour la lisibilité */
+  }
 }
