@@ -7,32 +7,32 @@ function Login({ onLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMessage(''); // Réinitialise l'erreur à chaque tentative
+    setErrorMessage('');
 
     try {
-      // 1. Appel au backend FastAPI sur le port 8000
       const response = await fetch('http://127.0.0.1:8000/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        // Envoie du pseudo et password au format JSON attendu par Pydantic
         body: JSON.stringify({ pseudo, password }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Succès : on transmet l'objet utilisateur complet à App.jsx
         onLogin(data);
       } else {
-        // Erreur côté serveur (ex: 401 ou 404)
-        setErrorMessage(data.detail || "Erreur lors de la connexion");
+        if (response.status === 404) {
+          setErrorMessage("Utilisateur inconnu");
+        } else if (response.status === 401) {
+          setErrorMessage("Mot de passe incorrect");
+        } else {
+          setErrorMessage(data.detail || "Erreur de connexion");
+        }
       }
     } catch (error) {
-      // Erreur réseau (ex: le serveur backend n'est pas lancé)
-      console.error("Erreur réseau :", error);
-      setErrorMessage("Impossible de contacter le serveur backend. Est-il lancé ?");
+      setErrorMessage("Serveur injoignable");
     }
   };
 
@@ -41,36 +41,32 @@ function Login({ onLogin }) {
       <form onSubmit={handleSubmit} className="login-form">
         <h2>Connexion</h2>
 
-        {/* Affichage du message d'erreur en jaune s'il existe */}
-        {errorMessage && (
-          <div className="login-error-box">
-            ⚠️ {errorMessage}
-          </div>
-        )}
-
-        <div className="input-group">
-          <input
-            type="text"
-            placeholder="Pseudo"
-            value={pseudo}
-            onChange={(e) => setPseudo(e.target.value)}
-            required
-          />
+        {/* Cette div réserve l'espace pour que la boîte violette ne bouge JAMAIS */}
+        <div className="login-error-container">
+          {errorMessage && (
+            <div className="login-error-box">
+              ⚠️ {errorMessage}
+            </div>
+          )}
         </div>
 
-        <div className="input-group">
-          <input
-            type="password"
-            placeholder="Mot de passe"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
+        <input
+          type="text"
+          placeholder="Pseudo"
+          value={pseudo}
+          onChange={(e) => setPseudo(e.target.value)}
+          required
+        />
 
-        <button type="submit" className="login-button">
-          Se connecter
-        </button>
+        <input
+          type="password"
+          placeholder="Mot de passe"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        <button type="submit">Se connecter</button>
       </form>
     </div>
   );
