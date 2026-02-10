@@ -3,7 +3,7 @@
    ========================================================================== */
 :root {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
-  font-size: 10px; /* Base pour 1rem = 10px */
+  font-size: 10px; /* 1rem = 10px */
 }
 
 * {
@@ -39,89 +39,96 @@ h1 {
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
-/* ==========================================================================
-   3. ÉCRAN DE CONNEXION (LOGIN)
-   ========================================================================== */
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 5rem;
-}
-
-.login-form {
-  background-color: #7f21ab;
-  padding: 3rem;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  width: 100%;
-  max-width: 350px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-}
-
-.login-form h2 {
+h2 {
   font-size: 2.4rem;
   text-align: center;
 }
 
-/* --- ZONE D'ERREUR RIGIDE ET RESPONSIVE --- */
-.login-error-container {
-  /* Hauteur strictement FIXE pour bloquer le redimensionnement */
-  height: 5rem;
+/* ==========================================================================
+   3. BOITE PRINCIPALE
+   ========================================================================== */
+
+/* Le conteneur qui définit la largeur pour tout le monde */
+.container-principal{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 400px;
+  margin: 0 auto; /* Centre le tout dans la page */
+  gap: 15px; /* Espace entre le formulaire et l'erreur */
+}
+
+.sous-container {
+  background-color: #7f21ab;
   width: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+  justify-content: center; /* Centre horizontalement */
+  align-items: center;     /* Centre verticalement (si le container a une hauteur) */
 }
 
-.login-error-box {
-  background-color: #f1c40f;
-  color: #1b1b32;
-  padding: 0.8rem;
-  border-radius: 6px;
-  border: 2px solid #ffffff;
+
+
+.login-form {
+  width: 90%;
+  display: flex;        /* INDISPENSABLE pour que flex-direction et gap marchent */
+  flex-direction: column;
+  align-items: center;  /* Centre les enfants */
+  gap: 15px;
+  padding: 20px 0;      /* Ajoute de l'air en haut et en bas */
+}
+/* ==========================================================================
+   4. CHAMP DE SAISIES
+   ========================================================================== */
+
+/* --- STYLE DE LA BOÎTE AUTOUR DE L'INPUT --- */
+.input-group {
   width: 100%;
-
-  /* Police adaptative : min 1.2rem, max 1.4rem */
-  font-size: clamp(1.2rem, 3vw, 1.4rem);
-  font-weight: bold;
-  text-align: center;
-
-  /* Force le message sur une seule ligne */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  animation: shake 0.4s ease-in-out;
+  background-color: #f4f4f4;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;      /* Aligne le texte au milieu */
+  padding: 0;
+  overflow: hidden; /* Pour que l'input ne dépasse pas des arrondis */
 }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+/* -- STYLE DE L'INPUT LUI-MÊME --- */
+.input-group input {
+  width: 100%;
+  padding: 12px 15px;      /* Espace à l'intérieur de la boîte */
+  border: 2px solid transparent; /* Bordure invisible par défaut */
+  border-radius: 8px;      /* Coins arrondis */
+  background-color: #f4f4f4; /* Fond légèrement gris/blanc */
+  color: #333;             /* Couleur du texte saisi */
+  font-size: 1.8rem;
+  box-sizing: border-box;  /* Pour que le padding ne dépasse pas */
+  transition: all 0.3s ease; /* Animation douce pour les changements */
 }
 
-.login-form input,
-.login-form button {
+/* Effet quand on clique dans la boîte (Focus) */
+.input-group input:focus {
+  outline: none;           /* Enlève le contour bleu par défaut du navigateur */
+  background-color: #fff;  /* Devient tout blanc */
+  border-color: #a34cd8;   /* Une bordure violette plus claire apparaît */
+  box-shadow: 0 0 8px rgba(163, 76, 216, 0.3); /* Légère lueur */
+}
+
+/* Style du placeholder (le texte indicatif) */
+.input-group input::placeholder {
+  color: #888;
+  font-style: italic;
+  font-size: 1.6rem;
+}
+
+/* ==========================================================================
+   5. LES BOUTONS
+   ========================================================================== */
+
+.bouton {
   width: 100%;
   padding: 1.2rem;
   border-radius: 6px;
   font-size: 1.6rem;
   outline: none;
-}
-
-.login-form input {
-  border: 1px solid rgba(255,255,255,0.2);
-}
-
-.login-form input:focus {
-  border-color: #ffffff;
-}
-
-.login-form button {
   background-color: #1b1b32;
   color: white;
   border: none;
@@ -130,24 +137,39 @@ h1 {
   transition: background 0.3s ease;
 }
 
-.login-form button:hover {
+.bouton:hover {
   background-color: #2a2a4d;
 }
 
 /* ==========================================================================
-   4. AUTRES COMPOSANTS (TABLEAUX / LOGOUT)
+   6. MESSAGE D'ERREUR
    ========================================================================== */
-.logout-btn {
-  margin-top: 3rem;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 0.8rem 1.5rem;
-  border-radius: 4px;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
 
+   .message-negatif{
+  background-color: #f1c40f;
+  color: #1b1b32;
+  padding: 0.8rem;
+  border-radius: 6px;
+  border: 2px solid #ffffff;
+  width: 100%;
+  font-size: clamp(1.2rem, 3vw, 1.4rem);
+  font-weight: bold;
+   }
+
+  .message-positif{
+  background-color: #27ae60;
+  color: #1b1b32;
+  padding: 0.8rem;
+  border-radius: 6px;
+  border: 2px solid #ffffff;
+  width: 100%;
+  font-size: clamp(1.2rem, 3vw, 1.4rem);
+  font-weight: bold;
+   }
+
+/* ==========================================================================
+   A. AUTRES (TABLEAUX / RESPONSIVE)
+   ========================================================================== */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -161,25 +183,8 @@ th, td {
   background-color: #7f21ab;
 }
 
-/* ==========================================================================
-   5. RESPONSIVE DESIGN (MOBILES)
-   ========================================================================== */
 @media (max-width: 600px) {
-  :root {
-    font-size: 8px; /* Réduction globale pour mobile */
-  }
-
-  .login-form {
-    width: 90%;
-    padding: 2.5rem;
-  }
-
-  h1 {
-    font-size: 3.2rem;
-  }
-
-  /* On s'assure que la boîte d'erreur reste de même taille en mobile */
-  .login-error-container {
-    height: 4.5rem;
-  }
+  :root { font-size: 8px; }
+  .login-form { width: 90%; }
+  .login-error-container { height: 4.5rem; }
 }

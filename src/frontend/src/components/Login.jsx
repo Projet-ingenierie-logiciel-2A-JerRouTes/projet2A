@@ -1,28 +1,32 @@
 import React, { useState } from 'react';
 
-function Login({ onLogin }) {
+function Login({ onLogin, onGoToSignup }) {
+  // Initalisation des variables d'état pour le pseudo, le mot de passe et les messages d'erreur
   const [pseudo, setPseudo] = useState('');
   const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [error_message, setErrorMessage] = useState('');
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMessage('');
+    e.preventDefault(); // Empêche le rechargement de la page
+    setErrorMessage(''); // Réinitialise l'erreur à chaque tentative
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/login', {
+      // Communication avec le backend pour la connexion
+      const response = await fetch('http://localhost:8000/login', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+        'Content-Type': 'application/json',
         },
         body: JSON.stringify({ pseudo, password }),
-      });
+    });
+
 
       const data = await response.json();
 
       if (response.ok) {
-        onLogin(data);
+        onLogin(data); // Succès ! On envoie les infos de l'utilisateur à App.jsx
       } else {
+        // Gestion des codes erreurs HTTP renvoyés par FastAPI (404, 401)
         if (response.status === 404) {
           setErrorMessage("Utilisateur inconnu");
         } else if (response.status === 401) {
@@ -37,39 +41,55 @@ function Login({ onLogin }) {
   };
 
   return (
-    <div className="login-container">
+  <div className="container-principal"> {/* Conteneur global */}
+
+    <div className="sous-container">
       <form onSubmit={handleSubmit} className="login-form">
         <h2>Connexion</h2>
 
-        {/* Cette div réserve l'espace pour que la boîte violette ne bouge JAMAIS */}
-        <div className="login-error-container">
-          {errorMessage && (
-            <div className="login-error-box">
-              ⚠️ {errorMessage}
-            </div>
-          )}
+        <div className="input-group">
+          <input
+            type="text"
+            placeholder="Pseudo ou Email"
+            value={pseudo}
+            onChange={(e) => setPseudo(e.target.value)}
+            required
+          />
         </div>
 
-        <input
-          type="text"
-          placeholder="Pseudo"
-          value={pseudo}
-          onChange={(e) => setPseudo(e.target.value)}
-          required
-        />
+        <div className="input-group">
+          <input
+            type="password"
+            placeholder="Mot de passe"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
 
-        <input
-          type="password"
-          placeholder="Mot de passe"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <button type="submit" className="bouton">
+          Se connecter
+        </button>
 
-        <button type="submit">Se connecter</button>
+        <div style={{ textAlign: 'center', margin: '10px 0' }}>Pas encore de compte</div>
+
+        <button type="button" className="bouton" onClick={onGoToSignup}>
+          Créer un compte
+        </button>
       </form>
     </div>
-  );
+
+    {/* Boite d'erreur séparée */}
+    <div className="sous-container">
+    {error_message && (
+      <div className="message">
+        🛑 {error_message}
+      </div>
+    )}
+    </div>
+
+  </div>
+);
 }
 
 export default Login;

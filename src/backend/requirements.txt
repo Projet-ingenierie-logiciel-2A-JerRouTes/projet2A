@@ -10,5 +10,5 @@ pyyaml
 # --- Base de données ---
 psycopg2-binary
 
-# --- Utilitaires (si besoin pour tes objets métier) ---
+# --- Utilitaires ---
 pydantic
