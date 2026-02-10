@@ -1,110 +1,124 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import { register } from "../api/authApi";
 
 function CreationCompte({ onBack, onRegisterSuccess }) {
-    const [isRegistered, setIsRegistered] = useState(false);
-    const [pseudo, setPseudo] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirm_password, setconfirmPassword] = useState('');
-    const [error_message, setErrorMessage] = useState('');
-    const [message, setMessage] = useState('');
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [pseudo, setPseudo] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm_password, setconfirmPassword] = useState("");
+  const [error_message, setErrorMessage] = useState("");
+  const [message, setMessage] = useState("");
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setErrorMessage('');
-        setMessage('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage("");
+    setMessage("");
+
+    // Validation front simple
+    if (password !== confirm_password) {
+      setErrorMessage("Les mots de passe ne sont pas identiques");
+      return;
+    }
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ pseudo, password, confirm_password }),
-      });
+      // Backend JWT : username/email/password
+      await register({ username: pseudo, email, password });
 
-      const data = await response.json();
+      setMessage("Compte créé avec succès !");
+      setIsRegistered(true);
 
-      if (response.ok) {
-        // En cas de succès, on informe l'utilisateur ou on le redirige
-        setMessage("Compte créé avec succès !");
-        setErrorMessage('');
-        // 2. On bascule l'affichage
-        setIsRegistered(true);
-      } else {
-            // Ici, on récupère le message "detail" envoyé par FastAPI
-            setErrorMessage(data.detail || "Erreur lors de l'inscription");
-        }
+      // Si ton App veut être notifié (optionnel)
+      if (onRegisterSuccess) {
+        onRegisterSuccess();
+      }
     } catch (error) {
-      setErrorMessage("Serveur backend injoignable");
+      const status = error?.response?.status;
+      const detail = error?.response?.data?.detail;
+
+      if (status === 409) {
+        setErrorMessage("Email déjà utilisé");
+      } else if (status === 400) {
+        setErrorMessage(detail || "Erreur lors de l'inscription");
+      } else if (status === 422) {
+        setErrorMessage("Champs invalides (pseudo/email/mot de passe)");
+      } else {
+        setErrorMessage(detail || "Serveur backend injoignable");
+      }
     }
   };
 
   return (
-      <div className="container-principal"> {/* Conteneur global */}
-
-        {!isRegistered ? (
-            <div className="sous-container">
-                <form onSubmit={handleSubmit} className="login-form">
-                    <h2>Créer un compte</h2>
-
-                    <div className="input-group">
-                        <input
-                            type="text"
-                            placeholder="Choisir un Pseudo"
-                            value={pseudo}
-                            onChange={(e) => setPseudo(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="input-group">
-                        <input
-                            type="password"
-                            placeholder="Mot de passe"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="input-group">
-                        <input
-                            type="password"
-                            placeholder="Confirmer le mot de passe"
-                            value={confirm_password}
-                            onChange={(e) => setconfirmPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <button type="submit" className="bouton">
-                        S'inscrire
-                    </button>
-
-                    <button type="button" className="bouton" onClick={onBack}>
-                    Retour
-                    </button>
-                </form>
-            </div>
-
-        ):(
-
-            <div className="sous-container">
-                <button type="submit" className="bouton">
-                    Construire mon stock
-                </button>
-            </div>
-        )}
-
-
-        {/* Une seule zone de message qui change de style selon le contenu */}
-        {(error_message || message) && (
+    <div className="container-principal">
+      {!isRegistered ? (
         <div className="sous-container">
-            <div className={error_message ? "message-negatif" : "message-positif"}>
-            {error_message ? `🛑 ${error_message}` : `✅ ${message}`}
+          <form onSubmit={handleSubmit} className="login-form">
+            <h2>Créer un compte</h2>
+
+            <div className="input-group">
+              <input
+                type="text"
+                placeholder="Choisir un Pseudo"
+                value={pseudo}
+                onChange={(e) => setPseudo(e.target.value)}
+                required
+              />
             </div>
+
+            <div className="input-group">
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="input-group">
+              <input
+                type="password"
+                placeholder="Mot de passe"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="input-group">
+              <input
+                type="password"
+                placeholder="Confirmer le mot de passe"
+                value={confirm_password}
+                onChange={(e) => setconfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <button type="submit" className="bouton">
+              S'inscrire
+            </button>
+
+            <button type="button" className="bouton" onClick={onBack}>
+              Retour
+            </button>
+          </form>
         </div>
-        )}
+      ) : (
+        <div className="sous-container">
+          <button type="button" className="bouton">
+            Construire mon stock
+          </button>
+        </div>
+      )}
+
+      {(error_message || message) && (
+        <div className="sous-container">
+          <div className={error_message ? "message-negatif" : "message-positif"}>
+            {error_message ? `🛑 ${error_message}` : `✅ ${message}`}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

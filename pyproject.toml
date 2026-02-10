@@ -12,7 +12,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
 pythonpath = ["."] # pour que pytest trouve les modules
-testpaths = ["src/tests"]  
+testpaths = ["src/backend/tests"]  
 
 [tool.ruff]
 src = ["."] # pour se placer a la racine du projet (sinon ["src"])
