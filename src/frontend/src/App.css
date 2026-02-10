@@ -30,7 +30,7 @@ body {
   justify-content: flex-start;
   width: 100vw;           /* Force l'occupation de TOUTE la largeur de fenêtre */
   min-height: 100vh;      /* Force l'occupation de TOUTE la hauteur */
-  margin: 0;              /* On enlève auto car width: 100vw s'en charge */
+  margin: 0;               /* On enlève auto car width: 100vw s'en charge */
   padding: 4rem 2rem;
 }
 
@@ -68,6 +68,25 @@ h1 {
   font-size: 2.4rem;
   text-align: center;
   margin-bottom: 1rem;
+}
+
+/* Nouveau : Message d'erreur jaune et gros */
+.login-error-box {
+  background-color: #f1c40f; /* Jaune vif */
+  color: #1b1b32;            /* Texte bleu nuit pour le contraste */
+  padding: 1.5rem;
+  border-radius: 6px;
+  font-size: 1.8rem;         /* Plus gros que le texte standard */
+  font-weight: bold;
+  text-align: center;
+  border: 2px solid #ffffff;
+  animation: shake 0.4s ease-in-out; /* Petit effet pour attirer l'oeil */
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 }
 
 .login-form input {
