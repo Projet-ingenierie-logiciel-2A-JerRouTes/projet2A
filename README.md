@@ -71,6 +71,22 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
+### ⚙️ Lancement du projet (temporaire)
+
+Terminale 1 :
+
+```
+cd src/frontend
+
+npm run dev
+```
+
+Terminal 2 :
+```
+$env:PYTHONPATH = "$PWD;$PWD/src"; uvicorn src.frontend.src.main_frontend:app --reload
+```
+______________________________________________________________________
+
 ## Informations techniques utiles
 
 - Pour le linting et le formatage automatique avant chaque commit:
