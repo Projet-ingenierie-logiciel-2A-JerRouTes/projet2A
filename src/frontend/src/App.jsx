@@ -32,12 +32,16 @@ return (
       <>
         {is_registering ? (
           /* SI is_registering est vrai : on affiche la création de compte */
-          <CreationCompte onBack={() => setIsRegistering(false)} />
+          <CreationCompte
+            onBack={() => setIsRegistering(false)}
+            onGoToStockCreation={() => setShowStock(true)}
+          />
         ) : (
           /* SINON (:) : on affiche le Login habituel */
           <Login
             onLogin={handleLogin}
             onGoToSignup={handleGoToSignup}
+            onGuestAccess={() => setShowStock(true)}
           />
         )}
       </>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function Login({ onLogin, onGoToSignup }) {
+function Login({ onLogin, onGoToSignup, onGuestAccess }) {
   // Initalisation des variables d'état pour le pseudo, le mot de passe et les messages d'erreur
   const [pseudo, setPseudo] = useState('');
   const [password, setPassword] = useState('');
@@ -76,6 +76,11 @@ function Login({ onLogin, onGoToSignup }) {
         <button type="button" className="bouton" onClick={onGoToSignup}>
           Créer un compte
         </button>
+
+        <button type="button" className="bouton" onClick={onGuestAccess}>
+          Chercher des recettes sans compte
+        </button>
+
       </form>
     </div>
 

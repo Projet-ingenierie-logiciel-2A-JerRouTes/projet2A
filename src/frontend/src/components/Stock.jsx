@@ -4,10 +4,17 @@ function Stock({ user }) {
   return (
     <div className="container-principal">
       <div className="sous-container">
-        <div className="login-form">
-          <h2>Mon Stock</h2>
-          <p>Bienvenue dans ton inventaire, {user?.pseudo} !</p>
-        </div>
+        {user ? (
+          /* CAS 1 : On a un utilisateur (Connexion réussie) */
+          <div className="login-form">
+            <h3>Recherche de recettes à partir de ton inventaire {user.pseudo}</h3>
+          </div>
+        ) : (
+          /* CAS 2 : On n'a pas d'utilisateur (Création de stock sans compte ou erreur) */
+          <div className="login-form">
+            <h3>Recherche de recettes - Sans compte</h3>
+          </div>
+        )}
       </div>
     </div>
   );
