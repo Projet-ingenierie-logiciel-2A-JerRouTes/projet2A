@@ -57,6 +57,12 @@ La base de données gère les entités principales du projet :
 
 ______________________________________________________________________
 
+### 🖥️ FrontEnd
+
+[README du frontend](https://github.com/Projet-ingenierie-logiciel-2A-JerRouTes/projet2A/blob/christelle_frontend/src/frontend/README.md)
+
+______________________________________________________________________
+
 ### 🖥️ Interface utilisateur
 
 ______________________________________________________________________
@@ -89,4 +95,3 @@ POSTGRES_USER=
 POSTGRES_PASSWORD=
 
 POSTGRES_SCHEMA=projet_test_dao
-

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Login from "./components/Login";
 import Test from "./components/Test";
+import InventaireFrigo from "./components/InventaireFrigo";
 import "./App.css";
 
 const App = () => {
@@ -9,15 +10,22 @@ const App = () => {
   return (
     <div className="app">
       {!user ? (
-        // Si pas d'utilisateur, on affiche le Login
         <Login onLogin={(pseudo) => setUser(pseudo)} />
       ) : (
-        // Si connecté, on affiche le contenu
         <>
           <h1>Frigo App</h1>
           <p>Bienvenue, {user} !</p>
+
+          {/* --- ANCIEN AFFICHAGE (COMMENTÉ) ---
           <Test />
-          <button onClick={() => setUser(null)} className="logout-btn">Déconnexion</button>
+          ------------------------------------- */}
+
+          {/* NOUVEL AFFICHAGE : SAISIE D'INGRÉDIENTS */}
+          <InventaireFrigo />
+
+          <button onClick={() => setUser(null)} className="logout-btn">
+            Déconnexion
+          </button>
         </>
       )}
     </div>
