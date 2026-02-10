@@ -10,17 +10,20 @@ const App = () => {
   return (
     <div className="app">
       {!user ? (
-        <Login onLogin={(pseudo) => setUser(pseudo)} />
+        <Login onLogin={(userData) => setUser(userData)} />
       ) : (
         <>
           <h1>Frigo App</h1>
-          <p>Bienvenue, {user} !</p>
+          {/* Correction : on accède à la propriété .pseudo de l'objet */}
+          <p>Bienvenue, <strong>{user.pseudo}</strong> !</p>
+          <p style={{ fontSize: '0.9rem', fontStyle: 'italic' }}>
+            Session : {user.role}
+          </p>
 
           {/* --- ANCIEN AFFICHAGE (COMMENTÉ) ---
           <Test />
           ------------------------------------- */}
 
-          {/* NOUVEL AFFICHAGE : SAISIE D'INGRÉDIENTS */}
           <InventaireFrigo />
 
           <button onClick={() => setUser(null)} className="logout-btn">

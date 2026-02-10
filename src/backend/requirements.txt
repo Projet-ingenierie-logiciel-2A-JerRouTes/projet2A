@@ -1,5 +1,14 @@
-dotenv
-psycopg2
+# --- Serveur API ---
+fastapi
+uvicorn[standard]
+
+# --- Sécurité & Configuration ---
+python-dotenv
 bcrypt
 pyyaml
 
+# --- Base de données ---
+psycopg2-binary
+
+# --- Utilitaires (si besoin pour tes objets métier) ---
+pydantic
