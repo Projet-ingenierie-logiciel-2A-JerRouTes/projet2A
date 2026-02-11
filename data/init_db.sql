@@ -56,6 +56,18 @@ CREATE TABLE stock (
 );
 
 -----------------------------------------------------
+-- TYPE : Unit Type
+-----------------------------------------------------
+
+DROP TYPE IF EXISTS unit_type CASCADE;
+CREATE TYPE unit_type AS ENUM (
+    'g', 'kg', 'mg', 'oz', 'lb',
+    'ml', 'L', 'fl_oz',
+    'cm', 'm',
+    'pcs'
+);
+
+-----------------------------------------------------
 -- TABLE : Ingredient
 -----------------------------------------------------
 
@@ -63,8 +75,9 @@ DROP TABLE IF EXISTS ingredient CASCADE;
 CREATE TABLE ingredient (
     ingredient_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    unit VARCHAR(50)
+    unit unit_type
 );
+
 
 -----------------------------------------------------
 -- TABLE : Recipe
