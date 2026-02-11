@@ -3,6 +3,7 @@ from datetime import date
 
 from src.backend.business_objects.stock_item import StockItem
 
+
 class Stock:
     """Gestionnaire de l'inventaire des ingrédients (Entrepôt).
 

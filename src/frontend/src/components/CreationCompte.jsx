@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { register } from "../api/authApi";
 
 function CreationCompte({ onBack, onRegisterSuccess }) {
@@ -114,7 +114,9 @@ function CreationCompte({ onBack, onRegisterSuccess }) {
 
       {(error_message || message) && (
         <div className="sous-container">
-          <div className={error_message ? "message-negatif" : "message-positif"}>
+          <div
+            className={error_message ? "message-negatif" : "message-positif"}
+          >
             {error_message ? `🛑 ${error_message}` : `✅ ${message}`}
           </div>
         </div>

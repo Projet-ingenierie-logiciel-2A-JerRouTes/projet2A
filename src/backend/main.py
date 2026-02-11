@@ -1,11 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List
+
+from src.backend.business_objects.user import GenericUser
 
 # Import de ta fonction de génération
 from src.backend.seed_data import get_app_data
-from src.backend.business_objects.user import GenericUser
+
 
 app = FastAPI(title="Frigo App - Backend ENSAI")
 
@@ -25,22 +26,27 @@ data = get_app_data()
 db_users = data["users"]
 db_stocks = data["stocks"]
 
+
 # --- MODÈLES DE DONNÉES (DTO) ---
 # Ces classes servent uniquement à valider ce que React nous envoie
 class LoginRequest(BaseModel):
     pseudo: str
     password: str
 
+
 class RegisterRequest(BaseModel):
     pseudo: str
     password: str
     confirm_password: str
 
+
 # --- ROUTES ---
+
 
 @app.get("/")
 def read_root():
     return {"message": "Serveur opérationnel avec seed_data !"}
+
 
 @app.post("/login")
 async def login(request: LoginRequest):
@@ -59,7 +65,7 @@ async def login(request: LoginRequest):
             "pseudo": user.pseudo,
             "role": user.display_role(),
             "id_stock": user.id_stock,
-            "nom_stock": user_stock.nom if user_stock else "Aucun stock"
+            "nom_stock": user_stock.nom if user_stock else "Aucun stock",
         }
 
     raise HTTPException(status_code=401, detail="Mot de passe incorrect")
@@ -72,7 +78,9 @@ async def register(request: RegisterRequest):
     ##################################################################
     # 1. Vérification du mot de passe (si tu les reçois tous les deux du front)
     if request.password != request.confirm_password:
-        raise HTTPException(status_code=400, detail="Les mots de passe ne sont pas identiques")
+        raise HTTPException(
+            status_code=400, detail="Les mots de passe ne sont pas identiques"
+        )
 
     # 2. Vérification du pseudo
     if any(u.pseudo == request.pseudo for u in db_users):
@@ -82,6 +90,7 @@ async def register(request: RegisterRequest):
     new_id = max(u.id_user for u in db_users) + 1 if db_users else 1
     new_user = GenericUser(new_id, request.pseudo, request.password)
     db_users.append(new_user)
+
 
 @app.get("/ingredients")
 async def get_all_ingredients():
@@ -101,5 +110,5 @@ async def get_stock(id_stock: int):
     return {
         "id_stock": user_stock.id_stock,
         "nom": user_stock.nom,
-        "items_by_ingredient": user_stock.items_by_ingredient
+        "items_by_ingredient": user_stock.items_by_ingredient,
     }

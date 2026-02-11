@@ -3,6 +3,7 @@
 Ce projet a pour objectif de développer un **logiciel de gestion de stock alimentaire et de recherche de recettes** permettant à des utilisateurs de retrouver des recettes à partir des ingrédients dont ils disposent, tout en gérant un stock personnel et des contraintes alimentaires.
 
 Le projet est réalisé dans le cadre du **module de création logicielle** et suit une approche structurée :
+
 - architecture MVD (Modèle – Vue – Données),
 - séparation claire frontend / backend,
 - bonnes pratiques de développement,
@@ -24,6 +25,7 @@ ______________________________________________________________________
 ## 🧩 Fonctionnalités
 
 ### Fonctionnalités de base (Niveau 1)
+
 - Création de comptes utilisateurs et authentification
 - Ajout et gestion des ingrédients
 - Gestion d’un stock personnel par utilisateur
@@ -31,6 +33,7 @@ ______________________________________________________________________
 - Gestion multi-utilisateur
 
 ### Fonctionnalités avancées (Niveau 2)
+
 - Recherche de recettes avec :
   - ajout dynamique d’ingrédients disponibles
   - restrictions (ingrédients exclus, calories, origine des recettes…)
@@ -62,7 +65,7 @@ La base de données PostgreSQL gère les entités principales du projet :
 - Recettes
 - Relations utilisateur / stock
 
-📌 Diagramme de la base de données :  
+📌 Diagramme de la base de données :\
 ![Diagramme](Documentation/Images/diagramme_bdd.drawio.png)
 
 ______________________________________________________________________
@@ -71,10 +74,11 @@ ______________________________________________________________________
 
 Le frontend est développé avec **React** et **Vite**.
 
-📘 Documentation détaillée :  
+📘 Documentation détaillée :\
 [README du frontend](src/frontend/README.md)
 
 Fonctionnalités principales :
+
 - Inscription et connexion des utilisateurs (JWT)
 - Communication sécurisée avec l’API backend
 - Gestion du stock et affichage des recettes
@@ -84,11 +88,13 @@ ______________________________________________________________________
 ### 🖥️ Interface utilisateur
 
 L’interface utilisateur permet :
+
 - la création de comptes et la connexion des utilisateurs,
 - la consultation et la gestion du stock personnel,
 - la recherche de recettes en fonction des ingrédients disponibles.
 
 Elle est conçue pour être :
+
 - simple d’utilisation,
 - réactive,
 - évolutive.
@@ -98,12 +104,14 @@ ______________________________________________________________________
 ### ⚙️ Modèle métier
 
 Le modèle métier regroupe :
+
 - les règles de gestion des utilisateurs,
 - la logique d’authentification (JWT),
 - la gestion des stocks et des ingrédients,
 - les règles de recherche de recettes.
 
 Il est implémenté côté backend avec **FastAPI** et suit une séparation claire entre :
+
 - objets métiers,
 - accès aux données (DAO),
 - logique applicative (services).
@@ -113,32 +121,36 @@ ______________________________________________________________________
 ## ⚙️ Lancement du projet
 
 ### Prérequis
+
 - Node.js 20+
 - npm
 - Python 3.11+
 - Docker & Docker Compose
 
 ### 1️⃣ Lancer la base de données
+
 ```bash
 docker compose up -d
 ```
 
 ### 2️⃣ Lancer le backend
+
 ```bash
 uv run uvicorn src.backend.api.main:app --reload
 ```
 
-Backend accessible sur :  
+Backend accessible sur :\
 👉 http://127.0.0.1:8000
 
 ### 3️⃣ Lancer le frontend
+
 ```bash
 cd src/frontend
 npm install
 npm run dev
 ```
 
-Frontend accessible sur :  
+Frontend accessible sur :\
 👉 http://localhost:5173
 
 ______________________________________________________________________
@@ -146,6 +158,7 @@ ______________________________________________________________________
 ## 🔐 Configuration (.env)
 
 ### Backend
+
 Exemple de variables d’environnement :
 
 ```env
@@ -161,7 +174,9 @@ POSTGRES_SCHEMA=projet_dao
 ```
 
 ### Frontend
+
 Voir le fichier :
+
 ```bash
 src/frontend/.env.local.template
 ```
@@ -175,6 +190,7 @@ ______________________________________________________________________
 - Workflows CI pour les tests
 
 📎 Ressources :
+
 - [Guide pre-commit](Documentation/Infos_divers/pour_pre_commit.md)
 - [Workflows de tests](Documentation/Infos_divers/worklows.md)
 
@@ -187,4 +203,4 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
-📌 *Ce README décrit l’état actuel du projet et pourra évoluer avec l’ajout de nouvelles fonctionnalités.*
+📌 _Ce README décrit l’état actuel du projet et pourra évoluer avec l’ajout de nouvelles fonctionnalités._

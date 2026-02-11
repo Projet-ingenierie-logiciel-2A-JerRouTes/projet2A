@@ -1,6 +1,7 @@
-import os
 import logging
 import logging.config
+import os
+
 import yaml
 
 
@@ -30,7 +31,9 @@ def initialiser_logs(nom_application: str = "Application") -> None:
             level=logging.INFO,
             format="%(asctime)s - %(levelname)s - %(message)s",
             handlers=[
-                logging.FileHandler(os.path.join(logs_dir, "application.log"), encoding="utf-8"),
+                logging.FileHandler(
+                    os.path.join(logs_dir, "application.log"), encoding="utf-8"
+                ),
                 logging.StreamHandler(),
             ],
         )
@@ -42,4 +45,3 @@ def initialiser_logs(nom_application: str = "Application") -> None:
     logging.info("-" * 60)
     logging.info(f"Lancement de l’application : {nom_application}")
     logging.info("-" * 60)
-    

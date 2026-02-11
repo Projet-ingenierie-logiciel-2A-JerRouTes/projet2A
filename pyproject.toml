@@ -10,9 +10,51 @@ dependencies = []
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.pytest.ini_options]
-pythonpath = ["."] # pour que pytest trouve les modules
-testpaths = ["src/backend/tests"]  
+# =============================================
+# Configuration du markdown
+# =============================================
 
+[tool.mdformat]
+number = true        # Réorganise les listes numérotées (1, 2, 3...)
+wrap = 88            # Aligne la largeur du texte sur celle de ton code Python (Ruff)
+end-of-line = "lf"   # Assure la compatibilité entre Windows (ton PC) et Linux
+
+# =============================================
+# Configuration des TESTS (Pytest)
+# =============================================
+[tool.pytest.ini_options]
+pythonpath = ["."] # Permet à pytest de voir les modules depuis la racine
+testpaths = ["src/backend/tests"] # Dossier où chercher les scripts de test
+
+# =============================================
+# Configuration du LINTER & FORMATTER (Ruff)
+# =============================================
 [tool.ruff]
-src = ["."] # pour se placer a la racine du projet (sinon ["src"])
+# Indique que la racine du projet est le point de départ
+src = ["."]
+# Longueur de ligne maximale (équilibre entre lisibilité et écrans larges)
+line-length = 88
+# Cible la version spécifique de Python pour utiliser les dernières syntaxes
+target-version = "py313"
+
+[tool.ruff.lint]
+# E : Erreurs de style (pycodestyle)
+# F : Erreurs logiques graves (Pyflakes)
+# I : Tri automatique des imports (Isort)
+# W : Avertissements de style (Warnings)
+select = ["E", "F", "I", "W"]
+
+# Dossiers à ignorer par le linter (fichiers générés ou virtuels)
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "dist",
+    "build",
+]
+
+[tool.ruff.format]
+# Utilisation de guillemets doubles (standard Python moderne)
+quote-style = "double"
+# Indentation par espaces (standard PEP 8)
+indent-style = "space"

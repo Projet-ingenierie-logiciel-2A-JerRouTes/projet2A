@@ -10,7 +10,7 @@
 .pokemon-search label {
   display: block;
   width: 80%;
-  margin: 0 auto 1rem auto;
+  margin: 0 auto 1rem;
   font-size: 1.6rem;
   text-align: center;
 }

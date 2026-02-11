@@ -1,15 +1,16 @@
 ## 🎨 Frontend – Application Frigo
 
-Cette partie du projet contient l’interface utilisateur développée avec **React** et **Vite**.  
+Cette partie du projet contient l’interface utilisateur développée avec **React** et **Vite**.\
 Elle permet l’interaction avec l’API backend (FastAPI) pour l’authentification des utilisateurs et la gestion des données.
 
----
+______________________________________________________________________
 
 ### 🚀 Installation
 
 Pour lancer le projet localement, suivez ces étapes :
 
 #### 1. Prérequis
+
 Assurez-vous d’avoir installé :
 
 - **Node.js** (version 20+ recommandée)
@@ -17,7 +18,7 @@ Assurez-vous d’avoir installé :
 
 Le backend doit également être lancé (par défaut sur `http://127.0.0.1:8000`).
 
----
+______________________________________________________________________
 
 #### 2. Configuration de l’environnement
 
@@ -39,7 +40,7 @@ Dans le fichier `.env.local`, définissez l’URL de l’API backend :
 VITE_API_URL=http://127.0.0.1:8000
 ```
 
----
+______________________________________________________________________
 
 #### 3. Installation des dépendances
 
@@ -49,7 +50,7 @@ Installez les bibliothèques nécessaires listées dans le `package.json` :
 npm install
 ```
 
----
+______________________________________________________________________
 
 #### 4. Lancement de l’application
 
@@ -59,10 +60,10 @@ Démarrez le serveur de développement :
 npm run dev
 ```
 
-L’application sera accessible (par défaut) à l’adresse :  
+L’application sera accessible (par défaut) à l’adresse :\
 👉 **http://localhost:5173**
 
----
+______________________________________________________________________
 
 ### 🛠 Composants techniques
 
@@ -71,6 +72,7 @@ L’application sera accessible (par défaut) à l’adresse :
 L’authentification repose sur une API sécurisée (JWT) exposée par le backend.
 
 ##### `Login.jsx`
+
 - Gère la connexion des utilisateurs existants.
 - Endpoints utilisés :
   - `POST /api/auth/login`
@@ -86,6 +88,7 @@ L’authentification repose sur une API sécurisée (JWT) exposée par le backen
   - Erreur réseau : serveur injoignable.
 
 ##### `CreationCompte.jsx`
+
 - Permet l’inscription de nouveaux utilisateurs.
 - Endpoint utilisé :
   - `POST /api/auth/register`
@@ -99,13 +102,14 @@ L’authentification repose sur une API sécurisée (JWT) exposée par le backen
 
 Les tokens JWT sont stockés via `localStorage` et ajoutés automatiquement aux requêtes protégées.
 
----
+______________________________________________________________________
 
 #### 📦 Gestion de l’Inventaire Intelligent
 
 La gestion du stock repose sur une synchronisation entre le catalogue global des ingrédients et le stock spécifique de l’utilisateur.
 
 ##### `Stock.jsx` (le composant « Cerveau »)
+
 Conteneur principal de l’inventaire.
 
 - États complexes :
@@ -118,6 +122,7 @@ Conteneur principal de l’inventaire.
   - Réalise une “jointure” côté client entre les IDs du stock et les noms/unités du catalogue via la fonction `getIngredientInfo`.
 
 ##### `AddIngredientForm.jsx` (Saisie Assistée)
+
 - Formulaire avancé facilitant l’ajout de produits.
 - Recherche prédictive :
   - Filtrage dynamique du catalogue à chaque saisie.

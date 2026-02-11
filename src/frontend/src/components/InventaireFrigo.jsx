@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from "react";
 
 function InventaireFrigo() {
-  const [ingredient, setIngredient] = useState('');
-  const [quantite, setQuantite] = useState('');
+  const [ingredient, setIngredient] = useState("");
+  const [quantite, setQuantite] = useState("");
   const [stock, setStock] = useState([]);
 
   // Fonction pour ajouter un produit au tableau
@@ -12,17 +12,17 @@ function InventaireFrigo() {
       const nouvelArticle = {
         id: Date.now(), // Génère un ID unique basé sur le temps
         nom: ingredient,
-        qte: quantite
+        qte: quantite,
       };
       setStock([...stock, nouvelArticle]); // Ajoute l'article à la liste existante
-      setIngredient(''); // Réinitialise le champ produit
-      setQuantite('');   // Réinitialise le champ quantité
+      setIngredient(""); // Réinitialise le champ produit
+      setQuantite(""); // Réinitialise le champ quantité
     }
   };
 
   // Fonction pour supprimer un produit de la liste
   const supprimerArticle = (id) => {
-    setStock(stock.filter(item => item.id !== id));
+    setStock(stock.filter((item) => item.id !== id));
   };
 
   return (

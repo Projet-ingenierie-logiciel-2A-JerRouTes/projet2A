@@ -36,7 +36,7 @@ h1 {
   font-size: 4.5rem;
   margin-bottom: 3rem;
   text-align: center;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 50%);
 }
 
 .container-principal {
@@ -92,7 +92,7 @@ h1 {
   outline: none;
   background-color: #fff;
   border-color: #a34cd8;
-  box-shadow: 0 0 8px rgba(163, 76, 216, 0.3);
+  box-shadow: 0 0 8px rgb(163 76 216 / 30%);
 }
 
 .input-group input::placeholder {
@@ -123,7 +123,7 @@ h1 {
   color: #333;
   z-index: 100;
   border-radius: 0 0 8px 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 30%);
   max-height: 150px;
   overflow-y: auto;
 }
@@ -150,7 +150,7 @@ h1 {
    ========================================================================== */
 .stock-titre {
   font-size: 1.8rem;
-  margin: 0 0 10px 0;
+  margin: 0 0 10px;
   color: white;
 }
 
@@ -160,7 +160,7 @@ h1 {
   overflow-y: auto;
   margin-top: 5px;
   border-radius: 8px;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: rgb(0 0 0 / 20%);
 }
 
 .stock-table {
@@ -180,12 +180,12 @@ h1 {
   font-size: 1.3rem;
   color: #a29bfe;
   text-align: left;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+  border-bottom: 2px solid rgb(255 255 255 / 30%);
 }
 
 .stock-table td {
   padding: 15px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
 }
 
 .ingredient-name {
@@ -193,7 +193,7 @@ h1 {
 }
 
 .expiry-date {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
 }
 
 /* ==========================================================================
@@ -234,16 +234,29 @@ h1 {
 }
 
 /* Si tu veux garder tes variantes de couleurs pour les messages */
-.message-negatif { background-color: #f1c40f; }
-.message-positif { background-color: #27ae60; }
+.message-negatif {
+  background-color: #f1c40f;
+}
+
+.message-positif {
+  background-color: #27ae60;
+}
 
 /* ==========================================================================
    7. RESPONSIVE DESIGN
    ========================================================================== */
-@media (max-width: 600px) {
-  :root { font-size: 8px; }
-  .container-principal { width: 95%; }
-  .login-form { width: 100%; }
+@media (width <= 600px) {
+  :root {
+    font-size: 8px;
+  }
+
+  .container-principal {
+    width: 95%;
+  }
+
+  .login-form {
+    width: 100%;
+  }
 
   .stock-table {
     font-size: 1.4rem; /* Un peu plus grand sur mobile pour la lisibilité */

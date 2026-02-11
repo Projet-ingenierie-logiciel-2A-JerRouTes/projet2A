@@ -37,7 +37,7 @@ jobs:
           pip install -e . # passage du projet en mode éditable
 
       - name: Run targeted tests
-        run: |  # script bash d'éxécution 
+        run: |  # script bash d'éxécution
           echo "=== Détection des fichiers modifiés ==="
           # Liste des fichiers modifiés dans business_objects/ renvoie True si aucune modification
           FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^src/business_objects/' || true)

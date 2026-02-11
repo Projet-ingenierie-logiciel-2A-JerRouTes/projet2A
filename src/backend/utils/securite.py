@@ -1,10 +1,10 @@
 # utils/password_utils.py
-import bcrypt
-from typing import Optional
 from getpass import getpass
 
+import bcrypt
 
-def hash_password(password: str, rounds: int = 12, salt: Optional[bytes] = None) -> str:
+
+def hash_password(password: str, rounds: int = 12, salt: bytes | None = None) -> str:
     """
     Hash un mot de passe avec bcrypt.
     - rounds : facteur de coût (par défaut 12).
@@ -28,12 +28,12 @@ def check_password(plain_password: str, hashed_password: str) -> bool:
     """
     try:
         # Encode les deux en bytes pour la comparaison
-        password_bytes = plain_password.encode('utf-8')
-        hashed_bytes = hashed_password.encode('utf-8')
-        
+        password_bytes = plain_password.encode("utf-8")
+        hashed_bytes = hashed_password.encode("utf-8")
+
         # bcrypt.checkpw fait la comparaison sécurisée
         return bcrypt.checkpw(password_bytes, hashed_bytes)
-    
+
     except (ValueError, TypeError):
         # Si le hash est malformé ou incompatible, bcrypt lève une erreur
         print(f"Erreur: Le hash '{hashed_password}' n'est pas un format valide.")
@@ -68,20 +68,23 @@ if __name__ == "__main__":
         description="Utilitaire pour hasher des mots de passe (bcrypt)."
     )
     parser.add_argument(
-        "-p", "--password",
+        "-p",
+        "--password",
         action="append",
-        help="Mot de passe à hasher (danger : apparaît dans l'historique shell). Répéter pour plusieurs."
+        help="Mot de passe à hasher (danger : apparaît dans l'historique shell). Répéter pour plusieurs.",
     )
     parser.add_argument(
-        "-i", "--interactive",
+        "-i",
+        "--interactive",
         action="store_true",
-        help="Mode interactif (saisie masquée)."
+        help="Mode interactif (saisie masquée).",
     )
     parser.add_argument(
-        "-c", "--cost",
+        "-c",
+        "--cost",
         type=int,
         default=12,
-        help="Facteur de coût bcrypt (rounds), défaut 12."
+        help="Facteur de coût bcrypt (rounds), défaut 12.",
     )
     args = parser.parse_args()
 

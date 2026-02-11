@@ -1,5 +1,10 @@
 import axios from "axios";
-import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "./tokenStorage";
+import {
+  getAccessToken,
+  getRefreshToken,
+  setTokens,
+  clearTokens,
+} from "./tokenStorage";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -21,7 +26,9 @@ let isRefreshing = false;
 let pending = [];
 
 function resolvePending(error, token = null) {
-  pending.forEach(({ resolve, reject }) => (error ? reject(error) : resolve(token)));
+  pending.forEach(({ resolve, reject }) =>
+    error ? reject(error) : resolve(token),
+  );
   pending = [];
 }
 
@@ -57,7 +64,9 @@ API.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      const r = await axios.post(`${apiUrl}/api/auth/refresh`, { refresh_token: refresh });
+      const r = await axios.post(`${apiUrl}/api/auth/refresh`, {
+        refresh_token: refresh,
+      });
       setTokens(r.data);
 
       resolvePending(null, r.data.access_token);
@@ -71,7 +80,7 @@ API.interceptors.response.use(
     } finally {
       isRefreshing = false;
     }
-  }
+  },
 );
 
 export default API;
