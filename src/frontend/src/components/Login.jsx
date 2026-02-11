@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { login } from "../api/authApi";
+import { login } from "../api/authApi_vers_C";
 import { me } from "../api/usersApi";
 
 function Login({ onLogin, onGoToSignup, onGuestAccess }) {
@@ -9,20 +9,28 @@ function Login({ onLogin, onGoToSignup, onGuestAccess }) {
   const [error_message, setErrorMessage] = useState("");
 
   const handleSubmit = async (e) => {
+    // DEBUG : On vérifie ce qu'on a dans le State React avant d'envoyer
+    console.log("État actuel du pseudo :", pseudo);
+    console.log("État actuel du password :", password);
+
     e.preventDefault(); // Empêche le rechargement de la page
+    console.log("Tentative de soumission avec :", pseudo);
     setErrorMessage(""); // Réinitialise l'erreur à chaque tentative
 
     try {
-      // 1) Login (backend JWT) : pseudo ici = "login" (email OU username)
-      await login({ login: pseudo, password });
+      // On s'assure d'envoyer un objet avec les DEUX clés
+      const credentials = {
+        pseudo: pseudo.trim(), // trim() enlève les espaces inutiles
+        password: password,
+      };
 
-      // 2) Récupérer l'utilisateur courant
-      const data = await me(); // typiquement { user: {...} }
+      console.log("Envoi des credentials :", credentials);
+      const userData = await login(credentials);
 
-      // Succès : on remonte l'utilisateur à App.jsx
-      onLogin(data);
+      onLogin(userData);
     } catch (error) {
       // Axios error handling
+      console.error("Erreur capturée :", error);
       const status = error?.response?.status;
       const detail = error?.response?.data?.detail;
 
