@@ -32,9 +32,11 @@ function App() {
         <>
           {is_registering ? (
             /* SI is_registering est vrai : on affiche la création de compte */
+
             <CreationCompte
               onBack={() => setIsRegistering(false)}
-              onGoToStockCreation={() => setShowStock(true)}
+              // On change le nom ici pour correspondre à ce que CreationCompte appelle
+              onRegisterSuccess={() => setShowStock(true)}
             />
           ) : (
             /* SINON (:) : on affiche le Login habituel */
