@@ -6,6 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.backend.api.config import settings
+from src.backend.services.stock_service import StockService
 from src.backend.services.user_service import UserNotFoundError, UserService
 from src.backend.utils.jwt_utils import (
     JWTExpiredError,
@@ -108,3 +109,8 @@ def get_current_user_checked_exists(
         ) from exc
 
     return cu
+
+
+def get_stock_service() -> StockService:
+    """Fournit une instance de StockService."""
+    return StockService()
