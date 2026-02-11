@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getAllUsers } from "../api/authApi";
+import { getAllUsers } from "../api/authApi_vers_C";
 
 function GestionUtilisateurs({ onBack }) {
   const [users, setUsers] = useState([]);

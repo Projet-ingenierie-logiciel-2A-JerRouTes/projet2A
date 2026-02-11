@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { register } from "../api/authApi";
+import { register } from "../api/authApi_vers_C";
 
 function CreationCompte({ onBack, onRegisterSuccess }) {
   const [isRegistered, setIsRegistered] = useState(false);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import AddIngredientForm from "./AddIngredientForm";
-import { getAllIngredients, getStockDetails } from "../api/stockApi";
+import { getAllIngredients, getStockDetails } from "../api/stockApi_vers_C";
 
 // Dictionnaire de conversion pour les unités
 const unitLabels = {
