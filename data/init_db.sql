@@ -78,6 +78,8 @@ CREATE TABLE ingredient (
     unit unit_type
 );
 
+CREATE UNIQUE INDEX uq_ingredient_name_lower
+ON ingredient (LOWER(name));
 
 -----------------------------------------------------
 -- TABLE : Recipe
