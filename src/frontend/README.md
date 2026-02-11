@@ -5,11 +5,11 @@ Elle permet l’interaction avec l’API backend (FastAPI) pour l’authentifica
 
 ______________________________________________________________________
 
-### 🚀 Installation
+## 🚀 Installation
 
 Pour lancer le projet localement, suivez ces étapes :
 
-#### 1. Prérequis
+### 1. Prérequis
 
 Assurez-vous d’avoir installé :
 
@@ -20,7 +20,7 @@ Le backend doit également être lancé (par défaut sur `http://127.0.0.1:8000`
 
 ______________________________________________________________________
 
-#### 2. Configuration de l’environnement
+### 2. Configuration de l’environnement
 
 Ouvrez un terminal à la racine du projet, puis placez-vous dans le dossier frontend :
 
@@ -42,7 +42,7 @@ VITE_API_URL=http://127.0.0.1:8000
 
 ______________________________________________________________________
 
-#### 3. Installation des dépendances
+### 3. Installation des dépendances
 
 Installez les bibliothèques nécessaires listées dans le `package.json` :
 
@@ -52,7 +52,7 @@ npm install
 
 ______________________________________________________________________
 
-#### 4. Lancement de l’application
+### 4. Lancement de l’application
 
 Démarrez le serveur de développement :
 
@@ -62,6 +62,66 @@ npm run dev
 
 L’application sera accessible (par défaut) à l’adresse :\
 👉 **http://localhost:5173**
+
+______________________________________________________________________
+
+## 🔌 Documentation de l'API (Endpoints)
+
+L'interface de programmation (API) est développée avec **FastAPI**. Elle suit les standards REST pour assurer une communication fluide entre le client React et la base de données métier. La documentation interactive complète est accessible via le Swagger UI à l'adresse : `http://localhost:8000/docs`.
+
+### 🛠️ Endpoints Administrateur (Visualisation Globale)
+
+Ces points d'accès permettent de monitorer l'état des données en temps réel durant le développement.
+
+| Méthode | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/admin/users` | Récupère la liste complète des utilisateurs inscrits (ID, pseudo, rôle). |
+| `GET` | `/admin/stocks` | Retourne le dictionnaire de tous les stocks existants pour vérifier l'intégrité des données. |
+
+### 🔐 Authentification & Utilisateurs
+
+Ce module gère la sécurité et les profils utilisateurs.
+
+| Méthode | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/login` | Authentifie un utilisateur. **Requête** : `pseudo`, `password`. **Réponse** : Infos profil + `id_stock`. |
+| `POST` | `/register` | Enregistre un nouvel utilisateur. Vérifie la disponibilité du pseudo et la concordance des mots de passe. |
+
+### 📦 Gestion du Stock & Référentiel
+
+Ce module permet la manipulation des ingrédients et la consultation des inventaires.
+
+| Méthode | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/ingredients` | Récupère le catalogue global (IDs, noms, unités par défaut) utilisé pour l'autocomplétion. |
+| `GET` | `/stock/{id}` | Récupère le contenu d'un frigo spécifique, trié par ingrédient. |
+
+______________________________________________________________________
+
+## 🛠 Détails Techniques
+
+### Validation des données (Modèles Pydantic)
+
+L'API utilise des modèles de données rigoureux pour valider les entrées (DTO - Data Transfer Objects). Cela garantit l'intégrité du système avant tout traitement métier :
+
+- **`LoginRequest`** : Assure la présence des identifiants nécessaires.
+- **`RegisterRequest`** : Gère la logique de création de compte avec double validation de mot de passe.
+
+### Gestion des Erreurs et Codes HTTP
+
+Chaque réponse utilise les codes d'état HTTP standards pour informer le frontend du résultat de l'opération :
+
+- **`200 OK`** : Succès de la requête.
+- **`201 Created`** : Création de compte réussie.
+- **`400 Bad Request`** : Erreur client (ex: mots de passe non identiques).
+- **`401 Unauthorized`** : Échec d'authentification (mot de passe erroné).
+- **`404 Not Found`** : Ressource inexistante (Utilisateur ou Stock non trouvé).
+
+______________________________________________________________________
+
+## 🌐 Configuration CORS
+
+Pour permettre au frontend (déployé sur le port `5173`) de communiquer avec le backend (port `8000`), un middleware **CORSMiddleware** est configuré pour autoriser les requêtes provenant de `http://localhost:5173`.
 
 ______________________________________________________________________
 

@@ -7,7 +7,16 @@ from src.backend.business_objects.user import GenericUser
 # Import de ta fonction de génération
 from src.frontend.src.seed_data import get_app_data
 
-app = FastAPI(title="Frigo App - Backend ENSAI")
+# Création de l'application avec une description détaillée pour le Swagger
+app = FastAPI(
+    title="Frigo App - Backend ENSAI",
+    description="""
+    API de gestion de frigo intelligent.
+    Permet la gestion des utilisateurs, la consultation du catalogue d'ingrédients
+    et la manipulation des stocks personnels.
+    """,
+    version="1.0.0",
+)
 
 # --- CONFIGURATION CORS ---
 # On garde ta configuration initiale car elle fonctionne
@@ -24,6 +33,7 @@ app.add_middleware(
 data = get_app_data()
 db_users = data["users"]
 db_stocks = data["stocks"]
+ingredients = data["ingredients"]
 
 
 # --- MODÈLES DE DONNÉES (DTO) ---
@@ -39,16 +49,64 @@ class RegisterRequest(BaseModel):
     confirm_password: str
 
 
-# --- ROUTES ---
+# --- ROUTES ADMIN ---
+@app.get(
+    "/admin/users",
+    tags=["Administration"],
+    summary="Liste complète des utilisateurs",
+    response_description="La liste de tous les objets utilisateurs enregistrés",
+)
+async def get_all_users():
+    """
+    Récupère l'intégralité des utilisateurs présents dans la base de données volatile
+    (db_users).
+    Utile pour vérifier les inscriptions et les rôles.
+    """
+    # On renvoie une version simplifiée pour ne pas exposer les mots de passe si
+    # nécessaire
+    return [
+        {
+            "id_user": u.id_user,
+            "pseudo": u.pseudo,
+            "id_stock": u.id_stock,
+            "role": u.display_role(),
+        }
+        for u in db_users
+    ]
 
 
+@app.get(
+    "/admin/stocks",
+    tags=["Administration"],
+    summary="Visualisation de tous les stocks",
+    response_description="Dictionnaire complet des stocks indexés par ID",
+)
+async def get_all_stocks():
+    """
+    Renvoie le dictionnaire complet de tous les stocks présents sur le serveur.
+    Permet de voir quel utilisateur possède quel ingrédient en temps réel.
+    """
+    return db_stocks
+
+
+# --- ROUTES GENERIC ---
 @app.get("/")
 def read_root():
+    """
+    Vérifie si l'API est en ligne et si le chargement des données initiales (seed_data)
+    a réussi.
+    """
     return {"message": "Serveur opérationnel avec seed_data !"}
 
 
 @app.post("/login")
 async def login(request: LoginRequest):
+    """
+    Authentifie un utilisateur et renvoie ses informations de profil ainsi que son ID
+    de stock.
+    - **404**: Pseudo inexistant
+    - **401**: Mot de passe erroné
+    """
 
     # A recoder proprement gestion des erreurs ne doit pas se faire ici
     ##################################################################
@@ -72,6 +130,11 @@ async def login(request: LoginRequest):
 
 @app.post("/register")
 async def register(request: RegisterRequest):
+    """
+    Enregistre un nouvel utilisateur dans la base de données.
+    - Vérifie la correspondance des mots de passe.
+    - Vérifie l'unicité du pseudo.
+    """
 
     # A recoder proprement gestion des erreurs ne doit pas se faire ici
     ##################################################################
@@ -93,6 +156,10 @@ async def register(request: RegisterRequest):
 
 @app.get("/ingredients")
 async def get_all_ingredients():
+    """
+    Récupère le contenu d'un frigo spécifique via son ID de stock.
+    Renvoie les items regroupés par ingrédient.
+    """
     # 'data' est le dictionnaire renvoyé par get_app_data()
     # On renvoie la liste des ingrédients pour que le front connaisse les noms
     return data["ingredients"]
