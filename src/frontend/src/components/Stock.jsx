@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import AddIngredientForm from "./AddIngredientForm";
 import { getAllIngredients, getStockDetails } from "../api/stockApi";
 
+// Dictionnaire de conversion pour les unités
 const unitLabels = {
   GRAM: "g",
   KILOGRAM: "kg",
@@ -21,19 +22,30 @@ function Stock({ user, onLogout }) {
 
   useEffect(() => {
     const loadAllData = async () => {
-      console.log("--- 🏁 Initialisation du chargement ---");
+      console.log("--- 🏁 Initialisation du chargement des données ---");
       setLoading(true);
       setErrorMessage("");
+
       try {
+        // 1. Récupération du catalogue
         const dataIngr = await getAllIngredients();
+        console.log("✅ Catalogue reçu :", dataIngr);
         setCatalogue(dataIngr);
 
+        // 2. Récupération du stock utilisateur
         if (user && user.id_stock) {
+          console.log(
+            `📡 Récupération du stock ID ${user.id_stock} pour ${user.pseudo}`,
+          );
           const dataStock = await getStockDetails(user.id_stock);
+          console.log("📦 Données du stock :", dataStock.items_by_ingredient);
           setItems(dataStock.items_by_ingredient || {});
         }
       } catch (err) {
-        console.error("❌ Erreur :", err.response?.data || err.message);
+        console.error(
+          "❌ Erreur de chargement :",
+          err.response?.data || err.message,
+        );
         setErrorMessage(
           err.response?.data?.detail ||
             "Erreur lors de la récupération des données",
@@ -42,6 +54,7 @@ function Stock({ user, onLogout }) {
         setLoading(false);
       }
     };
+
     loadAllData();
   }, [user]);
 
@@ -50,12 +63,40 @@ function Stock({ user, onLogout }) {
   };
 
   const handleAddIngredient = (newIngredientData) => {
-    // ... (Logique d'ajout inchangée) ...
+    console.log("➕ Ajout d'un lot :", newIngredientData);
+    let finalId = newIngredientData.id_ingredient;
+
+    if (finalId === null) {
+      finalId =
+        catalogue.length > 0
+          ? Math.max(...catalogue.map((i) => i.id_ingredient)) + 1
+          : 1;
+      const nouvelIng = {
+        id_ingredient: finalId,
+        name: newIngredientData.name,
+        unit: newIngredientData.unit,
+      };
+      setCatalogue((prev) => [...prev, nouvelIng]);
+    }
+
+    const nouveauLot = {
+      quantity: newIngredientData.quantity,
+      expiry_date: newIngredientData.expiry_date,
+      name: newIngredientData.name,
+      unit: newIngredientData.unit,
+    };
+
+    setItems((prevItems) => ({
+      ...prevItems,
+      [finalId]: [...(prevItems[finalId] || []), nouveauLot],
+    }));
+
     setShowForm(false);
   };
 
   return (
     <div className="container-principal">
+      {/* --- BLOC PRINCIPAL : INVENTAIRE --- */}
       <div className="sous-container">
         <div className="login-form" style={{ maxWidth: "800px" }}>
           <h3 className="stock-titre">
@@ -107,7 +148,8 @@ function Stock({ user, onLogout }) {
                         textAlign: "center",
                       }}
                     >
-                      Stock vide. Instabilité thermique détectée ?
+                      Aucun ingrédient. Votre frigo est vide (instabilité
+                      thermique ?).
                     </p>
                   )}
                 </div>
@@ -121,7 +163,7 @@ function Stock({ user, onLogout }) {
                 />
               )}
 
-              {/* SECTION DES BOUTONS EN BAS */}
+              {/* BOUTONS D'ACTION (STOCK) */}
               {!showForm && (
                 <div
                   style={{
@@ -138,11 +180,10 @@ function Stock({ user, onLogout }) {
                   >
                     Ajouter un ingrédient
                   </button>
-
                   <button
                     type="button"
                     className="bouton"
-                    style={{ backgroundColor: "#6c757d" }} // Une couleur un peu plus sobre (gris) ou identique
+                    style={{ backgroundColor: "#6c757d" }}
                     onClick={onLogout}
                   >
                     Déconnexion
@@ -153,6 +194,54 @@ function Stock({ user, onLogout }) {
           )}
         </div>
       </div>
+
+      {/* --- BLOC ADMINISTRATION (Conditionnel) --- */}
+      {/* Note : Vérifie si ton backend renvoie "Administrateur" ou "admin" */}
+      {user && (user.role === "Administrateur" || user.role === "admin") && (
+        <div className="sous-container" style={{ marginTop: "20px" }}>
+          <div
+            className="login-form"
+            style={{ maxWidth: "800px", border: "2px solid gold" }}
+          >
+            <h3 className="stock-titre" style={{ color: "gold" }}>
+              🛡️ Administration Système
+            </h3>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+                marginTop: "15px",
+              }}
+            >
+              <button
+                className="bouton"
+                onClick={() => console.log("Gérer utilisateurs")}
+              >
+                Gérer utilisateurs
+              </button>
+              <button
+                className="bouton"
+                onClick={() => console.log("Gérer ingrédients")}
+              >
+                Gérer ingrédients
+              </button>
+              <button
+                className="bouton"
+                onClick={() => console.log("Gérer stocks")}
+              >
+                Gérer stocks
+              </button>
+              <button
+                className="bouton"
+                onClick={() => console.log("Gérer recettes")}
+              >
+                Gérer recettes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {error_message && (
         <div className="sous-container">

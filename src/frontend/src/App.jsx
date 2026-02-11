@@ -14,6 +14,9 @@ function App() {
   // Fonction pour valider la connexion
   const handleLogin = (data) => {
     console.log("Connexion réussie pour l'utilisateur :", data.pseudo);
+    if (data.role === "Administrateur") {
+      console.log("Accès Admin confirmé");
+    }
     setUser(data);
     setShowStock(true);
   };
