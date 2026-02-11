@@ -1,5 +1,5 @@
 -----------------------------------------------------
--- INSERT : Users (Générer avec le script dans les tests)
+-- INSERT : Users (Généré avec le script dans les tests)
 -----------------------------------------------------
 
 INSERT INTO users (username, email, password_hash)
@@ -7,7 +7,7 @@ VALUES
 ('alice', 'alice@example.com', '$2b$12$3AT9XjBMYC7SSxzDMWB8SOPwo7h1kbXDGEQbIT3RQyIPE4hdW0VGm'),
 ('bob', 'bob@example.com', '$2b$12$.kxjZWdtgCgAnnsaWqZ3Du4izzNhWYFwRyUL.eoi9AEl2EisUiUx.'),
 ('admin', 'admin@example.com', '$2b$12$0kpkiPvqOdfvxrm1FfSxCeF5zviYlQ.ulSxYsAqEzLnNzmCahuvC.');
- 
+
 -----------------------------------------------------
 -- INSERT : Stock
 -----------------------------------------------------
@@ -21,7 +21,7 @@ INSERT INTO stock (name) VALUES
 -----------------------------------------------------
 
 INSERT INTO ingredient (name, unit) VALUES
-('Egg', 'piece'),
+('Egg', 'pcs'),
 ('Milk', 'ml'),
 ('Flour', 'g'),
 ('Sugar', 'g'),
@@ -48,10 +48,10 @@ INSERT INTO user_stock (fk_user_id, fk_stock_id) VALUES
 (3, 2);
 
 -----------------------------------------------------
--- INSERT : Stock_Ingredient
+-- INSERT : Stock_Item (gestion par lots)
 -----------------------------------------------------
 
-INSERT INTO stock_ingredient (fk_stock_id, fk_ingredient_id, quantity, expiration_date) VALUES
+INSERT INTO stock_item (fk_stock_id, fk_ingredient_id, quantity, expiration_date) VALUES
 (1, 1, 6, '2026-03-01'),
 (1, 2, 1000, '2026-02-20'),
 (1, 5, 250, '2026-02-25'),
