@@ -67,128 +67,191 @@ ______________________________________________________________________
 
 ## 🔌 Documentation de l'API (Endpoints)
 
-L'interface de programmation (API) est développée avec **FastAPI**. Elle suit les standards REST pour assurer une communication fluide entre le client React et la base de données métier. La documentation interactive complète est accessible via le Swagger UI à l'adresse : `http://localhost:8000/docs`.
+### Structure
 
-### 🛠️ Endpoints Administrateur (Visualisation Globale)
+L'API est structurée autour de quatre grands modules. Elle utilise des **Data Transfer Objects (DTO)** via Pydantic pour garantir la validité des échanges entre le frontend React et le backend Python.
 
-Ces points d'accès permettent de monitorer l'état des données en temps réel durant le développement.
+#### 🛠️ 1. Initialisation
 
-| Méthode | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/admin/users` | Récupère la liste complète des utilisateurs inscrits (ID, pseudo, rôle). |
-| `GET` | `/admin/stocks` | Retourne le dictionnaire de tous les stocks existants pour vérifier l'intégrité des données. |
-
-### 🔐 Authentification & Utilisateurs
-
-Ce module gère la sécurité et les profils utilisateurs.
+Vérification de l'état de santé de l'application et des données.
 
 | Méthode | Endpoint | Description |
 | :--- | :--- | :--- |
-| `POST` | `/login` | Authentifie un utilisateur. **Requête** : `pseudo`, `password`. **Réponse** : Infos profil + `id_stock`. |
-| `POST` | `/register` | Enregistre un nouvel utilisateur. Vérifie la disponibilité du pseudo et la concordance des mots de passe. |
+| `GET` | `/` | Vérifie si l'API est en ligne et si les données initiales (`seed_data`) sont chargées. |
 
-### 📦 Gestion du Stock & Référentiel
+______________________________________________________________________
 
-Ce module permet la manipulation des ingrédients et la consultation des inventaires.
+#### 👥 2. Utilisateurs & Authentification
+
+Gestion des accès et des profils.
 
 | Méthode | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/ingredients` | Récupère le catalogue global (IDs, noms, unités par défaut) utilisé pour l'autocomplétion. |
-| `GET` | `/stock/{id}` | Récupère le contenu d'un frigo spécifique, trié par ingrédient. |
+| `GET` | `/users` | Liste tous les utilisateurs (IDs, pseudos, rôles). |
+| `POST` | `/login` | Authentifie un utilisateur. Renvoie le profil et l'`id_stock` associé. |
+| `POST` | `/register` | Crée un compte. Vérifie la disponibilité du pseudo et la validité du mot de passe. |
 
 ______________________________________________________________________
 
-## 🛠 Détails Techniques
+#### 🍎 3. Référentiel Ingrédients
 
-### Validation des données (Modèles Pydantic)
+Gestion du catalogue global (utilisé pour l'autocomplétion dans le formulaire d'ajout).
 
-L'API utilise des modèles de données rigoureux pour valider les entrées (DTO - Data Transfer Objects). Cela garantit l'intégrité du système avant tout traitement métier :
-
-- **`LoginRequest`** : Assure la présence des identifiants nécessaires.
-- **`RegisterRequest`** : Gère la logique de création de compte avec double validation de mot de passe.
-
-### Gestion des Erreurs et Codes HTTP
-
-Chaque réponse utilise les codes d'état HTTP standards pour informer le frontend du résultat de l'opération :
-
-- **`200 OK`** : Succès de la requête.
-- **`201 Created`** : Création de compte réussie.
-- **`400 Bad Request`** : Erreur client (ex: mots de passe non identiques).
-- **`401 Unauthorized`** : Échec d'authentification (mot de passe erroné).
-- **`404 Not Found`** : Ressource inexistante (Utilisateur ou Stock non trouvé).
+| Méthode | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/ingredients` | Récupère la liste de tous les ingrédients connus (ID, nom, unité). |
+| `POST` | `/ingredients` | **Ajout au catalogue** : Crée un nouvel ingrédient. Utilise la classe métier `Ingredient` pour valider les données. |
 
 ______________________________________________________________________
 
-## 🌐 Configuration CORS
+#### 📦 4. Référentiel Stock
 
-Pour permettre au frontend (déployé sur le port `5173`) de communiquer avec le backend (port `8000`), un middleware **CORSMiddleware** est configuré pour autoriser les requêtes provenant de `http://localhost:5173`.
+Consultation des inventaires (frigos) des utilisateurs.
 
-______________________________________________________________________
-
-### 🛠 Composants techniques
-
-#### 🔐 Authentification et Accès
-
-L’authentification repose sur une API sécurisée (JWT) exposée par le backend.
-
-##### `Login.jsx`
-
-- Gère la connexion des utilisateurs existants.
-- Endpoints utilisés :
-  - `POST /api/auth/login`
-  - `GET /api/users/me`
-- Fonctionnement :
-  - Envoi des identifiants (pseudo **ou** email + mot de passe).
-  - Stockage automatique du token JWT côté navigateur.
-  - Récupération du profil utilisateur via `/me`.
-- Codes erreurs gérés :
-  - **404** : Utilisateur inconnu.
-  - **401** : Mot de passe incorrect.
-  - **422** : Données invalides.
-  - Erreur réseau : serveur injoignable.
-
-##### `CreationCompte.jsx`
-
-- Permet l’inscription de nouveaux utilisateurs.
-- Endpoint utilisé :
-  - `POST /api/auth/register`
-- Fonctionnement :
-  - Validation côté front (confirmation du mot de passe).
-  - Envoi des données : `username`, `email`, `password`.
-- Codes erreurs gérés :
-  - **409** : Email déjà utilisé.
-  - **422** : Champs invalides.
-  - Message `detail` renvoyé par l’API backend.
-
-Les tokens JWT sont stockés via `localStorage` et ajoutés automatiquement aux requêtes protégées.
+| Méthode | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/stocks` | (Admin) Affiche le dictionnaire complet de tous les stocks du serveur. |
+| `GET` | `/stock/{id_stock}` | Récupère le contenu détaillé (quantités, dates d'expiration) d'un stock spécifique. |
 
 ______________________________________________________________________
 
-#### 📦 Gestion de l’Inventaire Intelligent
+### 🛠️ Spécifications Techniques
 
-La gestion du stock repose sur une synchronisation entre le catalogue global des ingrédients et le stock spécifique de l’utilisateur.
+#### Validation des données (DTO)
 
-##### `Stock.jsx` (le composant « Cerveau »)
+L'API rejette automatiquement les requêtes malformées grâce aux modèles suivants :
 
-Conteneur principal de l’inventaire.
+- **`LoginRequest`** : Requiert `pseudo` et `password`.
+- **`RegisterRequest`** : Requiert `pseudo`, `password` et `confirm_password`.
+- **`IngredientRequest`** : Requiert `name` (non vide) et `unit` (doit être une valeur valide de l'énumération `Unit`).
 
-- États complexes :
-  - `items` : objet indexé par `id_ingredient`, contenant des listes de lots (quantité + date).
-  - `catalogue` : référentiel complet des ingrédients autorisés.
-- Endpoints utilisés :
-  - `GET /ingredients` : chargement du catalogue au montage.
-  - `GET /stock/{id_stock}` : récupération des lots de l’utilisateur.
-- Logique d’affichage :
-  - Réalise une “jointure” côté client entre les IDs du stock et les noms/unités du catalogue via la fonction `getIngredientInfo`.
+#### Codes d'état HTTP utilisés
 
-##### `AddIngredientForm.jsx` (Saisie Assistée)
+- **200 OK** : Succès de la requête.
+- **201 Created** : Ressource créée avec succès.
+- **400 Bad Request** : Erreur de logique (ex: l'ingrédient existe déjà, mots de passe différents).
+- **401 Unauthorized** : Identifiants de connexion incorrects.
+- **404 Not Found** : La ressource (utilisateur ou stock) n'existe pas.
+- **422 Unprocessable Entity** : Format de donnée invalide (ex: unité de mesure inconnue).
 
-- Formulaire avancé facilitant l’ajout de produits.
-- Recherche prédictive :
-  - Filtrage dynamique du catalogue à chaque saisie.
-- Gestion des unités (synchronisation Python) :
-  - Utilise un dictionnaire `unitLabels` pour convertir les enums Python (`GRAM`, `LITER`, `PIECE`) en symboles UI (`g`, `L`, `pcs`).
-- Mode saisie libre :
-  - Si un ingrédient n’est pas présent dans le catalogue :
-    - affichage d’un menu déroulant pour choisir l’unité,
-    - envoi de `id_ingredient: null` au parent, déclenchant la création côté serveur.
+______________________________________________________________________
+
+## 🔌 Structure REACT
+
+### 🔐 Orchestrateur : Composant `App.jsx`
+
+#### 📋 Variables d'État (Global States)
+
+Le pilotage de l'interface repose sur trois états piliers définis dans `App.jsx` :
+
+- **`user`** (Object|null) : Stocke les informations de l'utilisateur connecté (ID, pseudo, id_stock). Sert de témoin d'authentification pour les composants enfants.
+- **`is_registering`** (Boolean) : Détermine quel formulaire afficher dans la phase d'accès (Connexion vs Création de compte).
+- **`show_stock`** (Boolean) : Déclencheur principal de l'affichage de l'inventaire. S'il est à `true`, les formulaires d'accès sont démontés au profit du composant `Stock`.
+
+______________________________________________________________________
+
+#### 🔄 Cheminement et Flux de l'Application
+
+Le cycle de vie d'une session suit ce cheminement logique :
+
+1. **Phase d'Entrée** : Par défaut, l'application présente le composant `Login`.
+   - *Action* : Si l'utilisateur clique sur "Créer un compte", `is_registering` passe à `true` et affiche `CreationCompte`.
+1. **Phase d'Authentification** :
+   - Le composant enfant (`Login` ou `CreationCompte`) communique avec l'API FastAPI.
+   - En cas de succès, les données utilisateur sont "remontées" à `App.jsx` via le callback `handleLogin`.
+1. **Phase d'Affichage** :
+   - `setUser(data)` enregistre l'identité en mémoire.
+   - `setShowStock(true)` bascule l'affichage.
+1. **Phase d'Inventaire** :
+   - Le composant `Stock` est monté et reçoit la prop `user`.
+   - Il utilise l'ID contenu dans `user.id_stock` pour effectuer ses propres appels API et afficher les ingrédients correspondants.
+
+### 🔐 Authentification : Composant `Login.jsx`
+
+Ce composant gère l'accès sécurisé à l'application. Il utilise une authentification basée sur **JWT (JSON Web Token)** pour identifier l'utilisateur et récupérer ses informations personnelles.
+
+#### 📋 Variables d'État (React States)
+
+Le formulaire utilise le `useState` pour piloter l'interface en temps réel :
+
+- **`pseudo`** : Stocke l'identifiant saisi (peut être le pseudo ou l'email).
+- **`password`** : Stocke le mot de passe de manière sécurisée (champ masqué).
+- **`error_message`** : Gère l'affichage dynamique des alertes en cas d'échec de connexion.
+
+#### 🌐 Points d'entrée API (Endpoints)
+
+La procédure de connexion se déroule en deux étapes asynchrones :
+
+1. **`POST /login`** : Envoie les identifiants au backend. Si le couple login/password est valide, un token de session est généré.
+1. **`GET /me`** : Une fois authentifié, cet appel récupère les détails de l'utilisateur courant (nom, rôle, id_stock) pour initialiser l'application.
+
+### 🔄 Cheminement
+
+1. **Soumission** : Blocage du rechargement (`e.preventDefault()`).
+1. **Authentification** : Appel à `login()`. Si succès, le token est stocké par le service.
+1. **Identification** : Appel immédiat à `me()` pour récupérer l'identité complète.
+1. **Remontée** : Transmission des données à `App.jsx` via le callback `onLogin(data)`.
+
+#### 🛠️ Logique de Gestion des Erreurs
+
+Le composant interprète les codes de réponse HTTP du serveur pour fournir un feedback précis à l'utilisateur :
+
+| Code HTTP | Message affiché | Cause possible |
+| :--- | :--- | :--- |
+| `401` | "Mot de passe incorrect" | Le pseudo existe mais le secret ne correspond pas. |
+| `404` | "Utilisateur inconnu" | Le pseudo ou l'email n'existe pas en base de données. |
+| `422` | "Champs invalides" | Format de données incorrect (ex: champ vide). |
+| `Autre` | "Erreur de connexion" | Serveur injoignable ou erreur interne. |
+
+______________________________________________________________________
+
+#### 💡 Informations Utiles
+
+- **Accessibilité Invité** : Le bouton "Chercher des recettes sans compte" permet d'accéder aux fonctionnalités de consultation (`onGuestAccess`) sans passer par la phase d'authentification.
+- **Flux de données** : En cas de succès, l'objet utilisateur complet est "remonté" au composant parent `App.jsx` via la prop `onLogin(data)`, ce qui déclenche l'affichage du stock personnel.
+- **Sécurité** : La méthode `e.preventDefault()` est utilisée pour éviter le rechargement de la page, permettant une expérience "Single Page Application" (SPA) fluide.
+
+### 📝 Inscription : Composant `CreationCompte.jsx`
+
+Ce composant permet aux nouveaux utilisateurs de rejoindre la plateforme en créant un profil unique. Il intègre des validations de sécurité côté client et côté serveur.
+
+#### 📋 Variables d'État (React States)
+
+Le composant utilise les hooks `useState` pour capturer les informations et gérer l'interface après succès :
+
+- **Données de saisie** : `pseudo`, `email`, `password`, `confirm_password`.
+- **États de flux** :
+  - **`isRegistered`** : Un booléen qui bascule sur `true` après le succès de l'API, remplaçant le formulaire par un bouton d'accès direct au stock.
+  - **`message` / `error_message`** : Feedback visuel pour confirmer la réussite ou expliquer l'échec.
+
+#### 🌐 Points d'entrée API (Endpoints)
+
+L'inscription repose sur un appel asynchrone principal :
+
+- **`POST /register`** : Envoie un objet JSON contenant le `username`, l' `email` et le `password`.
+  - *Note technique* : Le backend se charge de hacher le mot de passe avant le stockage en base de données.
+
+### 🔄 Cheminement
+
+1. **Validation Locale** : Vérification stricte de la concordance des deux mots de passe.
+1. **Requête** : Envoi des données au backend.
+1. **Success State** : Si `201 Created`, `isRegistered` passe à `true`.
+1. **Finalisation** : Le formulaire disparaît pour laisser place au bouton "Construire mon stock".
+
+#### 🛠️ Logique de gestion des Erreurs
+
+Le composant traite les codes HTTP spécifiques renvoyés par FastAPI :
+
+| Code HTTP | Message affiché | Cause |
+| :--- | :--- | :--- |
+| `409` | "Email déjà utilisé" | L'adresse mail existe déjà dans le système. |
+| `400` | "Erreur lors de l'inscription" | Problème de logique métier ou pseudo déjà pris. |
+| `422` | "Champs invalides" | Format invalide (ex: email mal formé). |
+
+______________________________________________________________________
+
+#### 💡 Informations Utiles
+
+- **UX (Expérience Utilisateur)** : Une fois le compte créé, le formulaire disparaît pour laisser place à un bouton "Construire mon stock", guidant l'utilisateur vers la prochaine étape logique de l'application.
+- **Navigation** : La prop `onBack` permet une navigation fluide vers la page de connexion sans rechargement de page.
+- **Sécurité** : L'utilisation de types `password` pour les inputs garantit que les caractères saisis ne sont pas visibles à l'écran.

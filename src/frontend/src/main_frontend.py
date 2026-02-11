@@ -1,7 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from src.backend.business_objects.ingredient import Ingredient
+from src.backend.business_objects.unit import Unit
 from src.backend.business_objects.user import GenericUser
 
 # Import de ta fonction de génération
@@ -39,20 +41,53 @@ ingredients = data["ingredients"]
 # --- MODÈLES DE DONNÉES (DTO) ---
 # Ces classes servent uniquement à valider ce que React nous envoie
 class LoginRequest(BaseModel):
+    """
+    DTO pour la connexion d'un utilisateur.
+    """
+
     pseudo: str
     password: str
 
 
 class RegisterRequest(BaseModel):
+    """
+    DTO pour la création d'un nouvel utilisateur.
+    """
+
     pseudo: str
     password: str
     confirm_password: str
 
 
-# --- ROUTES ADMIN ---
+class IngredientRequest(BaseModel):
+    """
+    DTO pour la création d'un nouvel ingrédient.
+    """
+
+    name: str = Field(..., min_length=1, example="Poivre noir")
+    unit: Unit = Field(..., example=Unit.GRAM)
+
+
+# --- INITIALISATION ---
 @app.get(
-    "/admin/users",
-    tags=["Administration"],
+    "/",
+    tags=["Initialisation"],
+    summary="Vérification de l'API et des données initiales",
+    response_description="Message de confirmation que le serveur est opérationnel et "
+    "que les données seed_data sont chargées",
+)
+def read_root():
+    """
+    Vérifie si l'API est en ligne et si le chargement des données initiales (seed_data)
+    a réussi.
+    """
+    return {"message": "Serveur opérationnel avec seed_data !"}
+
+
+# --- AUTHENTIFICATION / UTILISATEUR ---
+@app.get(
+    "/users",
+    tags=["Utilisateurs"],
     summary="Liste complète des utilisateurs",
     response_description="La liste de tous les objets utilisateurs enregistrés",
 )
@@ -75,31 +110,12 @@ async def get_all_users():
     ]
 
 
-@app.get(
-    "/admin/stocks",
-    tags=["Administration"],
-    summary="Visualisation de tous les stocks",
-    response_description="Dictionnaire complet des stocks indexés par ID",
+@app.post(
+    "/login",
+    tags=["Utilisateurs"],
+    summary="Connexion utilisateur",
+    response_description="Profil utilisateur",
 )
-async def get_all_stocks():
-    """
-    Renvoie le dictionnaire complet de tous les stocks présents sur le serveur.
-    Permet de voir quel utilisateur possède quel ingrédient en temps réel.
-    """
-    return db_stocks
-
-
-# --- ROUTES GENERIC ---
-@app.get("/")
-def read_root():
-    """
-    Vérifie si l'API est en ligne et si le chargement des données initiales (seed_data)
-    a réussi.
-    """
-    return {"message": "Serveur opérationnel avec seed_data !"}
-
-
-@app.post("/login")
 async def login(request: LoginRequest):
     """
     Authentifie un utilisateur et renvoie ses informations de profil ainsi que son ID
@@ -128,7 +144,12 @@ async def login(request: LoginRequest):
     raise HTTPException(status_code=401, detail="Mot de passe incorrect")
 
 
-@app.post("/register")
+@app.post(
+    "/register",
+    tags=["Utilisateurs"],
+    summary="Création de compte",
+    response_description="Message de confirmation de création",
+)
 async def register(request: RegisterRequest):
     """
     Enregistre un nouvel utilisateur dans la base de données.
@@ -154,7 +175,15 @@ async def register(request: RegisterRequest):
     db_users.append(new_user)
 
 
-@app.get("/ingredients")
+# --- REFERIEL INGREDIENTS ---
+
+
+@app.get(
+    "/ingredients",
+    tags=["Référentiel ingredient"],
+    summary="Liste complète des ingrédients",
+    response_description="Catalogue des ingrédients pour l'autocomplétion",
+)
 async def get_all_ingredients():
     """
     Récupère le contenu d'un frigo spécifique via son ID de stock.
@@ -165,7 +194,76 @@ async def get_all_ingredients():
     return data["ingredients"]
 
 
-@app.get("/stock/{id_stock}")
+@app.post(
+    "/ingredients",
+    tags=["Référentiel ingredient"],
+    summary="Ajouter un ingrédient au catalogue",
+    response_description="L'ingrédient nouvellement créé",
+)
+async def add_ingredient(request: IngredientRequest):
+    """
+    Crée un ingrédient et l'ajoute au catalogue global de manière asynchrone.
+    - **Validation**: Vérifie si le nom existe déjà.
+    - **Métier**: Utilise la classe Ingredient pour valider les données.
+    """
+    ingredients_list = data["ingredients"]
+
+    # 1. Vérification de l'existence (insensible à la casse)
+    if any(i["name"].lower() == request.name.lower() for i in ingredients_list):
+        raise HTTPException(
+            status_code=400, detail=f"L'ingrédient '{request.name}' est déjà présent."
+        )
+
+    # 2. Calcul de l'ID suivant
+    new_id = (
+        max(i["id_ingredient"] for i in ingredients_list) + 1 if ingredients_list else 1
+    )
+
+    try:
+        # 3. Validation via l'objet métier Ingredient
+        new_ingredient_obj = Ingredient(
+            id_ingredient=new_id, name=request.name, unit=request.unit
+        )
+
+        # 4. Préparation du dictionnaire pour le stockage
+        new_ing_data = {
+            "id_ingredient": new_ingredient_obj.id_ingredient,
+            "name": new_ingredient_obj.name,
+            "unit": new_ingredient_obj.unit.value,
+        }
+
+        ingredients_list.append(new_ing_data)
+        return new_ing_data
+
+    except ValueError as e:
+        # Erreur si le nom est vide (déclenché par le métier)
+        raise HTTPException(status_code=400, detail=str(e))
+    except TypeError as e:
+        # Erreur si l'unité est invalide
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+# --- REFERIEL STOCK ---
+@app.get(
+    "/stocks",
+    tags=["Reférentiel stock"],
+    summary="Visualisation de tous les stocks",
+    response_description="Dictionnaire complet des stocks indexés par ID",
+)
+async def get_all_stocks():
+    """
+    Renvoie le dictionnaire complet de tous les stocks présents sur le serveur.
+    Permet de voir quel utilisateur possède quel ingrédient en temps réel.
+    """
+    return db_stocks
+
+
+@app.get(
+    "/stock/{id_stock}",
+    tags=["Reférentiel stock"],
+    summary="Consulter un inventaire",
+    response_description="Contenu détaillé d'un stock défini par son ID",
+)
 async def get_stock(id_stock: int):
     # 'data' provient de ton seed_data
     user_stock = data["stocks"].get(id_stock)
