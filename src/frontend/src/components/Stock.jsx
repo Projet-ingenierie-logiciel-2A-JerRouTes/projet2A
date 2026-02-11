@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import AddIngredientForm from "./AddIngredientForm";
+import { getAllIngredients, getStockDetails } from "../api/stockApi";
 
 // 1. AJOUT DU DICTIONNAIRE (En dehors du composant)
 const unitLabels = {
@@ -24,24 +25,20 @@ function Stock({ user }) {
       setLoading(true);
       setErrorMessage("");
       try {
-        const resIngr = await fetch("http://localhost:8000/ingredients");
-        if (!resIngr.ok) throw new Error("Erreur catalogue");
-        const dataIngr = await resIngr.json();
+        // 1. On utilise le service pour le catalogue
+        const dataIngr = await getAllIngredients();
         setCatalogue(dataIngr);
 
+        // 2. On utilise le service pour le stock de l'utilisateur
         if (user && user.id_stock) {
-          const resStock = await fetch(
-            `http://localhost:8000/stock/${user.id_stock}`,
-          );
-          if (!resStock.ok) throw new Error("Erreur serveur");
-          const dataStock = await resStock.json();
+          const dataStock = await getStockDetails(user.id_stock);
           setItems(dataStock.items_by_ingredient || {});
         }
       } catch (err) {
+        // Gestion d'erreur simplifiée grâce à Axios
         setErrorMessage(
-          err.message === "Failed to fetch"
-            ? "Serveur injoignable"
-            : err.message,
+          err.response?.data?.detail ||
+            "Erreur lors de la récupération des données",
         );
       } finally {
         setLoading(false);

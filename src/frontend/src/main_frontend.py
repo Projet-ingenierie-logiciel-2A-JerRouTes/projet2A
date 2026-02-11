@@ -1,8 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import Body, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from src.backend.business_objects.ingredient import Ingredient
 from src.backend.business_objects.unit import Unit
 from src.backend.business_objects.user import GenericUser
 
@@ -22,9 +21,14 @@ app = FastAPI(
 
 # --- CONFIGURATION CORS ---
 # On garde ta configuration initiale car elle fonctionne
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=origins,  # Autorise ton React
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -70,7 +74,7 @@ class IngredientRequest(BaseModel):
 
 # --- INITIALISATION ---
 @app.get(
-    "/",
+    "/api/auth/",
     tags=["Initialisation"],
     summary="Vérification de l'API et des données initiales",
     response_description="Message de confirmation que le serveur est opérationnel et "
@@ -86,7 +90,7 @@ def read_root():
 
 # --- AUTHENTIFICATION / UTILISATEUR ---
 @app.get(
-    "/users",
+    "/api/auth/users",
     tags=["Utilisateurs"],
     summary="Liste complète des utilisateurs",
     response_description="La liste de tous les objets utilisateurs enregistrés",
@@ -111,27 +115,27 @@ async def get_all_users():
 
 
 @app.post(
-    "/login",
+    "/api/auth/login",
     tags=["Utilisateurs"],
     summary="Connexion utilisateur",
     response_description="Profil utilisateur",
 )
-async def login(request: LoginRequest):
-    """
-    Authentifie un utilisateur et renvoie ses informations de profil ainsi que son ID
-    de stock.
-    - **404**: Pseudo inexistant
-    - **401**: Mot de passe erroné
-    """
+async def login(payload: dict = Body(...)):  # On accepte n'importe quel dictionnaire
+    print(f"DEBUG PAYLOAD REÇU: {payload}")
 
-    # A recoder proprement gestion des erreurs ne doit pas se faire ici
-    ##################################################################
-    # On cherche l'utilisateur par son pseudo
-    user = next((u for u in db_users if u.pseudo == request.pseudo), None)
+    # On essaie de récupérer le pseudo, peu importe le nom de la clé
+    pseudo = payload.get("pseudo") or payload.get("login")
+    password = payload.get("password")
+
+    if not pseudo:
+        raise HTTPException(status_code=422, detail="Pseudo manquant dans le JSON")
+
+    user = next((u for u in db_users if u.pseudo == pseudo), None)
+
     if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
 
-    if user.check_password(request.password):
+    if user.check_password(password):
         user_stock = db_stocks.get(user.id_stock)
         return {
             "id": user.id_user,
@@ -145,7 +149,7 @@ async def login(request: LoginRequest):
 
 
 @app.post(
-    "/register",
+    "/api/auth/register",
     tags=["Utilisateurs"],
     summary="Création de compte",
     response_description="Message de confirmation de création",
@@ -175,11 +179,11 @@ async def register(request: RegisterRequest):
     db_users.append(new_user)
 
 
-# --- REFERIEL INGREDIENTS ---
+# --- REFERENTIEL INGREDIENTS ---
 
 
 @app.get(
-    "/ingredients",
+    "/api/auth/ingredients",
     tags=["Référentiel ingredient"],
     summary="Liste complète des ingrédients",
     response_description="Catalogue des ingrédients pour l'autocomplétion",
@@ -194,59 +198,10 @@ async def get_all_ingredients():
     return data["ingredients"]
 
 
-@app.post(
-    "/ingredients",
-    tags=["Référentiel ingredient"],
-    summary="Ajouter un ingrédient au catalogue",
-    response_description="L'ingrédient nouvellement créé",
-)
-async def add_ingredient(request: IngredientRequest):
-    """
-    Crée un ingrédient et l'ajoute au catalogue global de manière asynchrone.
-    - **Validation**: Vérifie si le nom existe déjà.
-    - **Métier**: Utilise la classe Ingredient pour valider les données.
-    """
-    ingredients_list = data["ingredients"]
-
-    # 1. Vérification de l'existence (insensible à la casse)
-    if any(i["name"].lower() == request.name.lower() for i in ingredients_list):
-        raise HTTPException(
-            status_code=400, detail=f"L'ingrédient '{request.name}' est déjà présent."
-        )
-
-    # 2. Calcul de l'ID suivant
-    new_id = (
-        max(i["id_ingredient"] for i in ingredients_list) + 1 if ingredients_list else 1
-    )
-
-    try:
-        # 3. Validation via l'objet métier Ingredient
-        new_ingredient_obj = Ingredient(
-            id_ingredient=new_id, name=request.name, unit=request.unit
-        )
-
-        # 4. Préparation du dictionnaire pour le stockage
-        new_ing_data = {
-            "id_ingredient": new_ingredient_obj.id_ingredient,
-            "name": new_ingredient_obj.name,
-            "unit": new_ingredient_obj.unit.value,
-        }
-
-        ingredients_list.append(new_ing_data)
-        return new_ing_data
-
-    except ValueError as e:
-        # Erreur si le nom est vide (déclenché par le métier)
-        raise HTTPException(status_code=400, detail=str(e))
-    except TypeError as e:
-        # Erreur si l'unité est invalide
-        raise HTTPException(status_code=422, detail=str(e))
-
-
-# --- REFERIEL STOCK ---
+# --- REFERENTIEL STOCK ---
 @app.get(
-    "/stocks",
-    tags=["Reférentiel stock"],
+    "/api/auth/stocks",
+    tags=["Référentiel stock"],
     summary="Visualisation de tous les stocks",
     response_description="Dictionnaire complet des stocks indexés par ID",
 )
@@ -259,8 +214,8 @@ async def get_all_stocks():
 
 
 @app.get(
-    "/stock/{id_stock}",
-    tags=["Reférentiel stock"],
+    "/api/auth/stock/{id_stock}",
+    tags=["Référentiel stock"],
     summary="Consulter un inventaire",
     response_description="Contenu détaillé d'un stock défini par son ID",
 )
