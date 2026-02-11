@@ -5,6 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.backend.api.config import settings
 from src.backend.api.routers.auth import router as auth_router
+from src.backend.api.routers.ingredients import router as ingredients_router
+from src.backend.api.routers.stocks import router as stocks_router
 from src.backend.api.routers.users import router as users_router
 
 
@@ -25,6 +27,8 @@ app.add_middleware(
 # Routers par domaine
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(stocks_router)
+app.include_router(ingredients_router)
 # app.include_router(recipes_router)  # quand ça sera prêt
 
 
