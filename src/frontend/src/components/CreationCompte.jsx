@@ -15,24 +15,48 @@ function CreationCompte({ onBack, onRegisterSuccess }) {
     setErrorMessage("");
     setMessage("");
 
-    // Validation front simple
-    if (password !== confirm_password) {
-      setErrorMessage("Les mots de passe ne sont pas identiques");
-      return;
-    }
+    // 1. Log des états locaux avant préparation
+    console.log("--- Tentative d'inscription ---");
+    console.log("Données saisies :", {
+      pseudo,
+      email,
+      password,
+      confirm_password,
+    });
 
     try {
-      // Backend JWT : username/email/password
-      await register({ username: pseudo, email, password });
+      const payload = {
+        pseudo: pseudo,
+        password: password,
+        confirm_password: confirm_password,
+      };
+
+      console.log("Payload envoyé à authApi.register :", payload);
+      const response = await register(payload);
+
+      // 3. Log du succès
+      console.log("Réponse succès du serveur :", response);
 
       setMessage("Compte créé avec succès !");
       setIsRegistered(true);
 
-      // Si ton App veut être notifié (optionnel)
       if (onRegisterSuccess) {
         onRegisterSuccess();
       }
     } catch (error) {
+      // 4. Log détaillé de l'erreur
+      console.error("Erreur capturée lors de l'inscription :");
+      if (error.response) {
+        // Le serveur a répondu avec un code hors 2xx
+        console.error("Status Code :", error.response.status);
+        console.error("Data (Détails FastAPI) :", error.response.data);
+      } else if (error.request) {
+        // La requête est partie mais pas de réponse (CORS ou Serveur éteint)
+        console.error("Aucune réponse reçue (problème réseau/CORS)");
+      } else {
+        console.error("Erreur de configuration requête :", error.message);
+      }
+
       const status = error?.response?.status;
       const detail = error?.response?.data?.detail;
 
@@ -41,7 +65,8 @@ function CreationCompte({ onBack, onRegisterSuccess }) {
       } else if (status === 400) {
         setErrorMessage(detail || "Erreur lors de l'inscription");
       } else if (status === 422) {
-        setErrorMessage("Champs invalides (pseudo/email/mot de passe)");
+        // Très utile pour voir quel champ Pydantic rejette
+        setErrorMessage("Champs invalides : vérifiez le format des données");
       } else {
         setErrorMessage(detail || "Serveur backend injoignable");
       }
