@@ -216,25 +216,35 @@ function Stock({ user, onLogout, onNavigateAdmin }) {
             >
               <button
                 className="bouton"
-                onClick={() => onNavigateAdmin("users")}
+                onClick={() => {
+                  console.log("Navigation vers : utilisateurs");
+                  onNavigateAdmin("users");
+                }}
               >
                 Gérer utilisateurs
               </button>
               <button
                 className="bouton"
-                onClick={() => console.log("Gérer ingrédients")}
+                onClick={() => {
+                  console.log("Navigation vers : ingredients");
+                  onNavigateAdmin("ingredients");
+                }}
               >
                 Gérer ingrédients
               </button>
               <button
                 className="bouton"
-                onClick={() => console.log("Gérer stocks")}
+                onClick={() => {
+                  console.log("Navigation vers : stocks");
+                }}
               >
                 Gérer stocks
               </button>
               <button
                 className="bouton"
-                onClick={() => console.log("Gérer recettes")}
+                onClick={() => {
+                  console.log("Navigation vers : recettes");
+                }}
               >
                 Gérer recettes
               </button>

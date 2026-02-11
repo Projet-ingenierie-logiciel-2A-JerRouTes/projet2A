@@ -148,8 +148,6 @@ Le pilotage de l'interface repose sur trois états piliers définis dans `App.js
 - **`is_registering`** (Boolean) : Détermine quel formulaire afficher dans la phase d'accès (Connexion vs Création de compte).
 - **`show_stock`** (Boolean) : Déclencheur principal de l'affichage de l'inventaire. S'il est à `true`, les formulaires d'accès sont démontés au profit du composant `Stock`.
 
-______________________________________________________________________
-
 #### 🔄 Cheminement et Flux de l'Application
 
 Le cycle de vie d'une session suit ce cheminement logique :
@@ -203,8 +201,6 @@ Le composant interprète les codes de réponse HTTP du serveur pour fournir un f
 | `422` | "Champs invalides" | Format de données incorrect (ex: champ vide). |
 | `Autre` | "Erreur de connexion" | Serveur injoignable ou erreur interne. |
 
-______________________________________________________________________
-
 #### 💡 Informations Utiles
 
 - **Accessibilité Invité** : Le bouton "Chercher des recettes sans compte" permet d'accéder aux fonctionnalités de consultation (`onGuestAccess`) sans passer par la phase d'authentification.
@@ -248,10 +244,32 @@ Le composant traite les codes HTTP spécifiques renvoyés par FastAPI :
 | `400` | "Erreur lors de l'inscription" | Problème de logique métier ou pseudo déjà pris. |
 | `422` | "Champs invalides" | Format invalide (ex: email mal formé). |
 
-______________________________________________________________________
-
 #### 💡 Informations Utiles
 
 - **UX (Expérience Utilisateur)** : Une fois le compte créé, le formulaire disparaît pour laisser place à un bouton "Construire mon stock", guidant l'utilisateur vers la prochaine étape logique de l'application.
 - **Navigation** : La prop `onBack` permet une navigation fluide vers la page de connexion sans rechargement de page.
 - **Sécurité** : L'utilisation de types `password` pour les inputs garantit que les caractères saisis ne sont pas visibles à l'écran.
+
+______________________________________________________________________
+
+## 🛠️ Système d'Administration
+
+L'application intègre désormais une gestion des rôles (RBAC) permettant de sécuriser les accès et de faciliter la maintenance.
+
+### 🛡️ Panneau d'Administration
+
+Visible uniquement pour les utilisateurs ayant le rôle `Administrateur`. Ce panneau permet d'accéder à :
+
+- **Gestion des Utilisateurs** : Visualisation, création (Admin/User), modification et suppression.
+- **Gestion des Ingrédients** : Pilotage du catalogue de référence partagé.
+- **Gestion des Stocks** : (En cours) Vue d'ensemble sur tous les inventaires du serveur.
+
+______________________________________________________________________
+
+## 👥 Module : Gestion des Utilisateurs
+
+Le composant `GestionUtilisateurs.jsx` permet un contrôle total sur les comptes :
+
+- **Listing Dynamique** : Affiche l'ID, le Pseudo, l'Email et le Rôle.
+- **Badges Visuels** : Identification rapide des privilèges (Vert pour Admin, Noir pour Utilisateur).
+- **Interface CRUD** : Icônes d'action (✏️, 🗑️) pour une gestion fluide sans "jambe lourde" lors de la maintenance.
