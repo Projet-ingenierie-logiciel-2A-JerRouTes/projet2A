@@ -3,7 +3,7 @@ import os
 from fastapi.testclient import TestClient
 import pytest
 
-# ⚠️ adapte l'import de ton app FastAPI si besoin
+# ⚠️ adapte l'import de notre app FastAPI si besoin
 from src.backend.api.main import app
 from src.backend.utils.reset_database import ResetDatabase
 
@@ -23,8 +23,7 @@ def _force_test_schema_and_reset_db():
 
     # Si DBConnection a déjà été instanciée ailleurs, on veut éviter
     # qu'elle garde l'ancienne connexion/schema.
-    # Selon ton Singleton, tu peux avoir besoin d'une méthode de reset.
-    # Si tu n'en as pas, le plus simple est d'éviter d'instancier DBConnection avant.
+    # Selon notre Singleton, on peux avoir besoin d'une méthode de reset.
     yield
 
 

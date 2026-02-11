@@ -156,7 +156,7 @@ def test_create_stock_item_rollback_on_error(dao, mock_db):
 # ---------------------------------------------------------------------
 
 
-def test_update_stock_item_updates_quantity_only(dao, mock_db, _mocker):
+def test_update_stock_item_updates_quantity_only(dao, mock_db):
     conn, cur = mock_db
     # get_stock_item_by_id() interne -> fetchone
     cur.fetchone.return_value = stock_item_row(stock_item_id=5, quantity=9.0)
@@ -245,7 +245,7 @@ def test_delete_stock_item_not_deleted(dao, mock_db):
 # ---------------------------------------------------------------------
 
 
-def test_consume_quantity_fefo_invalid_quantity_raises(dao, _mock_db):
+def test_consume_quantity_fefo_invalid_quantity_raises(dao):
     with pytest.raises(ValueError):
         dao.consume_quantity_fefo(stock_id=10, ingredient_id=7, quantity_to_consume=0)
 
