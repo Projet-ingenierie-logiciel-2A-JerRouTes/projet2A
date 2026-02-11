@@ -262,3 +262,63 @@ h1 {
     font-size: 1.4rem; /* Un peu plus grand sur mobile pour la lisibilité */
   }
 }
+
+/* --- GESTION UTILISATEURS (ADMIN) --- */
+
+.admin-actions-header {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* Styles spécifiques pour différencier les boutons d'ajout */
+.btn-add-admin {
+  background-color: #28a745 !important; /* Vert */
+}
+
+.btn-add-user {
+  background-color: #007bff !important; /* Bleu */
+}
+
+.admin-table-container {
+  margin-top: 15px;
+  overflow-x: auto;
+}
+
+/* Badges pour les rôles */
+.role-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #fff;
+  text-align: center;
+  min-width: 110px;
+  border: 1px solid rgb(255 255 255 / 20%);
+}
+
+.role-admin {
+  background-color: #053818; /* Vert très foncé */
+  color: #a3cfbb;
+}
+
+.role-generic {
+  background-color: #1a1a1a; /* Noir/Gris foncé */
+  color: #ced4da;
+}
+
+/* Boutons d'action (icônes) */
+.action-icon-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  margin-right: 10px;
+  font-size: 1.1rem;
+  transition: transform 0.1s ease-in-out;
+}
+
+.action-icon-btn:hover {
+  transform: scale(1.3);
+}

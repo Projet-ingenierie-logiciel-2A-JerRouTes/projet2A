@@ -13,7 +13,7 @@ const unitLabels = {
   PIECE: "pcs",
 };
 
-function Stock({ user, onLogout }) {
+function Stock({ user, onLogout, onNavigateAdmin }) {
   const [items, setItems] = useState({});
   const [catalogue, setCatalogue] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -216,7 +216,7 @@ function Stock({ user, onLogout }) {
             >
               <button
                 className="bouton"
-                onClick={() => console.log("Gérer utilisateurs")}
+                onClick={() => onNavigateAdmin("users")}
               >
                 Gérer utilisateurs
               </button>

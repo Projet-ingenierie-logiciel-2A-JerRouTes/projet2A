@@ -4,47 +4,49 @@ import "./App.css";
 import Login from "./components/Login";
 import CreationCompte from "./components/CreationCompte";
 import Stock from "./components/Stock";
+import GestionUtilisateurs from "./components/GestionUtilisateurs";
 
 function App() {
-  // États de l'application
+  // --- ÉTATS DE L'APPLICATION ---
   const [user, setUser] = useState(null);
   const [is_registering, setIsRegistering] = useState(false);
   const [show_stock, setShowStock] = useState(false);
 
-  // Fonction pour valider la connexion
+  // Nouvel état pour la navigation administrative
+  const [adminView, setAdminView] = useState(null); // peut être 'users', 'ingredients', etc.
+
+  // --- LOGIQUE DE CONNEXION ---
   const handleLogin = (data) => {
-    console.log("Connexion réussie pour l'utilisateur :", data.pseudo);
-    if (data.role === "Administrateur") {
-      console.log("Accès Admin confirmé");
-    }
+    console.log("--- 🔓 Connexion réussie ---");
+    console.log("Utilisateur :", data.pseudo, "| Rôle :", data.role);
     setUser(data);
     setShowStock(true);
   };
 
-  // Basculer vers la création de compte
   const handleGoToSignup = () => {
     setIsRegistering(true);
   };
 
-  // 🚪 Fonction de déconnexion
+  // --- LOGIQUE DE DÉCONNEXION ---
   const handleLogout = () => {
-    console.log("--- 🚪 Déconnexion : Réinitialisation de l'état ---");
+    console.log("--- 🚪 Déconnexion : Réinitialisation complète ---");
     setUser(null);
     setShowStock(false);
     setIsRegistering(false);
+    setAdminView(null); // On ferme aussi les vues admin
   };
 
+  // --- RENDU ---
   return (
     <div className="app">
       <h1>📦 Génération de Recettes à partir d'un stock</h1>
 
-      {/* Cas 1 : Utilisateur non connecté ou en cours d'inscription */}
+      {/* CAS 1 : UTILISATEUR NON CONNECTÉ */}
       {!show_stock && (
         <>
           {is_registering ? (
             <CreationCompte
               onBack={() => setIsRegistering(false)}
-              // On aligne le nom de la prop avec l'appel dans CreationCompte
               onRegisterSuccess={() => setShowStock(true)}
             />
           ) : (
@@ -57,8 +59,41 @@ function App() {
         </>
       )}
 
-      {/* Cas 2 : Affichage du Stock */}
-      {show_stock && <Stock user={user} onLogout={handleLogout} />}
+      {/* CAS 2 : UTILISATEUR CONNECTÉ */}
+      {show_stock && (
+        <>
+          {/* Si aucune vue admin n'est sélectionnée, on affiche le Stock classique */}
+          {!adminView ? (
+            <Stock
+              user={user}
+              onLogout={handleLogout}
+              onNavigateAdmin={(view) => setAdminView(view)}
+            />
+          ) : (
+            /* SI UNE VUE ADMIN EST SÉLECTIONNÉE */
+            <>
+              {adminView === "users" && (
+                <GestionUtilisateurs onBack={() => setAdminView(null)} />
+              )}
+
+              {/* On peut ajouter d'autres vues ici plus tard (ingredients, recettes) */}
+              {adminView === "ingredients" && (
+                <div className="sous-container">
+                  <div className="login-form">
+                    <h3>🛠️ Gestion des Ingrédients (À venir)</h3>
+                    <button
+                      className="bouton"
+                      onClick={() => setAdminView(null)}
+                    >
+                      Retour
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </>
+      )}
     </div>
   );
 }
