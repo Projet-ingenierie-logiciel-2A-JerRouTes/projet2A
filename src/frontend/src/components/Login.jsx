@@ -19,7 +19,7 @@ function Login({ onLogin, onGoToSignup, onGuestAccess }) {
     try {
       // On s'assure d'envoyer un objet avec les DEUX clés
       const credentials = {
-        pseudo: pseudo.trim(), // trim() enlève les espaces inutiles
+        login: pseudo.trim(), // trim() enlève les espaces inutiles
         password: password,
       };
 

@@ -35,6 +35,15 @@ class InvalidRefreshTokenError(AuthServiceError):
     pass
 
 
+# Ajout distinction entre utilisateur non trouvé et mot de passe invalide
+class UserNotFoundError(AuthServiceError):
+    pass
+
+
+class InvalidPasswordError(AuthServiceError):
+    pass
+
+
 # ---------------------------------------------------------------------
 # DTO
 # ---------------------------------------------------------------------
@@ -118,43 +127,61 @@ class AuthService:
             )
         # --- ÉTAPE 2 : INTERCEPTION ---
         if settings.use_seed_data:
-            # ON APPELLE LA FONCTION ICI (Chargement à la demande)
             data = get_cached_seed_data()
 
-            user_demo = None
-            # On cherche dans la clé "users" du dictionnaire retourné par la fonction
-            for u in data["users"]:
-                if (u.username == login or u.email == login) and u.check_password(
-                    password
-                ):
-                    user_demo = u
-                    break
+            # 1. On cherche d'abord si l'utilisateur existe
+            user_demo = next(
+                (u for u in data["users"] if u.username == login or u.email == login),
+                None,
+            )
 
-            if user_demo:
-                # On simule la réussite
-                access = self._make_access_token(
-                    user_id=user_demo.id_user, status=user_demo.status, session_id=999
-                )
-                return TokenPair(
-                    access_token=access,
-                    refresh_token="demo_refresh_token",
-                    session_id=999,
-                )
-            else:
-                raise InvalidCredentialsError("Identifiants invalides (Mode Démo).")
+            if user_demo is None:
+                # Si l'identifiant n'existe pas dans le seed data -> 404
+                raise UserNotFoundError("Utilisateur inconnu (Mode Démo)")
 
-        # --- ÉTAPE 3 : LOGIQUE RÉELLE (Uniquement si use_seed_data est False) ---
+            # 2. Si l'utilisateur existe, on vérifie son mot de passe
+            if not user_demo.check_password(password):
+                # Si le mot de passe est faux -> 401
+                raise InvalidPasswordError("Mot de passe incorrect (Mode Démo)")
+
+            # 3. Si tout est bon, on génère les tokens
+            access = self._make_access_token(
+                user_id=user_demo.id_user, status=user_demo.status, session_id=999
+            )
+            return TokenPair(
+                access_token=access,
+                refresh_token="demo_refresh_token",
+                session_id=999,
+            )
+
+        # --- ÉTAPE 3 : LOGIQUE ---
+        # # 1) trouver le user (email ou username)
+        # row = self._user_dao.get_user_row_by_email(login)
+        # if row is None:
+        #     row = self._user_dao.get_user_row_by_username(login)
+
+        # if row is None:
+        #     raise InvalidCredentialsError("Identifiants invalides.")
+
+        # # 2) vérifier le mot de passe
+        # if not check_password(password, row.password_hash):
+        #     raise InvalidCredentialsError("Identifiants invalides.")
+
         # 1) trouver le user (email ou username)
         row = self._user_dao.get_user_row_by_email(login)
         if row is None:
             row = self._user_dao.get_user_row_by_username(login)
 
+        # Si après les deux tentatives row est toujours None -> 404
         if row is None:
-            raise InvalidCredentialsError("Identifiants invalides.")
+            # On lève une erreur spécifique pour "Utilisateur inconnu"
+            raise UserNotFoundError("Utilisateur inconnu")
 
         # 2) vérifier le mot de passe
+        # Si l'utilisateur existe mais que le hash ne match pas -> 401
         if not check_password(password, row.password_hash):
-            raise InvalidCredentialsError("Identifiants invalides.")
+            # On lève une erreur spécifique pour "Mot de passe incorrect"
+            raise InvalidPasswordError("Mot de passe incorrect")
 
         # 3) créer session + refresh token
         refresh = self._new_refresh_token()

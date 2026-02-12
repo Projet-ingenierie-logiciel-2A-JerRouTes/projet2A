@@ -12,7 +12,9 @@ from src.backend.api.schemas.auth import (
 from src.backend.services.auth_service import (
     AuthService,
     InvalidCredentialsError,
+    InvalidPasswordError,
     InvalidRefreshTokenError,
+    UserNotFoundError,
 )
 from src.backend.services.user_service import UserAlreadyExistsError, UserService
 
@@ -88,7 +90,7 @@ def login(req: LoginRequest, request: Request) -> TokenPairResponse:
     Authentifie un utilisateur et génère une session sécurisée.
 
     - **login**: Pseudo ou Email de l'utilisateur
-    - **password**: Mot de passe en clair (sera vérifié via bcrypt)
+    - **password**: Mot de passe en clair (sera vérifié via bcrypt ou check_password)
 
     Le serveur récupère automatiquement l'IP et le User-Agent pour sécuriser la session.
     """
@@ -98,14 +100,31 @@ def login(req: LoginRequest, request: Request) -> TokenPairResponse:
     user_agent = request.headers.get("user-agent")
 
     try:
+        # Appel au service qui gère maintenant les modes Démo et Réel
         tokens = auth_service.login(
             login=req.login,
             password=req.password,
             ip=ip,
             user_agent=user_agent,
         )
-    except InvalidCredentialsError as exc:
+
+    except UserNotFoundError as exc:
+        # Capture l'utilisateur inconnu -> Renvoie 404 pour le Frontend
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    except InvalidPasswordError as exc:
+        # Capture le mauvais mot de passe -> Renvoie 401 pour le Frontend
         raise HTTPException(status_code=401, detail=str(exc)) from exc
+
+    except InvalidCredentialsError as exc:
+        # Capture les erreurs d'identifiants génériques (ex: Mode Démo)
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+
+    except Exception as exc:
+        # Sécurité ultime pour éviter l'instabilité thermique du serveur
+        raise HTTPException(
+            status_code=500, detail="Erreur interne du serveur"
+        ) from exc
 
     return TokenPairResponse(
         access_token=tokens.access_token,
