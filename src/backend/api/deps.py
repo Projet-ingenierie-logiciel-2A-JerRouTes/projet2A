@@ -44,11 +44,12 @@ def get_current_user(
     creds: HTTPAuthorizationCredentials | None = Depends(bearer),  # noqa: B008
 ) -> CurrentUser:
     """
-    1) Lit le header Authorization: Bearer <token>
-    2) Décode et valide le JWT
-    3) Extrait les infos minimales (uid, sid, status)
+    1) Vérifie la présence du token.
+    2) Si mode démo + token magique : bypass immédiat.
+    3) Sinon : décodage et validation stricte du JWT.
     """
 
+    # Vérification de la présence du header Authorization
     if creds is None or not creds.credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -57,22 +58,38 @@ def get_current_user(
 
     token = creds.credentials
 
+    # --- ÉTAPE 1 : BYPASS PRIORITAIRE (MODE DÉMO) ---
+    if settings.use_seed_data and token == "demo-token-123":
+        # On récupère l'ID choisi dynamiquement sur le dashboard
+        uid = getattr(settings, "demo_user_id", 1)
+
+        # On adapte le statut pour que les tests de droits fonctionnent (Admin vs Generic)
+        role = "admin" if uid == 1 else "generic"
+
+        # On retourne l'utilisateur simulé avec son vrai ID (1 ou 2)
+        return CurrentUser(user_id=uid, session_id=1, status=role)
+
+    # --- ÉTAPE 2 : LOGIQUE RÉELLE (DÉCODAGE JWT) ---
     try:
+        # Si on arrive ici, le token doit être un vrai JWT
         payload = decode_jwt(
             token,
             secret=settings.jwt_secret,
             issuer=settings.jwt_issuer,
         )
-    except (JWTExpiredError, JWTInvalidTokenError, JWTIssuerError) as exc:
+    except (JWTExpiredError, JWTInvalidTokenError, JWTIssuerError, Exception) as exc:
+        # On capture 'Exception' pour transformer toute erreur de format en 401
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(exc),
         ) from exc
 
+    # Extraction des données du payload
     uid = payload.get("uid")
     sid = payload.get("sid")
     status_ = payload.get("status")
 
+    # --- ÉTAPE 3 : VÉRIFICATION STRICTE DU SCHÉMA ---
     if (
         not isinstance(uid, int)
         or not isinstance(sid, int)
@@ -99,6 +116,11 @@ def get_current_user_checked_exists(
     - JWT valide
     - ET utilisateur toujours présent en BDD
     """
+    # --- SÉCURITÉ : BYPASS RÉSERVÉ AU MODE DÉMO ---
+    # La condition settings.use_seed_data est le verrou principal.
+    # Si on est en mode démo, on valide directement l'utilisateur fictif
+    if settings.use_seed_data:
+        return cu
 
     try:
         user_service.get_user(cu.user_id)

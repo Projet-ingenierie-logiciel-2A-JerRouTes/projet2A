@@ -13,11 +13,12 @@ from src.backend.api.schemas.users import (
 from src.backend.services.auth_service import AuthService
 from src.backend.services.user_service import (
     InvalidCredentialsError,
-    UserAlreadyExistsError,
     UserNotFoundError,
     UserService,
 )
 
+
+# from src.backend.scripts.seed_data import users
 
 router = APIRouter(prefix="/api/users", tags=["Utilisateurs"])
 
@@ -31,66 +32,85 @@ def _auth_service() -> AuthService:
     )
 
 
-@router.get("/me", response_model=MeResponse)
-def me(
-    cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
-) -> MeResponse:
-    user_service = UserService()
-    try:
-        user = user_service.get_user(cu.user_id)
-    except UserNotFoundError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-    return MeResponse(
-        user=UserPublic(
-            user_id=user.user_id,
-            username=user.username,
-            email=user.email,
-            status=user.status,
-        )
-    )
-
-
 @router.get(
     "/me",
     response_model=MeResponse,
     summary="Récupérer mon profil",
-    description="Renvoie les informations détaillées de l'utilisateur actuellement authentifié via le token JWT.",
-    response_description="Le profil public de l'utilisateur connecté",
-    tags=["Utilisateurs"],
+    description="Renvoie les infos de l'utilisateur connecté (Admin ou User1).",
 )
-def update_me(
-    req: UpdateMeRequest,
+@router.get(
+    "/me",
+    response_model=MeResponse,
+    summary="Récupérer mon profil",
+    description="Renvoie les informations de l'utilisateur connecté (Admin ou User1).",
+)
+def get_my_profile(
     cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
 ) -> MeResponse:
-    user_service = UserService()
     """
-    Cette route permet au frontend de vérifier la validité du token et de récupérer
-    les informations de base de l'utilisateur (username, email, rôle).
+    Récupère le profil. En mode démo, on simule les données depuis seed_data.
+    """
+    # 1. Gestion du mode démo (Seed Data)
+    if settings.use_seed_data:
+        # Importation PARESSEUSE pour éviter les logs au démarrage du serveur
+        from src.backend.scripts.seed_data import get_demo_data
 
-    **Sécurité :**
-    - Nécessite un Bearer Token valide.
-    - L'identité est extraite du jeton, empêchant l'accès aux données d'autrui.
-    """
-    try:
-        user = user_service.update_profile(
-            cu.user_id,
-            username=req.username,
-            email=req.email,
+        # On récupère les données de simulation
+        data = get_demo_data()
+
+        # On cherche l'utilisateur correspondant à l'ID actif (Admin ou User1)
+        # Si non trouvé, on prend le premier par défaut
+        user_seed = next(
+            (u for u in data["users"] if u.id_user == cu.user_id), data["users"][0]
         )
-    except UserAlreadyExistsError as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+        return MeResponse(
+            user=UserPublic(
+                user_id=user_seed.id_user,
+                username=user_seed.pseudo,
+                email=user_seed.email,
+                status=cu.status,
+            )
+        )
+
+    # 2. Mode Réel (Base de données PostgreSQL)
+    user_service = UserService()
+    try:
+        user = user_service.get_user(cu.user_id)
+        return MeResponse(
+            user=UserPublic(
+                user_id=user.user_id,
+                username=user.username,
+                email=user.email,
+                status=user.status,
+            )
+        )
     except UserNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
-    return MeResponse(
-        user=UserPublic(
-            user_id=user.user_id,
-            username=user.username,
-            email=user.email,
-            status=user.status,
+
+@router.put(
+    "/me",  # Changé en PUT pour éviter le conflit avec le GET /me
+    response_model=MeResponse,
+    summary="Mettre à jour mon profil",
+)
+def update_my_profile(
+    req: UpdateMeRequest,
+    cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+) -> MeResponse:
+    if settings.use_seed_data:
+        # En mode démo, on simule une réussite sans rien changer
+        return MeResponse(
+            user=UserPublic(
+                user_id=cu.user_id,
+                username=req.username,
+                email=req.email,
+                status=cu.status,
+            )
         )
-    )
+
+    # Logique réelle (Postgres) ici...
+    raise HTTPException(status_code=501, detail="Non implémenté hors démo")
 
 
 @router.post(

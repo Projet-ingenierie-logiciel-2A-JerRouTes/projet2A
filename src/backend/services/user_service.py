@@ -6,7 +6,8 @@ from dataclasses import dataclass
 from src.backend.api.config import settings
 from src.backend.business_objects.user import GenericUser, User
 from src.backend.dao.user_dao import UserDAO, UserRow
-from src.backend.scripts.seed_data import get_cached_seed_data
+
+# from src.backend.scripts.seed_data import get_cached_seed_data
 from src.backend.utils.log_decorator import log
 from src.backend.utils.securite import check_password, hash_password
 
@@ -57,6 +58,15 @@ class UserService:
 
     @log
     def get_user(self, user_id: int) -> User:
+        if settings.use_seed_data:
+            from src.backend.scripts.seed_data import (
+                get_demo_data,  # Import local (Lazy)
+            )
+
+            data = get_demo_data()
+            user = next((u for u in data["users"] if u.id_user == user_id), None)
+            return user
+
         user = self._user_dao.get_user_by_id(user_id)
         if user is None:
             raise UserNotFoundError(f"Utilisateur {user_id} introuvable.")
@@ -84,7 +94,9 @@ class UserService:
     ) -> User:
         # --- ÉTAPE 1 : INTERCEPTION MODE DÉMO ---
         if settings.use_seed_data:
-            data = get_cached_seed_data()
+            from src.backend.scripts.seed_data import get_demo_data
+
+            data = get_demo_data()
 
             # 1. Vérification du Pseudo (Username)
             if any(u.username == username for u in data["users"]):

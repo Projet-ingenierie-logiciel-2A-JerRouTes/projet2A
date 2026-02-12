@@ -3,213 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - {{ app_name }}</title>
+    <title>{{ app_name }} - Dashboard Système</title>
     <style>
         :root {
-            --primary: #3b82f6;
-            --success: #10b981;
-            --bg: #f0f2f5;
-            --text: #1e293b;
-            --card-bg: #ffffff;
+            --primary: #1a73e8;
+            --success: #00c853;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #3c4043;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 40px;
+            font-family: 'Segoe UI', sans-serif;
             background-color: var(--bg);
             color: var(--text);
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 750px;
-            margin: auto;
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-        }
-
-        h1 {
-            color: #2c3e50;
-            border-bottom: 3px solid var(--primary);
-            padding-bottom: 15px;
-            margin-top: 0;
             display: flex;
+            justify-content: center;
             align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .dashboard-card {
+            background: var(--card);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .header {
+            display: flex;
             justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e8f0fe;
+            padding-bottom: 1rem;
         }
 
-        .badge {
-            font-size: 0.4em;
-            background: var(--success);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 50px;
-            text-transform: uppercase;
-        }
-
-        .info-grid {
+        .grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin: 30px 0;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
-        .info-card {
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
+        .info-box {
+            background: #f1f3f4;
+            padding: 1.2rem;
+            border-radius: 1rem;
+            border: 1.5px solid transparent;
             transition: all 0.3s ease;
         }
 
-        .info-card.highlight {
-            border-left: 4px solid var(--success);
-            background: #ecfdf5;
+        .info-box.active {
+            background: #e6f4ea;
+            border-color: var(--success);
         }
 
-        .info-card h3 {
-            margin: 0 0 10px 0;
-            font-size: 0.75em;
-            color: #64748b;
+        .label {
+            font-size: 0.75rem;
+            color: #70757a;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            display: block;
         }
 
-        .info-card p {
-            margin: 0;
-            font-weight: 700;
-            color: #1e293b;
-            font-size: 1.1em;
+        .value { font-weight: 600; font-size: 1.1rem; }
+
+        .token-banner {
+            background: #e8f0fe;
+            border: 1px dashed var(--primary);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
         }
 
-        /* Style du Switch */
-        .switch-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
-
-        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #cbd5e1; transition: .4s; border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute; content: ""; height: 18px; width: 18px; left: 4px;
-            bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;
-        }
-        input:checked + .slider { background-color: var(--success); }
-        input:checked + .slider:before { transform: translateX(24px); }
-
-        .action-zone {
-            display: flex;
-            gap: 20px;
-            margin-top: 30px;
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
         }
 
         .btn {
-            flex: 1;
-            padding: 18px;
-            text-align: center;
+            padding: 1rem;
+            border-radius: 0.8rem;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
             text-decoration: none;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 1.05em;
-            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            transition: transform 0.2s;
         }
 
-        .btn-frontend { background: var(--success); color: white; }
-        .btn-frontend:hover { background: #059669; transform: translateY(-3px); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
 
-        .btn-swagger { background: var(--primary); color: white; }
-        .btn-swagger:hover { background: #2563eb; transform: translateY(-3px); }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
 
-        .footer {
-            text-align: center;
-            font-size: 0.85em;
-            color: #94a3b8;
-            margin-top: 40px;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 20px;
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 22px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px; width: 16px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        select {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #dadce0;
+            background: white;
+            font-weight: 600;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚀 {{ app_name }} <span class="badge">Active</span></h1>
 
-        <div class="info-grid">
-            <div class="info-card">
-                <h3>Établissement</h3>
-                <p>ENSAI - Projet 2A</p>
+    <div class="dashboard-card">
+        <div class="header">
+            <h1>🚀 {{ app_name }}</h1>
+            <span style="background: #e6f4ea; color: #1e8e3e; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">ACTIVE</span>
+        </div>
+
+        <div class="grid">
+            <div class="info-box">
+                <span class="label">Établissement</span>
+                <span class="value">ENSAI - Projet 2A</span>
             </div>
-            <div class="info-card">
-                <h3>Version API</h3>
-                <p>1.0.0 (Stable)</p>
+            <div class="info-box">
+                <span class="label">Version API</span>
+                <span class="value">1.0.0 (Stable)</span>
             </div>
-            <div class="info-card highlight">
-                <h3>Source des Données</h3>
-                <div class="switch-container">
-                    <p id="modeText" style="margin:0;">{{ data_mode_text }}</p>
+
+            <div class="info-box {{ active_class }}">
+                <span class="label">Source des données</span>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="value">{{ data_mode_text }}</span>
                     <label class="switch">
-                        <input type="checkbox" id="seedToggle" {{ 'checked' if use_seed_data == 'true' else '' }}>
+                        <input type="checkbox" id="modeToggle" {{ 'checked' if use_seed_data == 'true' else '' }} onchange="toggleMode(this)">
                         <span class="slider"></span>
                     </label>
                 </div>
             </div>
-            <div class="info-card">
-                <h3>Hôte Frontend</h3>
-                <p>{{ frontend_url }}</p>
+
+            <div class="info-box">
+                <span class="label">Utilisateur simulé</span>
+                <span class="value" style="color: var(--primary);">{{ demo_user_info }}</span>
             </div>
         </div>
 
-        <div class="action-zone">
-            <a href="{{ frontend_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-frontend">🌐 Ouvrir le Frontend</a>
-            <a href="/docs" target="_blank" rel="noopener noreferrer" class="btn btn-swagger">📄 Documentation Swagger</a>
+        <div class="token-banner" style="display: {{ token_display }};">
+            <span class="label" style="color: var(--primary)">🔑 Configuration de la Démo</span>
+
+            <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 15px; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 0.9rem; font-weight: 500;">Incarner l'utilisateur :</span>
+                    <select id="userSelector" onchange="updateUser(this.value)">
+                        <option value="1" {{ 'selected' if demo_user_id == '1' else '' }}>Admin (ID:1)</option>
+                        <option value="2" {{ 'selected' if demo_user_id == '2' else '' }}>User1 (ID:2)</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <code id="tokenText" style="background: #fff; padding: 8px 15px; border-radius: 8px; border: 1px solid #dadce0; font-family: monospace; font-weight: bold; font-size: 1rem;">{{ token_value }}</code>
+                    <button onclick="copyToken()" id="copyBtn" class="btn-primary" style="padding: 8px 15px; border-radius: 8px; font-size: 0.9rem; border: none; cursor: pointer;">Copier</button>
+                </div>
+                <small style="color: #70757a;">Copiez ce token et collez-le dans le bouton "Authorize" de Swagger.</small>
+            </div>
         </div>
 
-        <div class="footer">
-            Dernière synchro : {{ time }} | Statut : Branches nettoyées
+        <div class="actions">
+            <a href="{{ frontend_url }}" target="_blank" rel="noopener" class="btn btn-success">🌐 Ouvrir le Frontend</a>
+            <a href="/docs" target="_blank" rel="noopener" class="btn btn-primary">📄 Documentation Swagger</a>
         </div>
+
+        <p style="text-align: center; font-size: 0.8rem; color: #70757a; margin-top: 2rem;">
+            Dernière synchro : {{ time }} | Statut : Prêt pour présentation
+        </p>
     </div>
 
     <script>
-        const toggle = document.getElementById('seedToggle');
-        const text = document.getElementById('modeText');
-
-        toggle.addEventListener('change', async () => {
-            const isSeed = toggle.checked;
-
+        async function toggleMode(checkbox) {
+            const isSeed = checkbox.checked;
             try {
                 const response = await fetch('/system/toggle-data', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ use_seed: isSeed })
+                    body: JSON.stringify({ use_seed: isSeed, user_id: 1 }) // Reset à Admin par défaut
                 });
+                if (response.ok) window.location.reload();
+            } catch (err) { console.error("Erreur toggle", err); }
+        }
 
-                if (response.ok) {
-                    const result = await response.json();
-                    text.innerText = isSeed ? "Mode Démo" : "Base Réelle";
-                    console.log("Mode mis à jour :", result.current_mode);
-                } else {
-                    alert("Erreur serveur lors du changement de mode.");
-                    toggle.checked = !isSeed;
-                }
-            } catch (err) {
-                console.error("Erreur réseau :", err);
-                alert("Impossible de contacter le serveur.");
-                toggle.checked = !isSeed;
-            }
-        });
+        async function updateUser(userId) {
+            try {
+                const response = await fetch('/system/toggle-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        use_seed: true,
+                        user_id: parseInt(userId)
+                    })
+                });
+                if (response.ok) window.location.reload();
+            } catch (err) { console.error("Erreur switch utilisateur", err); }
+        }
+
+        function copyToken() {
+            const token = document.getElementById('tokenText').innerText;
+            navigator.clipboard.writeText(token).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerText = "Copié !";
+                setTimeout(() => btn.innerText = "Copier", 2000);
+            });
+        }
     </script>
 </body>
 </html>

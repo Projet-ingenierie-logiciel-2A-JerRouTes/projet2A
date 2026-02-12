@@ -9,10 +9,11 @@ from fastapi.responses import HTMLResponse
 
 from src.backend.api.config import settings
 from src.backend.api.routers.auth import router as auth_router
-
-# from src.backend.api.routers.ingredients import router as ingredients_router
-# from src.backend.api.routers.stocks import router as stocks_router
 from src.backend.api.routers.users import router as users_router
+
+
+# from src.backend.api.routers.stocks import router as stocks_router
+# from src.backend.api.routers.ingredients import router as ingredients_router
 
 
 # Initialisation de l'application
@@ -46,36 +47,60 @@ app.include_router(users_router)
 
 @app.get("/", tags=["Système"], include_in_schema=False)
 def read_root():
-    # 1. Déterminer le chemin du fichier HTML
+    """
+    Génère le dashboard système avec sélection dynamique de l'utilisateur
+    pour le mode démo (Admin vs Generic).
+    """
+    # 1. Lecture du template HTML
     html_path = Path(__file__).parent / "index.html"
-
-    # 2. Lire le contenu du fichier
     with open(html_path, encoding="utf-8") as f:
         content = f.read()
 
-    # URL du frontend pour le bouton
+    # URL du frontend
     frontend_url = (
         settings.cors_allow_origins[0] if settings.cors_allow_origins else "#"
     )
 
-    # Détermination du texte à afficher selon l'état de 'use_seed_data'
+    # 2. Récupération de l'ID utilisateur de démo (par défaut 1 si non défini)
+    demo_uid = getattr(settings, "demo_user_id", 1)
+
+    # 3. Détermination de l'état du mode de données
     if settings.use_seed_data is None:
-        # État initial au lancement d'Uvicorn
         mode_text = "⚠️ SÉLECTIONNER UN MODE"
-        is_checked = "false"  # Le switch reste grisé
+        is_checked = "false"
+        active_class = ""
+        token_display = "none"
+        token_value = ""
+        user_info = "N/A"
     else:
-        # État une fois que l'utilisateur a fait un choix
+        # Configuration active
         mode_text = "Mode Démo" if settings.use_seed_data else "Base Réelle"
         is_checked = "true" if settings.use_seed_data else "false"
+        active_class = "active" if settings.use_seed_data else ""
 
-    # 3. Remplacer les placeholders (les {{ ... }}) par les vraies valeurs
+        # Affichage du token et info utilisateur
+        if settings.use_seed_data:
+            token_display = "block"
+            token_value = "demo-token-123"
+            # On prépare le libellé pour le dashboard
+            user_info = "Admin (ID:1)" if demo_uid == 1 else "User1 (ID:2)"
+        else:
+            token_display = "none"
+            token_value = ""
+            user_info = "Base SQL Active"
+
+    # 4. Remplacements dynamiques
     content = content.replace("{{ app_name }}", settings.app_name)
     content = content.replace("{{ frontend_url }}", frontend_url)
     content = content.replace("{{ time }}", datetime.now().strftime("%H:%M:%S"))
-
-    # NOUVEAUX REMPLACEMENTS
     content = content.replace("{{ data_mode_text }}", mode_text)
     content = content.replace("{{ use_seed_data }}", is_checked)
+    content = content.replace("{{ active_class }}", active_class)
+    content = content.replace("{{ token_display }}", token_display)
+    content = content.replace("{{ token_value }}", token_value)
+
+    # NOUVEAU : Placeholder pour afficher quel utilisateur est simulé
+    content = content.replace("{{ demo_user_info }}", user_info)
 
     return HTMLResponse(content=content)
 
@@ -85,6 +110,7 @@ def read_root():
     tags=["Système"],
     summary="Diagnostic technique",
     response_description="État de santé des services",
+    include_in_schema=False,
 )
 def health():
     """
@@ -94,7 +120,7 @@ def health():
     return {
         "status": "opérationnel",
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "database": "seed_data loaded",
+        "database": "active",
         "cors": "active",
     }
 
@@ -104,6 +130,7 @@ def health():
     tags=["Système"],
     summary="Carte d'identité de l'API",
     response_description="Métadonnées du projet",
+    include_in_schema=False,
 )
 def get_app_info():
     """
@@ -122,17 +149,23 @@ def get_app_info():
 
 @app.post("/system/toggle-data", tags=["Système"], include_in_schema=False)
 async def toggle_data_source(payload: dict = Body(...)):  # noqa: B008
-    # On récupère la valeur (true ou false)
+    """
+    Bascule entre mode démo et réel, et définit l'utilisateur actif.
+    """
     use_seed = payload.get("use_seed")
+    # On récupère l'ID envoyé par le dashboard, par défaut 1 (Admin)
+    user_id = payload.get("user_id", 1)
 
     if use_seed is None:
-        return {"status": "error", "message": "Vous devez choisir un mode."}
+        return {"status": "error", "message": "Mode manquant."}
 
+    # Mise à jour des réglages globaux
     settings.use_seed_data = use_seed
-    status_text = "Seed Data (Démo)" if use_seed else "Base de Données (Réelle)"
-    print(f"✅ Système initialisé en mode : {status_text}")
+    settings.demo_user_id = int(user_id)
 
-    return {
-        "status": "success",
-        "current_mode": status_text,
-    }
+    status_text = "Seed Data" if use_seed else "Base Réelle"
+    user_text = "Admin" if settings.demo_user_id == 1 else "User1"
+
+    print(f"✅ Système : {status_text} | Utilisateur : {user_text}")
+
+    return {"status": "success", "current_mode": status_text, "current_user": user_text}

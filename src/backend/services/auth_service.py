@@ -12,7 +12,7 @@ from src.backend.dao.session_dao import SessionDAO
 from src.backend.dao.user_dao import UserDAO
 
 # Pour télécharger les données de test uniquement si nécessaire (optimisation)
-from src.backend.scripts.seed_data import get_cached_seed_data
+# from src.backend.scripts.seed_data import get_cached_seed_data
 from src.backend.utils.jwt_utils import encode_jwt
 from src.backend.utils.log_decorator import log
 from src.backend.utils.securite import check_password
@@ -127,27 +127,33 @@ class AuthService:
             )
         # --- ÉTAPE 2 : INTERCEPTION ---
         if settings.use_seed_data:
-            data = get_cached_seed_data()
+            # MODIF : Import local pour éviter les logs au démarrage
+            from src.backend.scripts.seed_data import get_demo_data
+
+            data = get_demo_data()
 
             # 1. On cherche d'abord si l'utilisateur existe
+            # Utilise 'pseudo' ou 'email' selon tes objets métiers
             user_demo = next(
-                (u for u in data["users"] if u.username == login or u.email == login),
+                (u for u in data["users"] if u.pseudo == login or u.email == login),
                 None,
             )
 
             if user_demo is None:
-                # Si l'identifiant n'existe pas dans le seed data -> 404
                 raise UserNotFoundError("Utilisateur inconnu (Mode Démo)")
 
-            # 2. Si l'utilisateur existe, on vérifie son mot de passe
-            if not user_demo.check_password(password):
-                # Si le mot de passe est faux -> 401
+            # 2. Vérification (On utilise l'attribut .password défini dans seed_data)
+            if user_demo.password != password:
                 raise InvalidPasswordError("Mot de passe incorrect (Mode Démo)")
 
-            # 3. Si tout est bon, on génère les tokens
+            # 3. Génération des tokens (ID session fictif 999 pour la démo)
+            # On récupère le statut ('admin' ou 'generic') dynamiquement
+            role = "admin" if user_demo.id_user == 1 else "generic"
+
             access = self._make_access_token(
-                user_id=user_demo.id_user, status=user_demo.status, session_id=999
+                user_id=user_demo.id_user, status=role, session_id=999
             )
+
             return TokenPair(
                 access_token=access,
                 refresh_token="demo_refresh_token",

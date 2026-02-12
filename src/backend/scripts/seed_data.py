@@ -7,78 +7,67 @@ from src.backend.business_objects.user import Admin, GenericUser
 
 
 def get_app_data():
-    # 1. Utilisateurs
-    users = [
-        Admin(id_user=1, pseudo="admin", password="admin", email="admin@admin"),
+    """
+    Génère l'ensemble des données de simulation.
+    Cette fonction n'est appelée qu'à la demande pour éviter le chargement prématuré.
+    """
+    # 1. Utilisateurs (Emails corrigés pour validation Pydantic)
+    users_list = [
+        Admin(id_user=1, pseudo="admin", password="mdpadmin", email="admin@admin.com"),
         GenericUser(
-            id_user=2, pseudo="user1", password="user1", email="truc@truc", id_stock=101
+            id_user=2,
+            pseudo="user1",
+            password="mdpuser1",
+            email="user1@example.com",
+            id_stock=101,
         ),
     ]
 
-    # 2. Ingrédients
-    ingr_farine = Ingredient(1, "Farine", Unit.GRAM)
-    ingr_lait = Ingredient(2, "Lait", Unit.LITER)
-    ingr_oeufs = Ingredient(3, "Oeufs", Unit.PIECE)
-    ingr_sucre = Ingredient(4, "Sucre", Unit.GRAM)
-    ingr_levure = Ingredient(5, "Levure", Unit.GRAM)
-    ingr_beurre = Ingredient(6, "Beurre", Unit.GRAM)
-    ingr_pates = Ingredient(7, "Pates", Unit.GRAM)
-    ingr_riz = Ingredient(8, "Riz", Unit.GRAM)
-    ingr_tomates = Ingredient(9, "Tomates", Unit.PIECE)
-
-    # 3. Listes des ingredients pour les stocks
+    # 2. Catalogue d'Ingrédients
     ingredients = [
-        ingr_farine,
-        ingr_lait,
-        ingr_oeufs,
-        ingr_sucre,
-        ingr_levure,
-        ingr_beurre,
-        ingr_pates,
-        ingr_riz,
-        ingr_tomates,
+        Ingredient(1, "Farine", Unit.GRAM),
+        Ingredient(2, "Lait", Unit.LITER),
+        Ingredient(3, "Oeufs", Unit.PIECE),
+        Ingredient(4, "Sucre", Unit.GRAM),
+        Ingredient(5, "Levure", Unit.GRAM),
+        Ingredient(6, "Beurre", Unit.GRAM),
+        Ingredient(7, "Pates", Unit.GRAM),
+        Ingredient(8, "Riz", Unit.GRAM),
+        Ingredient(9, "Tomates", Unit.PIECE),
     ]
 
-    # 4. Stock
+    # 3. Stock principal (ID 101 pour correspondre au GenericUser)
     stock_principal = Stock(101, "Frigo de Christelle")
     today = date.today()
 
-    # On ajoute plusieurs lots de Lait (id=2) pour tester ton tri FEFO
-    stock_principal.add_item(
-        2, 502, 2.0, today + timedelta(days=15)
-    )  # Lot qui périme dans 15j
+    # Ajout d'items avec gestion FEFO (First Expired, First Out)
+    stock_principal.add_item(2, 502, 2.0, today + timedelta(days=15))  # Lait lot 1
     stock_principal.add_item(
         2, 505, 1.0, today + timedelta(days=5)
-    )  # Lot qui périme dans 5j (sera en haut de liste)
-
-    # On ajoute d'autres ingrédients
+    )  # Lait lot 2 (périme avant)
     stock_principal.add_item(1, 501, 1000, today + timedelta(days=30))  # Farine
     stock_principal.add_item(3, 503, 12, today + timedelta(days=20))  # Oeufs
     stock_principal.add_item(4, 504, 500, today + timedelta(days=60))  # Sucre
 
-    # On retourne tout sous forme de dictionnaire pour le main.py
     return {
-        "users": users,
+        "users": users_list,
         "ingredients": ingredients,
         "stocks": {stock_principal.id_stock: stock_principal},
     }
 
 
-# --- ÉTAPE 1 : GESTION DU CACHE ---
-# On initialise une variable globale vide.
+# --- GESTION DU CACHE (SINGLETON PARESSEUX) ---
 _cached_data = None
 
 
-def get_cached_seed_data():
+def get_demo_data():
     """
-    Charge les données de test uniquement si nécessaire.
-    Évite l'**instabilité thermique** au démarrage du serveur.
+    Point d'entrée unique pour récupérer les données de démo.
+    L'exécution se fait ici uniquement au premier appel.
     """
     global _cached_data
-
-    # Si les données ne sont pas encore en mémoire, on les génère.
     if _cached_data is None:
-        print("🚀 [SEED] Premier appel détecté : Initialisation des données de démo...")
+        # Les logs d'initialisation n'apparaîtront qu'ici
+        print("🚀 [SEED] Initialisation paresseuse des données de démo...")
         _cached_data = get_app_data()
-
     return _cached_data

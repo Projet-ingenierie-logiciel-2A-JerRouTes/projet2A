@@ -14,6 +14,7 @@ class Settings:
     # Cette variable pilote tout le backend. Si True, on utilise les données de test.
     # Si False, on interroge la base de données réelle.
     use_seed_data: bool | None = None  # None = Choix non fait
+    demo_user_id: int = 1
 
     # JWT : Clés de chiffrement récupérées depuis l'environnement système.
     jwt_secret: str = os.getenv(
