@@ -18,11 +18,12 @@ export async function login(credentials) {
 
 /**
  * Création de compte
- * @param {Object} userData - Doit contenir { pseudo, password, confirm_password }
+ * @param {Object} userData - Contient { pseudo, email, password }
  */
-export async function register(userData) {
-  // Envoie les données vers la route POST /api/auth/register
-  const res = await API.post("/api/auth/register", userData);
+
+export async function register(payload) {
+  // On envoie le payload directement, il est déjà au bon format
+  const res = await API.post("/api/auth/register", payload);
   return res.data;
 }
 

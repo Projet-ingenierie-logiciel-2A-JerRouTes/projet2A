@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { login } from "../api/authApi_vers_C";
+import { login } from "../api/authApi";
 
 function Login({ onLogin, onGoToSignup, onGuestAccess }) {
   // Initalisation des variables d'état pour le pseudo/email, le mot de passe et les messages d'erreur

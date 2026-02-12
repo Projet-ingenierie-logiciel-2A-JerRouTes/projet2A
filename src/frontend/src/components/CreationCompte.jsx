@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { register } from "../api/authApi_vers_C";
+import { register } from "../api/authApi";
+
+const MIN_PASSWORD_LENGTH = 8;
 
 function CreationCompte({ onBack, onRegisterSuccess }) {
   const [isRegistered, setIsRegistered] = useState(false);
@@ -24,11 +26,25 @@ function CreationCompte({ onBack, onRegisterSuccess }) {
       confirm_password,
     });
 
+    // Vérification de la longueur minimale
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setErrorMessage(
+        `Le mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères.`,
+      );
+      return; // On stoppe la fonction ici
+    }
+
+    // --- VÉRIFICATION DE LA CONFIRMATION ---
+    if (password !== confirm_password) {
+      setErrorMessage("Les mots de passe ne correspondent pas.");
+      return;
+    }
+
     try {
       const payload = {
-        pseudo: pseudo,
+        username: pseudo,
+        email: email,
         password: password,
-        confirm_password: confirm_password,
       };
 
       console.log("Payload envoyé à authApi.register :", payload);
@@ -103,7 +119,7 @@ function CreationCompte({ onBack, onRegisterSuccess }) {
             <div className="input-group">
               <input
                 type="password"
-                placeholder="Mot de passe"
+                placeholder={`Mot de passe (minimum ${MIN_PASSWORD_LENGTH} caractères)`}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -113,7 +129,7 @@ function CreationCompte({ onBack, onRegisterSuccess }) {
             <div className="input-group">
               <input
                 type="password"
-                placeholder="Confirmer le mot de passe"
+                placeholder={`Confirmer le mot de passe (minimum ${MIN_PASSWORD_LENGTH} caractères)`}
                 value={confirm_password}
                 onChange={(e) => setconfirmPassword(e.target.value)}
                 required
@@ -137,15 +153,10 @@ function CreationCompte({ onBack, onRegisterSuccess }) {
         </div>
       )}
 
-      {(error_message || message) && (
-        <div className="sous-container">
-          <div
-            className={error_message ? "message-negatif" : "message-positif"}
-          >
-            {error_message ? `🛑 ${error_message}` : `✅ ${message}`}
-          </div>
-        </div>
-      )}
+      {/* Boite d'erreur séparée */}
+      <div className="sous-container">
+        {error_message && <div className="message">🛑 {error_message}</div>}
+      </div>
     </div>
   );
 }

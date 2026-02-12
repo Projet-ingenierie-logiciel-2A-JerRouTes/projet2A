@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from src.backend.business_objects.user import User
+# Pour mode demo uniquement (évite d'importer des trucs inutiles dans les routes)
+from src.backend.api.config import settings
+from src.backend.business_objects.user import GenericUser, User
 from src.backend.dao.user_dao import UserDAO, UserRow
+from src.backend.scripts.seed_data import get_cached_seed_data
 from src.backend.utils.log_decorator import log
 from src.backend.utils.securite import check_password, hash_password
 
@@ -79,6 +82,36 @@ class UserService:
         password: str,
         status: str = "user",
     ) -> User:
+        # --- ÉTAPE 1 : INTERCEPTION MODE DÉMO ---
+        if settings.use_seed_data:
+            data = get_cached_seed_data()
+
+            # 1. Vérification du Pseudo (Username)
+            if any(u.username == username for u in data["users"]):
+                # On lève une erreur spécifique pour le pseudo
+                raise UserAlreadyExistsError("Ce pseudo est déjà utilisé (Mode Démo)")
+
+            # 2. Vérification de l'Email
+            if any(u.email == email for u in data["users"]):
+                # On lève une erreur spécifique pour l'email
+                raise UserAlreadyExistsError("Cet email est déjà utilisé (Mode Démo)")
+
+            # 3. Création et ajout dynamique
+            new_id = max((u.id_user for u in data["users"]), default=0) + 1
+
+            new_user = GenericUser(
+                id_user=new_id,
+                pseudo=username,
+                password=password,
+                email=email,
+                status=status,
+            )
+
+            data["users"].append(new_user)
+            print(f"✅ [DÉMO] Inscription réussie : {username}")
+            return True
+
+        # --- ÉTAPE 2 : LOGIQUE RÉELLE (Uniquement si use_seed_data est False) ---
         # Unicité métier : username + email
         if self._user_dao.get_user_row_by_email(email) is not None:
             raise UserAlreadyExistsError("Email déjà utilisé.")
