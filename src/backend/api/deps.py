@@ -60,14 +60,12 @@ def get_current_user(
 
     # --- ÉTAPE 1 : BYPASS PRIORITAIRE (MODE DÉMO) ---
     if settings.use_seed_data and token == "demo-token-123":
-        # On récupère l'ID choisi dynamiquement sur le dashboard
-        uid = getattr(settings, "demo_user_id", 1)
-
-        # On adapte le statut pour que les tests de droits fonctionnent (Admin vs Generic)
-        role = "admin" if uid == 1 else "generic"
-
-        # On retourne l'utilisateur simulé avec son vrai ID (1 ou 2)
-        return CurrentUser(user_id=uid, session_id=1, status=role)
+        # Ajout du session_id=999 pour respecter le contrat de la dataclass CurrentUser
+        return CurrentUser(
+            user_id=settings.demo_user_id,
+            session_id=999,
+            status="admin" if settings.demo_user_id == 1 else "generic",
+        )
 
     # --- ÉTAPE 2 : LOGIQUE RÉELLE (DÉCODAGE JWT) ---
     try:
@@ -116,12 +114,14 @@ def get_current_user_checked_exists(
     - JWT valide
     - ET utilisateur toujours présent en BDD
     """
-    # --- SÉCURITÉ : BYPASS RÉSERVÉ AU MODE DÉMO ---
-    # La condition settings.use_seed_data est le verrou principal.
-    # Si on est en mode démo, on valide directement l'utilisateur fictif
+    # --- INTERCEPTION MODE DÉMO ---
     if settings.use_seed_data:
+        # On valide juste que l'ID utilisateur est bien celui configuré sur le dashboard
         return cu
 
+    # --- LOGIQUE RÉELLE (PostgreSQL) ---
+
+    # --- LOGIQUE RÉELLE ---
     try:
         user_service.get_user(cu.user_id)
     except UserNotFoundError as exc:

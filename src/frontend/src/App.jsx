@@ -19,7 +19,13 @@ function App() {
   // --- LOGIQUE DE CONNEXION ---
   const handleLogin = (data) => {
     console.log("--- 🔓 Connexion réussie ---");
-    console.log("Utilisateur :", data.pseudo, "| Rôle :", data.role);
+    console.log(
+      "Utilisateur :",
+      data.user.username,
+      "| Rôle :",
+      data.user.status,
+    );
+
     setUser(data);
     setShow_stock(true);
   };

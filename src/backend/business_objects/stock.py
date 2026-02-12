@@ -9,14 +9,14 @@ class Stock:
 
     Attributs:
         id_stock (int): Identifiant unique du stock (ex: Stock Central, Stock Cuisine).
-        nom (str): Nom du stock.
+        name (str): nom du stock.
         items_by_ingredient (dict[int, list[StockItem]]): Dictionnaire indexé par id_ingredient.
     """
 
-    def __init__(self, id_stock: int, nom: str):
-        """Initialise un stock avec un nom et un ID."""
+    def __init__(self, id_stock: int, name: str):
+        """Initialise un stock avec un name et un ID."""
         self.id_stock = id_stock
-        self.nom = nom
+        self.name = name
         # On indexe par id_ingredient pour plus de cohérence avec la BDD
         self.items_by_ingredient = defaultdict(list)
 
@@ -37,7 +37,7 @@ class Stock:
         self.items_by_ingredient[id_ingredient].sort(key=lambda x: x.expiry_date)
 
         print(
-            f"Ajout au stock '{self.nom}': {quantity} de l'ingrédient {id_ingredient}."
+            f"Ajout au stock '{self.name}': {quantity} de l'ingrédient {id_ingredient}."
         )
 
     def get_total_quantity(self, id_ingredient: int) -> float:
@@ -74,4 +74,4 @@ class Stock:
                 items.pop(0)  # Le lot est vide, on le retire du stock
 
     def __repr__(self) -> str:
-        return f"Stock(id={self.id_stock}, nom='{self.nom}', nb_ingredients={len(self.items_by_ingredient)})"
+        return f"Stock(id={self.id_stock}, name='{self.name}', nb_ingredients={len(self.items_by_ingredient)})"

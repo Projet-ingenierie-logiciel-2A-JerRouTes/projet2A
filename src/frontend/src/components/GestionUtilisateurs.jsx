@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { getAllUsers } from "../api/authApi";
+// Assure-tu que l'import pointe vers le bon fichier (userApi ou authApi selon ton organisation)
+import { getAllUsers } from "../api/usersApi";
 
 function GestionUtilisateurs({ onBack }) {
   const [users, setUsers] = useState([]);
@@ -9,6 +10,7 @@ function GestionUtilisateurs({ onBack }) {
     const fetchUsers = async () => {
       try {
         const data = await getAllUsers();
+        // data est une liste d'objets : [{user_id, username, email, status}, ...]
         setUsers(data);
       } catch (err) {
         console.error("Erreur lors de la récupération des utilisateurs", err);
@@ -41,24 +43,28 @@ function GestionUtilisateurs({ onBack }) {
                   <tr>
                     <th>ID</th>
                     <th>Pseudo</th>
-                    <th>Rôle</th>
+                    <th>Email</th>
+                    <th>Rôle/Status</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((u) => (
-                    <tr key={u.id_user}>
-                      <td>{u.id_user}</td>
-                      <td style={{ fontWeight: "bold" }}>{u.pseudo}</td>
+                    // On utilise user_id car c'est la clé renvoyée par UserPublic
+                    <tr key={u.user_id}>
+                      <td>{u.user_id}</td>
+                      <td style={{ fontWeight: "bold" }}>{u.username}</td>
+                      <td>{u.email}</td>
                       <td>
                         <span
                           className={`role-badge ${
-                            u.role === "Administrateur"
+                            u.status === "admin" ||
+                            u.status === "Administrateur"
                               ? "role-admin"
                               : "role-generic"
                           }`}
                         >
-                          {u.role}
+                          {u.status}
                         </span>
                       </td>
                       <td>
@@ -78,7 +84,7 @@ function GestionUtilisateurs({ onBack }) {
 
           <button
             className="bouton"
-            style={{ marginTop: "20px" }}
+            style={{ marginTop: "20px", backgroundColor: "#6c757d" }}
             onClick={onBack}
           >
             Retour au Tableau de Bord

@@ -9,11 +9,9 @@ from fastapi.responses import HTMLResponse
 
 from src.backend.api.config import settings
 from src.backend.api.routers.auth import router as auth_router
+from src.backend.api.routers.ingredients import router as ingredients_router
+from src.backend.api.routers.stocks import router as stocks_router
 from src.backend.api.routers.users import router as users_router
-
-
-# from src.backend.api.routers.stocks import router as stocks_router
-# from src.backend.api.routers.ingredients import router as ingredients_router
 
 
 # Initialisation de l'application
@@ -39,8 +37,8 @@ app.add_middleware(
 # Inclusion des routeurs par domaine (Architecture modulaire)
 app.include_router(auth_router)
 app.include_router(users_router)
-# app.include_router(stocks_router)
-# app.include_router(ingredients_router)
+app.include_router(stocks_router)
+app.include_router(ingredients_router)
 
 # --- ROUTES DE NAVIGATION ET DIAGNOSTIC ---
 

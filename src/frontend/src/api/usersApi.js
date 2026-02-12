@@ -1,5 +1,10 @@
 import API from "./apiClient";
 
+export async function getAllUsers() {
+  const res = await API.get("/api/users/");
+  return res.data; // Renvoie la liste [UserPublic, ...]
+}
+
 export async function me() {
   const res = await API.get("/api/users/me");
   return res.data; // typiquement { user: {...} }

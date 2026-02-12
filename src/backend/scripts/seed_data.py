@@ -13,46 +13,53 @@ def get_app_data():
     """
     # 1. Utilisateurs (Emails corrigés pour validation Pydantic)
     users_list = [
-        Admin(id_user=1, pseudo="admin", password="mdpadmin", email="admin@admin.com"),
+        Admin(
+            id_user=1,
+            pseudo="admin",
+            password="mdpadmin",
+            email="admin@admin.com",
+            id_stock=101,
+        ),
         GenericUser(
             id_user=2,
             pseudo="user1",
             password="mdpuser1",
             email="user1@example.com",
-            id_stock=101,
+            id_stock=102,
         ),
     ]
 
     # 2. Catalogue d'Ingrédients
-    ingredients = [
-        Ingredient(1, "Farine", Unit.GRAM),
-        Ingredient(2, "Lait", Unit.LITER),
-        Ingredient(3, "Oeufs", Unit.PIECE),
-        Ingredient(4, "Sucre", Unit.GRAM),
-        Ingredient(5, "Levure", Unit.GRAM),
-        Ingredient(6, "Beurre", Unit.GRAM),
-        Ingredient(7, "Pates", Unit.GRAM),
-        Ingredient(8, "Riz", Unit.GRAM),
-        Ingredient(9, "Tomates", Unit.PIECE),
-    ]
+    ingredients = {
+        1: Ingredient(1, "Farine", Unit.GRAM),
+        2: Ingredient(2, "Lait", Unit.LITER),
+        3: Ingredient(3, "Oeufs", Unit.PIECE),
+        4: Ingredient(4, "Sucre", Unit.GRAM),
+        5: Ingredient(5, "Levure", Unit.GRAM),
+        6: Ingredient(6, "Beurre", Unit.GRAM),
+        7: Ingredient(7, "Pates", Unit.GRAM),
+        8: Ingredient(8, "Riz", Unit.GRAM),
+        9: Ingredient(9, "Tomates", Unit.PIECE),
+    }
 
     # 3. Stock principal (ID 101 pour correspondre au GenericUser)
-    stock_principal = Stock(101, "Frigo de Christelle")
+    stock_1 = Stock(101, "Frigo Admin")
+    stock_2 = Stock(102, "Stock vide")  # Stock vide pour l'autre utilisateur
     today = date.today()
 
     # Ajout d'items avec gestion FEFO (First Expired, First Out)
-    stock_principal.add_item(2, 502, 2.0, today + timedelta(days=15))  # Lait lot 1
-    stock_principal.add_item(
+    stock_1.add_item(2, 502, 5.0, today + timedelta(days=15))  # Lait lot 1
+    stock_1.add_item(
         2, 505, 1.0, today + timedelta(days=5)
     )  # Lait lot 2 (périme avant)
-    stock_principal.add_item(1, 501, 1000, today + timedelta(days=30))  # Farine
-    stock_principal.add_item(3, 503, 12, today + timedelta(days=20))  # Oeufs
-    stock_principal.add_item(4, 504, 500, today + timedelta(days=60))  # Sucre
+    stock_1.add_item(1, 501, 1000, today + timedelta(days=30))  # Farine
+    stock_1.add_item(3, 503, 12, today + timedelta(days=20))  # Oeufs
+    stock_1.add_item(4, 504, 500, today + timedelta(days=60))  # Sucre
 
     return {
         "users": users_list,
         "ingredients": ingredients,
-        "stocks": {stock_principal.id_stock: stock_principal},
+        "stocks": {stock_1.id_stock: stock_1, stock_2.id_stock: stock_2},
     }
 
 

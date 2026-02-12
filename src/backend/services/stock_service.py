@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 
+from src.backend.api.config import settings
 from src.backend.dao.db_connection import DBConnection
 from src.backend.dao.ingredient_dao import IngredientDAO
 from src.backend.dao.stock_dao import StockDAO
@@ -91,6 +92,15 @@ class StockService:
         Returns:
             bool: True si l'utilisateur possède le stock.
         """
+        # --- MODE DÉMO ---
+        if settings.use_seed_data:
+            from src.backend.scripts.seed_data import get_demo_data
+
+            data = get_demo_data()
+            # En démo, on considère que l'utilisateur a accès au stock s'il existe dans le seed
+            return stock_id in data["stocks"]
+
+        # --- MODE RÉEL ---
         conn = DBConnection().connection
         with conn.cursor() as cur:
             cur.execute(
@@ -155,6 +165,21 @@ class StockService:
         Returns:
             Stock | None: Le stock si trouvé, sinon None.
         """
+        # --- ÉTAPE 1 : INTERCEPTION MODE DÉMO ---
+        if settings.use_seed_data:
+            from src.backend.scripts.seed_data import get_demo_data
+
+            data = get_demo_data()
+
+            # On cherche le stock par nom dans les données de démo
+            # On utilise .lower() pour que "Frigo" matche avec "frigo"
+            stock = next(
+                (s for s in data["stocks"].values() if s.name.lower() == name.lower()),
+                None,
+            )
+            return stock
+
+        # --- ÉTAPE 2 : MODE RÉEL ---
         return self._stock_dao.get_user_stock_by_name(
             user_id=user_id, name=name, with_items=with_items
         )
@@ -216,6 +241,27 @@ class StockService:
         Returns:
             list[StockItemRow]: Lots triés FEFO.
         """
+        # --- MODE DÉMO ---
+        if settings.use_seed_data:
+            from src.backend.scripts.seed_data import get_demo_data
+
+            data = get_demo_data()
+
+            stock = data["stocks"].get(stock_id)
+            if not stock:
+                raise NotFoundError("Stock démo introuvable.")
+
+            # On transforme les objets métiers en "Row" simulées pour le contrôleur
+            # On récupère les items triés par date (FEFO) déjà géré dans ton BO Stock
+            items = []
+            for ing_id, lots in stock.items_by_ingredient.items():
+                if ingredient_id and ing_id != ingredient_id:
+                    continue
+                for lot in lots:
+                    items.append(lot)  # Ici lot est un objet StockItem
+            return items
+
+        # --- MODE RÉEL ---
         self._require_stock_exists(stock_id)
         self._require_stock_ownership(user_id=user_id, stock_id=stock_id)
 

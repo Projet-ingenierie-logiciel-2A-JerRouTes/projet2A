@@ -49,6 +49,15 @@ def register(req: RegisterRequest, request: Request) -> TokenPairResponse:
     - Hache le mot de passe (via bcrypt).
     - Crée une session et retourne les tokens d'accès.
     """
+    # --- INTERCEPTION MODE DÉMO ---
+    if settings.use_seed_data:
+        return TokenPairResponse(
+            access_token="demo-token-123",
+            refresh_token="demo-refresh-123",
+            session_id=999,
+        )
+
+    # --- LOGIQUE RÉELLE ---
     user_service = UserService()
     auth_service = _auth_service()
 
@@ -94,6 +103,17 @@ def login(req: LoginRequest, request: Request) -> TokenPairResponse:
 
     Le serveur récupère automatiquement l'IP et le User-Agent pour sécuriser la session.
     """
+    # --- INTERCEPTION MODE DÉMO ---
+    if settings.use_seed_data:
+        # On simule une validation simple : si le login est 'admin' ou 'user1'
+        # On pourrait aussi accepter n'importe quoi pour faciliter la démo
+        return TokenPairResponse(
+            access_token="demo-token-123",
+            refresh_token="demo-refresh-123",
+            session_id=999,
+        )
+
+    # --- LOGIQUE RÉELLE ---
     auth_service = _auth_service()
 
     ip = request.client.host if request.client else None

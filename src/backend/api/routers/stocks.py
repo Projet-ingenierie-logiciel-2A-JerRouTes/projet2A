@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from src.backend.api.config import settings
 from src.backend.api.deps import (
     CurrentUser,
     get_current_user_checked_exists,
@@ -72,12 +73,9 @@ def create_stock(
 
 @router.get(
     "",
-    # Le type list[StockOut] assure que le frontend reçoit un tableau d'objets bien
-    # structurés
-    response_model=list[StockOut],
+    response_model=list[int],
     summary="Lister mes inventaires",
-    response_description="La liste des stocks (frigos, celliers) appartenant à "
-    "l'utilisateur",
+    response_description="La liste des id des stocks appartenant à l'utilisateur",
 )
 def list_my_stocks(
     cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
@@ -92,6 +90,28 @@ def list_my_stocks(
     données
     de propriété (ID et Nom du stock).
     """
+    # --- INTERCEPTION MODE DÉMO ---
+    if settings.use_seed_data:
+        from src.backend.scripts.seed_data import get_demo_data
+
+        data = get_demo_data()
+
+        # On cherche l'utilisateur pour récupérer sa liste d'IDs
+        user_seed = next((u for u in data["users"] if u.id_user == cu.user_id), None)
+
+        if not user_seed:
+            return []
+
+        # On récupère la variable id_stock qui contient les IDs
+        my_stock_ids = getattr(user_seed, "id_stock", [])
+
+        # On s'assure que c'est une liste d'entiers
+        if isinstance(my_stock_ids, int):
+            return [my_stock_ids]
+
+        return my_stock_ids
+
+    # --- MODE RÉEL (Base de données) ---
     # Ici on utilise StockDAO directement (simple)
     from src.backend.dao.stock_dao import StockDAO
 
@@ -126,12 +146,32 @@ def get_my_stock_by_name(
     Cette route est utile pour vérifier l'existence d'un stock avant une création ou
     pour récupérer un ID à partir d'un nom connu.
     """
+    # --- INTERCEPTION MODE DÉMO ---
+    if settings.use_seed_data:
+        clean_name = name.strip().replace('"', "")
+        from src.backend.scripts.seed_data import get_demo_data
+
+        data = get_demo_data()
+        stock_obj = next(
+            (
+                s
+                for s in data["stocks"].values()
+                if s.name.lower() == clean_name.lower()
+            ),
+            None,
+        )
+
+        if stock_obj is None:
+            return None
+        return StockOut(stock_id=stock_obj.id_stock, name=stock_obj.name)
+
+    # --- MODE RÉEL (Base de données) ---
     stock = service.get_user_stock_by_name(
         user_id=cu.user_id, name=name, with_items=False
     )
     if stock is None:
         return None
-    return StockOut(stock_id=stock.id_stock, name=stock.nom)
+    return StockOut(stock_id=stock.id_stock, name=stock.name)
 
 
 @router.get("/{stock_id}/lots", response_model=list[StockItemOut])
@@ -141,6 +181,36 @@ def list_lots(
     cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
     service: StockService = Depends(get_stock_service),  # noqa: B008
 ):
+    # --- INTERCEPTION MODE DÉMO ---
+    if settings.use_seed_data:
+        from src.backend.scripts.seed_data import get_demo_data
+
+        data = get_demo_data()
+        stock = data["stocks"].get(stock_id)
+
+        if not stock:
+            raise HTTPException(status_code=404, detail="Stock démo non trouvé")
+
+        all_lots = []
+        # Parcourt le dictionnaire items_by_ingredient (clé = id_ingredient)
+        for ing_id, items in stock.items_by_ingredient.items():
+            # FILTRAGE : Si un ID ingrédient est demandé, on ignore les autres
+            if ingredient_id is not None and ing_id != ingredient_id:
+                continue
+
+            for lot in items:
+                all_lots.append(
+                    StockItemOut(
+                        stock_item_id=lot.id_lot,
+                        stock_id=stock_id,
+                        ingredient_id=lot.id_ingredient,
+                        quantity=float(lot.quantity),
+                        expiration_date=lot.expiry_date,  # Mapping vers ton BO
+                    )
+                )
+        return all_lots
+
+    # --- MODE RÉEL (Base de données) ---
     try:
         lots = service.list_lots(
             user_id=cu.user_id, stock_id=stock_id, ingredient_id=ingredient_id
@@ -159,33 +229,24 @@ def list_lots(
         raise _map_service_errors(exc) from exc
 
 
-# @router.post("/{stock_id}/lots", response_model=dict)
-@router.get(
+@router.post(
     "/{stock_id}/lots",
-    # response_model=list[StockItemOut],
     response_model=dict,
-    summary="Lister les lots d'un stock",
-    description="Récupère tous les articles (lots) présents dans un stock spécifique, "
-    "avec un filtrage optionnel par ingrédient.",
-    response_description="La liste des lots correspondant aux critères",
+    status_code=status.HTTP_201_CREATED,
+    summary="Ajouter un lot au stock",
+    description="Crée un nouveau lot d'ingrédient dans le stock spécifié.",
 )
 def add_lot(
     stock_id: int,
-    payload: StockItemCreateIn,
+    payload: StockItemCreateIn,  # ICI le payload est autorisé car c'est un POST
     cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
     service: StockService = Depends(get_stock_service),  # noqa: B008
 ):
-    """
-    Consulte le contenu d'un frigo ou d'un cellier.
+    # --- INTERCEPTION MODE DÉMO ---
+    if settings.use_seed_data:
+        return {"stock_item_id": 888, "status": "success_demo"}
 
-    - **stock_id**: L'identifiant unique du stock à consulter.
-    - **ingredient_id**: (Optionnel) Permet de ne lister que les lots d'un ingrédient
-    précis (ex: voir toutes les briques de lait).
-
-    **Sécurité :**
-    Le service vérifie automatiquement que le `stock_id` appartient bien à l'utilisateur
-     `cu`.
-    """
+    # --- MODE RÉEL (Base de données) ---
     try:
         lot_id = service.add_lot(
             user_id=cu.user_id,
@@ -260,6 +321,26 @@ def consume_fefo(
 
     L'algorithme **FEFO** (First Expired, First Out) garantit que les produits périssables sont utilisés dans le bon ordre.
     """
+    # --- INTERCEPTION MODE DÉMO ---
+    if settings.use_seed_data:
+        from src.backend.scripts.seed_data import get_demo_data
+
+        data = get_demo_data()
+        stock = data["stocks"].get(stock_id)
+
+        # On utilise la vraie méthode métier de ton BO !
+        try:
+            stock.remove_quantity(payload.ingredient_id, payload.quantity)
+            return {
+                "stock_id": stock_id,
+                "ingredient_id": payload.ingredient_id,
+                "consumed_quantity": payload.quantity,
+            }
+        except ValueError as exc:
+            # raise HTTPException(status_code=400, detail=str(exc))
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    # --- MODE RÉEL (Base de données) ---
     try:
         res = service.consume_fefo(
             user_id=cu.user_id,

@@ -8,13 +8,15 @@
         :root {
             --primary: #1a73e8;
             --success: #00c853;
+            --danger: #d93025;
             --bg: #f8f9fa;
             --card: #ffffff;
             --text: #3c4043;
+            --border: #dadce0;
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             display: flex;
@@ -34,9 +36,6 @@
         }
 
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-bottom: 2rem;
             border-bottom: 2px solid #e8f0fe;
             padding-bottom: 1rem;
@@ -53,14 +52,13 @@
             background: #f1f3f4;
             padding: 1.2rem;
             border-radius: 1rem;
-            border: 1.5px solid transparent;
+            border: 2px solid transparent;
             transition: all 0.3s ease;
         }
 
-        .info-box.active {
-            background: #e6f4ea;
-            border-color: var(--success);
-        }
+        /* Classes dynamiques pour le statut */
+        .info-box.status-ok { background: #e6f4ea; border-color: var(--success); }
+        .info-box.status-error { background: #fce8e6; border-color: var(--danger); }
 
         .label {
             font-size: 0.75rem;
@@ -68,9 +66,24 @@
             text-transform: uppercase;
             margin-bottom: 0.5rem;
             display: block;
+            font-weight: bold;
         }
 
         .value { font-weight: 600; font-size: 1.1rem; }
+
+        .mode-selector {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
 
         .token-banner {
             background: #e8f0fe;
@@ -102,46 +115,10 @@
 
         .btn-primary { background: var(--primary); color: white; }
         .btn-success { background: var(--success); color: white; }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
 
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 22px;
-        }
-
-        .switch input { opacity: 0; width: 0; height: 0; }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 22px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px; width: 16px;
-            left: 3px; bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider { background-color: var(--success); }
-        input:checked + .slider:before { transform: translateX(22px); }
-
-        select {
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid #dadce0;
-            background: white;
-            font-weight: 600;
-            cursor: pointer;
-        }
+        select { padding: 8px; border-radius: 8px; border: 1px solid var(--border); font-weight: 600; }
+        code { background: #fff; padding: 8px 15px; border-radius: 8px; border: 1px solid var(--border); font-family: monospace; }
     </style>
 </head>
 <body>
@@ -149,77 +126,106 @@
     <div class="dashboard-card">
         <div class="header">
             <h1>🚀 {{ app_name }}</h1>
-            <span style="background: #e6f4ea; color: #1e8e3e; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">ACTIVE</span>
         </div>
 
         <div class="grid">
-            <div class="info-box">
-                <span class="label">Établissement</span>
-                <span class="value">ENSAI - Projet 2A</span>
-            </div>
-            <div class="info-box">
-                <span class="label">Version API</span>
-                <span class="value">1.0.0 (Stable)</span>
+            <div class="info-box" id="frontend-box">
+                <span class="label">Statut Frontend (React)</span>
+                <span class="value" id="frontend-text">Vérification...</span>
             </div>
 
-            <div class="info-box {{ active_class }}">
-                <span class="label">Source des données</span>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span class="value">{{ data_mode_text }}</span>
-                    <label class="switch">
-                        <input type="checkbox" id="modeToggle" {{ 'checked' if use_seed_data == 'true' else '' }} onchange="toggleMode(this)">
-                        <span class="slider"></span>
+            <div class="info-box" style="background: #e6f4ea; border-color: var(--success);">
+                <span class="label">Statut Backend (FastAPI)</span>
+                <span class="value" style="color: var(--success);">Opérationnel</span>
+            </div>
+
+            <div class="info-box {{ 'active' if use_seed_data == 'true' else '' }}" style="grid-column: span 2;">
+                <span class="label">Source des données (Choix exclusif)</span>
+                <div class="mode-selector">
+                    <label class="radio-option">
+                        <input type="radio" name="source-mode" value="demo"
+                               {{ 'checked' if use_seed_data == 'true' else '' }}
+                               onchange="handleModeUpdate(true)">
+                        <span>🚀 Mode Démo</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="source-mode" value="real"
+                               {{ 'checked' if use_seed_data != 'true' else '' }}
+                               onchange="handleModeUpdate(false)">
+                        <span>💾 Base Réelle (SQL)</span>
                     </label>
                 </div>
             </div>
 
             <div class="info-box">
-                <span class="label">Utilisateur simulé</span>
+                <span class="label">Configuration active</span>
+                <span class="value">{{ data_mode_text }}</span>
+            </div>
+            <div class="info-box">
+                <span class="label">Profil de session</span>
                 <span class="value" style="color: var(--primary);">{{ demo_user_info }}</span>
             </div>
         </div>
 
         <div class="token-banner" style="display: {{ token_display }};">
-            <span class="label" style="color: var(--primary)">🔑 Configuration de la Démo</span>
-
+            <span class="label" style="color: var(--primary)">🔑 Accès rapide Swagger</span>
             <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 15px; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="font-size: 0.9rem; font-weight: 500;">Incarner l'utilisateur :</span>
+                    <span>Incarner :</span>
                     <select id="userSelector" onchange="updateUser(this.value)">
                         <option value="1" {{ 'selected' if demo_user_id == '1' else '' }}>Admin (ID:1)</option>
                         <option value="2" {{ 'selected' if demo_user_id == '2' else '' }}>User1 (ID:2)</option>
                     </select>
                 </div>
-
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <code id="tokenText" style="background: #fff; padding: 8px 15px; border-radius: 8px; border: 1px solid #dadce0; font-family: monospace; font-weight: bold; font-size: 1rem;">{{ token_value }}</code>
-                    <button onclick="copyToken()" id="copyBtn" class="btn-primary" style="padding: 8px 15px; border-radius: 8px; font-size: 0.9rem; border: none; cursor: pointer;">Copier</button>
+                    <code id="tokenText">{{ token_value }}</code>
+                    <button onclick="copyToken()" id="copyBtn" class="btn-primary" style="padding: 8px 15px; border-radius: 8px;">Copier</button>
                 </div>
-                <small style="color: #70757a;">Copiez ce token et collez-le dans le bouton "Authorize" de Swagger.</small>
             </div>
         </div>
 
         <div class="actions">
-            <a href="{{ frontend_url }}" target="_blank" rel="noopener" class="btn btn-success">🌐 Ouvrir le Frontend</a>
-            <a href="/docs" target="_blank" rel="noopener" class="btn btn-primary">📄 Documentation Swagger</a>
+            <a href="{{ frontend_url }}" target="_blank" class="btn btn-success">🌐 Ouvrir le Frontend</a>
+            <a href="/docs" target="_blank" class="btn btn-primary">📄 Documentation API</a>
         </div>
 
         <p style="text-align: center; font-size: 0.8rem; color: #70757a; margin-top: 2rem;">
-            Dernière synchro : {{ time }} | Statut : Prêt pour présentation
+            Dernière synchro : {{ time }} | ENSAI 2026
         </p>
     </div>
 
     <script>
-        async function toggleMode(checkbox) {
-            const isSeed = checkbox.checked;
+        // Diagnostic automatique du frontend
+        async function checkFrontend() {
+            const box = document.getElementById('frontend-box');
+            const text = document.getElementById('frontend-text');
+            const url = "{{ frontend_url }}";
+
+            try {
+                // Ping du serveur React
+                await fetch(url, { mode: 'no-cors', cache: 'no-store' });
+                box.className = "info-box status-ok";
+                text.innerText = "CONNECTÉ";
+                text.style.color = "var(--success)";
+            } catch (err) {
+                box.className = "info-box status-error";
+                text.innerText = "ÉTEINT";
+                text.style.color = "var(--danger)";
+            }
+        }
+
+        async function handleModeUpdate(isSeed) {
             try {
                 const response = await fetch('/system/toggle-data', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ use_seed: isSeed, user_id: 1 }) // Reset à Admin par défaut
+                    body: JSON.stringify({
+                        use_seed: isSeed,
+                        user_id: isSeed ? parseInt(document.getElementById('userSelector').value) : 1
+                    })
                 });
                 if (response.ok) window.location.reload();
-            } catch (err) { console.error("Erreur toggle", err); }
+            } catch (err) { console.error("Erreur", err); }
         }
 
         async function updateUser(userId) {
@@ -227,13 +233,10 @@
                 const response = await fetch('/system/toggle-data', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        use_seed: true,
-                        user_id: parseInt(userId)
-                    })
+                    body: JSON.stringify({ use_seed: true, user_id: parseInt(userId) })
                 });
                 if (response.ok) window.location.reload();
-            } catch (err) { console.error("Erreur switch utilisateur", err); }
+            } catch (err) { console.error("Erreur", err); }
         }
 
         function copyToken() {
@@ -244,6 +247,8 @@
                 setTimeout(() => btn.innerText = "Copier", 2000);
             });
         }
+
+        checkFrontend();
     </script>
 </body>
 </html>

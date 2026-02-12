@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from src.backend.api.config import settings
 from src.backend.api.deps import CurrentUser, get_current_user_checked_exists
 from src.backend.api.schemas.ingredients import IngredientCreateIn, IngredientOut
 from src.backend.dao.ingredient_dao import IngredientDAO
@@ -28,6 +29,27 @@ def list_ingredients(
 
     *Note: Actuellement en cours de développement.*
     """
+    # --- INTERCEPTION MODE DÉMO ---
+    if settings.use_seed_data:
+        # Importation paresseuse des données de démo
+        from src.backend.scripts.seed_data import get_demo_data
+
+        data = get_demo_data()
+
+        # On récupère tous les ingrédients du catalogue global
+        all_ingredients = list(data["ingredients"].values())
+
+        return [
+            IngredientOut(
+                ingredient_id=ing.id_ingredient,
+                name=ing.name,
+                unit=ing.unit.value,
+                tag_ids=ing.id_tags,
+            )
+            for ing in all_ingredients
+        ]
+
+    # --- LOGIQUE RÉELLE (PostgreSQL) ---
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
         detail="Route non implémentée: ajouter IngredientDAO.list_ingredients().",
@@ -60,6 +82,7 @@ def create_ingredient(
     **Sécurité :**
     Cette route est strictement réservée aux utilisateurs ayant le statut **admin**.
     """
+
     if cu.status != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

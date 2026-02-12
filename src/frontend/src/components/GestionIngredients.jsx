@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getAllIngredients } from "../api/stockApi_vers_C";
+import { getAllIngredients } from "../api/stockApi";
 
 function GestionIngredients({ onBack }) {
   const [ingredients, setIngredients] = useState([]);

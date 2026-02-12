@@ -2,27 +2,27 @@ import API from "./apiClient";
 
 /**
  * Récupère tous les ingrédients disponibles (Référentiel)
- * Correspond à @app.get("/api/auth/ingredients")
+ * Correspond à @app.get("/ingredients")
  */
 export async function getAllIngredients() {
-  const res = await API.get("/api/auth/ingredients");
+  const res = await API.get("/ingredients");
   return res.data;
 }
 
 /**
  * Récupère le contenu d'un stock spécifique
- * Correspond à @app.get("/api/auth/stock/{id_stock}")
+ * Correspond à @app.get("/stocks/{id_stock}")
  */
 export async function getStockDetails(idStock) {
-  const res = await API.get(`/api/auth/stock/${idStock}`);
+  const res = await API.get(`/stocks/${idStock}/lots`);
   return res.data;
 }
 
 /**
  * Récupère la liste de tous les stocks (vue globale)
- * Correspond à @app.get("/api/auth/stocks")
+ * Correspond à @app.get("/stocks")
  */
 export async function getAllStocks() {
-  const res = await API.get("/api/auth/stocks");
+  const res = await API.get("/stocks");
   return res.data;
 }

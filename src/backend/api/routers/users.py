@@ -33,11 +33,50 @@ def _auth_service() -> AuthService:
 
 
 @router.get(
-    "/me",
-    response_model=MeResponse,
-    summary="Récupérer mon profil",
-    description="Renvoie les infos de l'utilisateur connecté (Admin ou User1).",
+    "/",
+    response_model=list[UserPublic],
+    summary="Récupérer tous les utilisateurs",
+    description="Renvoie la liste complète des utilisateurs enregistrés",
+    dependencies=[Depends(get_current_user_checked_exists)],
 )
+# def get_all_users(
+#    cu: CurrentUser = Depends(get_current_user_checked_exists), # noqa: B008
+# ) -> list[UserPublic]:
+def get_all_users() -> list[UserPublic]:
+    # 1. Gestion du mode démo (Seed Data)
+    if settings.use_seed_data:
+        from src.backend.scripts.seed_data import get_demo_data
+
+        data = get_demo_data()
+
+        # On transforme chaque utilisateur du seed en UserPublic
+        return [
+            UserPublic(
+                user_id=u.id_user,
+                username=u.pseudo,
+                email=u.email,
+                status=u.status,  # Ou une valeur par défaut si absente du seed
+            )
+            for u in data["users"]
+        ]
+
+    # 2. Mode Réel (Base de données PostgreSQL)
+    user_service = UserService()
+    users = (
+        user_service.get_all_users()
+    )  # Vous devrez créer cette méthode dans UserService
+
+    return [
+        UserPublic(
+            user_id=u.user_id,
+            username=u.username,
+            email=u.email,
+            status=u.status,
+        )
+        for u in users
+    ]
+
+
 @router.get(
     "/me",
     response_model=MeResponse,

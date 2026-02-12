@@ -6,12 +6,19 @@ import { setTokens, clearTokens } from "./tokenStorage";
  * @param {Object} credentials - Doit contenir { pseudo, password }
  */
 export async function login(credentials) {
-  // Envoie les données vers la route POST /api/auth/login
+  // Envoie : { login: "pseudo", password: "..." }
   const res = await API.post("/api/auth/login", credentials);
 
-  // On stocke les données de l'utilisateur (ou tokens) si présents
   if (res.data) {
+    // On stocke les tokens
     setTokens(res.data);
+
+    // Si ton backend ne renvoie PAS encore le profil complet au login,
+    // tu peux faire un appel immédiat vers /api/users/me
+    const profileRes = await API.get("/api/users/me");
+
+    // On fusionne les tokens et les infos de profil (pseudo, id_stock, role)
+    return { ...res.data, user: profileRes.data.user };
   }
   return res.data;
 }
