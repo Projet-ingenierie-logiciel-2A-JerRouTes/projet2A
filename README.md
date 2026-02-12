@@ -118,6 +118,35 @@ Il est implémenté côté backend avec **FastAPI** et suit une séparation clai
 
 ______________________________________________________________________
 
+## 🛠️ Dashboard Système & Diagnostic
+
+![Diagramme](Documentation/Images/DashBoard.png)
+
+Le projet inclut une interface de contrôle accessible à la racine de l'API (`/`). Ce dashboard permet de superviser l'état du système et de configurer dynamiquement le comportement du backend.
+
+### 🔍 Fonctionnalités de Diagnostic
+
+- **Statut Frontend (React)** : Un mécanisme de "Health Check" automatique détecte si le serveur de développement React est actif. Le bloc passe en **vert (CONNECTÉ)** ou **rouge (ÉTEINT)** en temps réel grâce à une vérification par le navigateur.
+- **Statut Backend (FastAPI)** : Confirmation visuelle de l'état opérationnel du moteur API.
+
+### ⚙️ Configuration Dynamique (Toggle Mode)
+
+Le dashboard permet de basculer entre deux modes de données sans redémarrer le serveur :
+
+- **🚀 Mode Démo** : Utilise des données simulées (`seed_data`) pour tester l'interface. Permet d'incarner différents profils (Admin ou User1) via un sélecteur dédié.
+- **💾 Base Réelle (SQL)** : Connecte l'application à la base de données PostgreSQL pour une manipulation réelle des stocks.
+
+### 🔑 Accès Rapide & Swagger
+
+- **Gestion des Tokens** : En mode démo, le dashboard génère et affiche le token d'authentification nécessaire. Un bouton "Copier" permet de l'injecter rapidement dans l'interface Swagger (`/docs`).
+- **Bascule Utilisateur** : Changement instantané d'identité simulée pour tester les permissions et les vues spécifiques (ex: vue Administrateur vs Utilisateur standard).
+
+### 🛡️ Prévention de l'Instabilité Thermique
+
+L'architecture sépare strictement les environnements de test et de production. Le sélecteur à choix exclusif garantit qu'une seule source de données est active à la fois, évitant ainsi toute corruption accidentelle de la base de données réelle lors des phases de démonstration.
+
+______________________________________________________________________
+
 ## ⚙️ Lancement du projet
 
 ### Prérequis
