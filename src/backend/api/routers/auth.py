@@ -17,7 +17,7 @@ from src.backend.services.auth_service import (
 from src.backend.services.user_service import UserAlreadyExistsError, UserService
 
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(prefix="/api/auth", tags=["Authentification"])
 
 
 def _auth_service() -> AuthService:
@@ -34,11 +34,18 @@ def _auth_service() -> AuthService:
 
 
 @router.post(
-    "/register", response_model=TokenPairResponse, status_code=status.HTTP_201_CREATED
+    "/register",
+    response_model=TokenPairResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Création de compte",
+    response_description="Message de confirmation et jetons d'accès (JWT)",
 )
 def register(req: RegisterRequest, request: Request) -> TokenPairResponse:
     """
-    Crée l'utilisateur puis le connecte directement (retourne tokens).
+    Enregistre un nouvel utilisateur dans la base de données.
+    - Vérifie l'unicité du pseudo/email.
+    - Hache le mot de passe (via bcrypt).
+    - Crée une session et retourne les tokens d'accès.
     """
     user_service = UserService()
     auth_service = _auth_service()
@@ -70,8 +77,21 @@ def register(req: RegisterRequest, request: Request) -> TokenPairResponse:
     )
 
 
-@router.post("/login", response_model=TokenPairResponse)
+@router.post(
+    "/login",
+    response_model=TokenPairResponse,
+    summary="Connexion utilisateur",
+    response_description="Retourne les tokens JWT (access et refresh) et le profil utilisateur",
+)
 def login(req: LoginRequest, request: Request) -> TokenPairResponse:
+    """
+    Authentifie un utilisateur et génère une session sécurisée.
+
+    - **login**: Pseudo ou Email de l'utilisateur
+    - **password**: Mot de passe en clair (sera vérifié via bcrypt)
+
+    Le serveur récupère automatiquement l'IP et le User-Agent pour sécuriser la session.
+    """
     auth_service = _auth_service()
 
     ip = request.client.host if request.client else None
@@ -94,8 +114,23 @@ def login(req: LoginRequest, request: Request) -> TokenPairResponse:
     )
 
 
-@router.post("/refresh", response_model=TokenPairResponse)
+@router.post(
+    "/refresh",
+    response_model=TokenPairResponse,
+    summary="Renouveler les jetons d'accès",
+    response_description="Nouvelle paire de jetons (Access et Refresh)",
+)
 def refresh(req: RefreshRequest) -> TokenPairResponse:
+    """
+    Renouvelle le jeton d'accès (Access Token) en utilisant un jeton de rafraîchissement valide.
+
+    - **refresh_token**: Le jeton longue durée obtenu lors de la connexion initiale.
+
+    Cette opération permet de :
+    1. Vérifier si la session est toujours active en base de données.
+    2. Générer un nouvel Access Token (courte durée).
+    3. Optionnellement, faire tourner le Refresh Token (Refresh Token Rotation) pour plus de sécurité.
+    """
     auth_service = _auth_service()
     try:
         tokens = auth_service.refresh(refresh_token=req.refresh_token)

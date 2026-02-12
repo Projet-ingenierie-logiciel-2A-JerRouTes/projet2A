@@ -5,8 +5,14 @@ from datetime import UTC, datetime, timedelta
 import hashlib
 import secrets
 
+# --- ÉTAPE 0 : IMPORT NECESSAIRE POUR MODE DEMO ---
+# Pour pouvoir récupérer info mode demo ou mode reel
+from src.backend.api.config import settings
 from src.backend.dao.session_dao import SessionDAO
 from src.backend.dao.user_dao import UserDAO
+
+# Pour télécharger les données de test uniquement si nécessaire (optimisation)
+from src.backend.scripts.seed_data import get_cached_seed_data
 from src.backend.utils.jwt_utils import encode_jwt
 from src.backend.utils.log_decorator import log
 from src.backend.utils.securite import check_password
@@ -97,12 +103,47 @@ class AuthService:
     @log
     def login(
         self,
-        *,
+        *,  # Force l'appel avec les noms des paramètres
         login: str,
         password: str,
         ip: str | None = None,
         user_agent: str | None = None,
     ) -> TokenPair:
+        # Ajout entre Etape 1 et 3 pour vérification choix démo ou réel
+        # --- ÉTAPE 1 : VÉRIFICATION DE L'INITIALISATION ---
+        if settings.use_seed_data is None:
+            # Empêche la jambe lourde d'un système qui tourne sans savoir d'où vient la donnée
+            raise AuthServiceError(
+                "Veuillez sélectionner un mode (Démo ou Réel) sur le dashboard."
+            )
+        # --- ÉTAPE 2 : INTERCEPTION ---
+        if settings.use_seed_data:
+            # ON APPELLE LA FONCTION ICI (Chargement à la demande)
+            data = get_cached_seed_data()
+
+            user_demo = None
+            # On cherche dans la clé "users" du dictionnaire retourné par la fonction
+            for u in data["users"]:
+                if (u.username == login or u.email == login) and u.check_password(
+                    password
+                ):
+                    user_demo = u
+                    break
+
+            if user_demo:
+                # On simule la réussite
+                access = self._make_access_token(
+                    user_id=user_demo.id_user, status=user_demo.status, session_id=999
+                )
+                return TokenPair(
+                    access_token=access,
+                    refresh_token="demo_refresh_token",
+                    session_id=999,
+                )
+            else:
+                raise InvalidCredentialsError("Identifiants invalides (Mode Démo).")
+
+        # --- ÉTAPE 3 : LOGIQUE RÉELLE (Uniquement si use_seed_data est False) ---
         # 1) trouver le user (email ou username)
         row = self._user_dao.get_user_row_by_email(login)
         if row is None:
