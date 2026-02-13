@@ -20,7 +20,7 @@ INSERT INTO stock (name) VALUES
 -----------------------------------------------------
 
 INSERT INTO ingredient (name, unit) VALUES
-('Egg', 'piece'),
+('Egg', 'pcs'),
 ('Milk', 'ml'),
 ('Flour', 'g'),
 ('Sugar', 'g'),
@@ -50,7 +50,7 @@ INSERT INTO user_stock (fk_user_id, fk_stock_id) VALUES
 -- INSERT : Stock_Ingredient
 -----------------------------------------------------
 
-INSERT INTO stock_ingredient (fk_stock_id, fk_ingredient_id, quantity, expiration_date) VALUES
+INSERT INTO stock_item (fk_stock_id, fk_ingredient_id, quantity, expiration_date) VALUES
 (1, 1, 6, '2026-03-01'),
 (1, 2, 1000, '2026-02-20'),
 (1, 5, 250, '2026-02-25'),
