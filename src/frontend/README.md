@@ -3,7 +3,7 @@
 Cette partie du projet contient l’interface utilisateur développée avec **React** et **Vite**.\
 Elle permet l’interaction avec l’API backend (FastAPI) pour l’authentification des utilisateurs et la gestion des données.
 
-![Cheminement Frontend](../../Documentation/Images/Cheminement_frontend.drawio.svg)
+![Cheminement Frontend](../../Documentation/Images/Cheminement_frontend-Orchestrateur.drawio.svg)
 
 ______________________________________________________________________
 
