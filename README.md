@@ -206,6 +206,7 @@ ______________________________________________________________________
 
 ## Backlog
 
+- [Divers](Backlog/BacklogDivers.md)
 - [Résolution de problème](Backlog/BacklogProbleme.md)
 - [API](Backlog/BacklogApi.md)
 - [Architecture & Cohérence des Données](Backlog/BacklogArchi.md)
