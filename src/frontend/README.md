@@ -5,11 +5,7 @@ Elle permet l’interaction avec l’API backend (FastAPI) pour l’authentifica
 
 Cliquez sur le schéma pour explorer les composants :
 
-<div align="center">
-  <object type="image/svg+xml" data="./Documentation/Images/Cheminement_frontend-Orchestrateur.drawio.svg" width="100%">
-    <img src="./Documentation/Images/Cheminement_frontend-Orchestrateur.drawio.svg" />
-  </object>
-</div>
+[![Cliquez pour ouvrir la version interactive](../../Documentation/Images/Cheminement_frontend-Orchestrateur.drawio.svg)](https://viewer.diagrams.net/?target=blank&nav=1&viewbox=%7B%22x%22%3A0%2C%22y%22%3A0%2C%22width%22%3A800%2C%22height%22%3A600%7D#Uhttps%3A%2F%2Fraw.githubusercontent.com%2FTON_PSEUDO%2FTON_REPO%2Fmain%2FDocumentation%2FImages%2FCheminement_frontend-Orchestrateur.drawio.svg)
 
 ______________________________________________________________________
 
