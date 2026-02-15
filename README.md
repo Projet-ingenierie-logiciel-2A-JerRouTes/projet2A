@@ -204,4 +204,10 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
+## Backlog
+
+Pour plus de détails sur le fonctionnement, consultez la [Backlog complet](/Backlog/BacklogGeneral.md).
+
+______________________________________________________________________
+
 📌 _Ce README décrit l’état actuel du projet et pourra évoluer avec l’ajout de nouvelles fonctionnalités._
