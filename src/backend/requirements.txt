@@ -8,6 +8,7 @@ bcrypt
 pyyaml
 
 # --- Base de données ---
+psycopg2
 psycopg2-binary
 
 # --- Utilitaires ---

@@ -7,7 +7,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 import logging
 from unittest import mock
-
 import dotenv
 
 from src.backend.dao.db_connection import DBConnection

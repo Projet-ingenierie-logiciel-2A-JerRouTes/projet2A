@@ -130,7 +130,7 @@ ______________________________________________________________________
 ### 1️⃣ Lancer la base de données
 
 ```bash
-docker compose up -d
+sudo docker compose up -d
 ```
 
 ### 2️⃣ Lancer le backend
