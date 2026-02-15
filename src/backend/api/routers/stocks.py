@@ -72,6 +72,45 @@ def create_stock(
 
 
 @router.get(
+    "/{stock_id}",
+    response_model=StockOut,
+    summary="Récupérer les informations d'un stock",
+    description="Récupère le nom et l'ID d'un inventaire spécifique appartenant à l'utilisateur.",
+    response_description="L'objet Stock (ID et Nom)",
+)
+def get_stock_info(
+    stock_id: int,
+    cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+    service: StockService = Depends(get_stock_service),  # noqa: B008
+):
+    """
+    Récupère les métadonnées d'un stock par son identifiant.
+
+    - **stock_id**: L'identifiant unique du stock.
+
+    Cette route vérifie que le stock appartient bien à l'utilisateur connecté.
+    """
+    # --- INTERCEPTION MODE DÉMO ---
+    if settings.use_seed_data:
+        from src.backend.scripts.seed_data import get_demo_data
+
+        data = get_demo_data()
+        stock_obj = data["stocks"].get(stock_id)
+
+        if stock_obj is None:
+            raise HTTPException(status_code=404, detail="Stock démo non trouvé")
+
+        return StockOut(stock_id=stock_obj.id_stock, name=stock_obj.name)
+
+    # --- MODE RÉEL (Base de données) ---
+    stock = service.get_stock_for_user(stock_id=stock_id, user_id=cu.user_id)
+    if not stock:
+        raise HTTPException(status_code=404, detail="Stock non trouvé")
+    return stock
+    # A faire
+
+
+@router.get(
     "",
     response_model=list[int],
     summary="Lister mes inventaires",
@@ -120,6 +159,47 @@ def list_my_stocks(
         user_id=cu.user_id, name_ilike=None, limit=200, offset=0
     )
     return [StockOut(stock_id=s.id_stock, name=s.nom) for s in stocks]
+
+
+@router.get(
+    "/user/{id_user}",
+    response_model=list[int],
+    summary="Récupérer les IDs de stock d'un utilisateur spécifique",
+    description="Récupère la liste des identifiants de stock appartenant à l'utilisateur spécifié par son ID.",
+)
+def get_user_stock_ids(
+    id_user: int,
+    _cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+    _service: StockService = Depends(get_stock_service),  # noqa: B008
+):
+    """
+    Récupère les IDs de stock pour un id_user donné.
+    """
+    # --- INTERCEPTION MODE DÉMO ---
+    if settings.use_seed_data:
+        from src.backend.scripts.seed_data import get_demo_data
+
+        data = get_demo_data()
+
+        # On cherche l'utilisateur demandé dans les données de démo
+        user_seed = next((u for u in data["users"] if u.id_user == id_user), None)
+
+        if not user_seed:
+            raise HTTPException(status_code=404, detail="Utilisateur démo non trouvé")
+
+        # On récupère les IDs associés
+        my_stock_ids = getattr(user_seed, "id_stock", [])
+
+        if isinstance(my_stock_ids, int):
+            return [my_stock_ids]
+
+        return my_stock_ids
+
+    # --- MODE RÉEL (Base de données) ---
+    if _cu.user_id != id_user:
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+
+    pass
 
 
 @router.get(

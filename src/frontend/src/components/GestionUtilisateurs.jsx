@@ -1,98 +1,90 @@
-import { useState, useEffect } from "react";
-// Assure-tu que l'import pointe vers le bon fichier (userApi ou authApi selon ton organisation)
+import React, { useState, useEffect } from "react";
+import { Users, UserPlus, ShieldPlus, Trash2, Edit, Undo2 } from "lucide-react";
 import { getAllUsers } from "../api/usersApi";
+import "../styles/Gestion.css";
 
-function GestionUtilisateurs({ onBack }) {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+const GestionUtilisateurs = ({ on_back }) => {
+  const [utilisateurs, set_utilisateurs] = useState([]);
+  const [est_en_chargement, set_est_en_chargement] = useState(true);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const recuperer_utilisateurs = async () => {
       try {
         const data = await getAllUsers();
-        // data est une liste d'objets : [{user_id, username, email, status}, ...]
-        setUsers(data);
+        set_utilisateurs(data);
       } catch (err) {
-        console.error("Erreur lors de la récupération des utilisateurs", err);
+        console.error("Erreur récupération utilisateurs", err);
       } finally {
-        setLoading(false);
+        set_est_en_chargement(false);
       }
     };
-    fetchUsers();
+    recuperer_utilisateurs();
   }, []);
 
   return (
-    <div className="container-principal">
-      <div className="sous-container">
-        <div className="login-form" style={{ maxWidth: "900px" }}>
-          <h3 className="stock-titre">👥 Gestion des Utilisateurs</h3>
-
-          <div className="admin-actions-header">
-            <button className="bouton btn-add-admin">+ Ajouter Admin</button>
-            <button className="bouton btn-add-user">
-              + Ajouter Utilisateur
-            </button>
-          </div>
-
-          {loading ? (
-            <p className="message">Chargement des comptes...</p>
-          ) : (
-            <div className="admin-table-container">
-              <table className="stock-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Pseudo</th>
-                    <th>Email</th>
-                    <th>Rôle/Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((u) => (
-                    // On utilise user_id car c'est la clé renvoyée par UserPublic
-                    <tr key={u.user_id}>
-                      <td>{u.user_id}</td>
-                      <td style={{ fontWeight: "bold" }}>{u.username}</td>
-                      <td>{u.email}</td>
-                      <td>
-                        <span
-                          className={`role-badge ${
-                            u.status === "admin" ||
-                            u.status === "Administrateur"
-                              ? "role-admin"
-                              : "role-generic"
-                          }`}
-                        >
-                          {u.status}
-                        </span>
-                      </td>
-                      <td>
-                        <button className="action-icon-btn" title="Modifier">
-                          ✏️
-                        </button>
-                        <button className="action-icon-btn" title="Supprimer">
-                          🗑️
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          <button
-            className="bouton"
-            style={{ marginTop: "20px", backgroundColor: "#6c757d" }}
-            onClick={onBack}
-          >
-            Retour au Tableau de Bord
+    <div className="carte-centrale gestion-panel">
+      <div className="entete-gestion">
+        <div className="titre-groupe">
+          <Users size={32} color="#3b82f6" />
+          <h1 className="titre-principal">Gestion des Utilisateurs</h1>
+        </div>
+        <div className="barre-outils">
+          <button className="bouton-action btn-ajout-admin">
+            <ShieldPlus size={18} /> Ajouter un Admin
+          </button>
+          <button className="bouton-action btn-ajout-user">
+            <UserPlus size={18} /> Ajouter un Utilisateur
           </button>
         </div>
       </div>
+
+      {est_en_chargement ? (
+        <p className="message-chargement">Chargement des comptes...</p>
+      ) : (
+        <div className="conteneur-tableau">
+          <table className="tableau-gestion">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Pseudo</th>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {utilisateurs.map((u) => (
+                <tr key={u.user_id}>
+                  <td>{u.user_id}</td>
+                  <td className="texte-gras">{u.username}</td>
+                  <td>{u.email}</td>
+                  <td>
+                    <span
+                      className={`badge-role ${u.status === "admin" ? "bg-admin" : "bg-user"}`}
+                    >
+                      {u.status}
+                    </span>
+                  </td>
+                  <td className="cellule-actions">
+                    <button className="btn-icone" title="Modifier">
+                      <Edit size={16} />
+                    </button>
+                    <button className="btn-icone btn-suppr" title="Supprimer">
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <button className="bouton-retour-gestion" onClick={on_back}>
+        <Undo2 size={18} /> Retour au menu
+      </button>
     </div>
   );
-}
+};
 
 export default GestionUtilisateurs;

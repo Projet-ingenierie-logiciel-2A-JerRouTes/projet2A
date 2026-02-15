@@ -1,0 +1,79 @@
+.admin-panel {
+  max-width: 800px !important;
+  padding: 3rem !important;
+}
+
+.entete-admin {
+  margin-bottom: 2.5rem;
+}
+
+.sous-titre {
+  color: #64748b;
+  font-weight: 600;
+  margin-top: -1.5rem;
+}
+
+.groupe-boutons-admin {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 2rem;
+}
+
+.bouton-admin-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 30px;
+  border: none;
+  border-radius: 20px;
+  color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgb(0 0 0 / 10%);
+}
+
+.bouton-admin-item:hover {
+  transform: translateY(-5px);
+  filter: brightness(1.1);
+  box-shadow: 0 10px 15px rgb(0 0 0 / 20%);
+}
+
+/* Couleurs spécifiques basées sur tes variables App.css */
+.btn-users {
+  background-color: #3b82f6;
+}
+.btn-ingredients {
+  background-color: #22c55e;
+}
+.btn-stocks {
+  background-color: #ef4444;
+}
+.btn-recettes {
+  background-color: #f59e0b;
+}
+
+.bouton-deconnexion-admin {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px auto 0;
+  padding: 10px 25px;
+  background: transparent;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  color: #64748b;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bouton-deconnexion-admin:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+  border-color: #cbd5e1;
+}

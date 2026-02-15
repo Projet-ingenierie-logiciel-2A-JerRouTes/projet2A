@@ -14,6 +14,7 @@ class User(ABC):
         email: str | None = None,
         status: str = "user",
         id_stock: int | None = None,
+        list_id_stock: list[int] | None = None,
     ):
         """
         Initialise un utilisateur avec validation du pseudo.
@@ -41,6 +42,8 @@ class User(ABC):
         self.status = status
 
         self.id_stock = id_stock
+
+        self.list_id_stock = list_id_stock
 
     # -------------------------
     # Champs historiques

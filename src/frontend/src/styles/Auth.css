@@ -1,0 +1,164 @@
+.conteneur-auth {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  background-color: rgb(248 250 252 / 80%);
+}
+
+.carte-auth {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 10%),
+    0 10px 10px -5px rgb(0 0 0 / 4%);
+  width: 100%;
+  max-width: 420px;
+}
+
+.entete-auth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.titre-auth {
+  color: #233549;
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.alerte-erreur {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #ef4444;
+  background-color: #fee2e2;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid #fecaca;
+  animation: slide-down 0.3s ease-out;
+}
+
+.groupe-champ {
+  margin-bottom: 1.2rem;
+}
+
+.groupe-champ label {
+  display: block;
+  margin-bottom: 0.6rem;
+  color: #4a5568;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.entree-texte {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.entree-texte:focus {
+  outline: none;
+  border-color: #345371;
+  box-shadow: 0 0 0 3px rgb(52 83 113 / 10%);
+}
+
+.conteneur-mdp {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.bouton-oeil {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.bouton-oeil:hover {
+  color: #345371;
+}
+
+.barre-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 2rem;
+}
+
+.bouton-valider {
+  width: 100%;
+  padding: 14px;
+  background-color: #345371;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition:
+    transform 0.1s,
+    background-color 0.2s;
+}
+
+.bouton-valider:hover {
+  background-color: #233549;
+}
+
+.bouton-valider:active {
+  transform: scale(0.98);
+}
+
+.bouton-retour {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background-color: transparent;
+  color: #64748b;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.bouton-retour:hover {
+  background-color: #f1f5f9;
+  color: #334155;
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

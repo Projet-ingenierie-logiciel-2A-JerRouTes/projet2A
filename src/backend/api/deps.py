@@ -40,7 +40,7 @@ def get_user_service() -> UserService:
     return UserService()
 
 
-def get_current_user(
+def get_current_user_v2(
     creds: HTTPAuthorizationCredentials | None = Depends(bearer),  # noqa: B008
 ) -> CurrentUser:
     """
@@ -88,6 +88,79 @@ def get_current_user(
     status_ = payload.get("status")
 
     # --- ÉTAPE 3 : VÉRIFICATION STRICTE DU SCHÉMA ---
+    if (
+        not isinstance(uid, int)
+        or not isinstance(sid, int)
+        or not isinstance(status_, str)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload.",
+        )
+
+    return CurrentUser(
+        user_id=uid,
+        session_id=sid,
+        status=status_,
+    )
+
+
+def get_current_user(
+    creds: HTTPAuthorizationCredentials | None = Depends(bearer),  # noqa: B008
+) -> CurrentUser:
+    """
+    1) Vérifie la présence du token.
+    2) Si mode démo + token magique : bypass immédiat avec l'ID du dashboard.
+    3) Sinon : décodage et validation stricte du JWT.
+    """
+
+    # Vérification de la présence du header Authorization
+    if creds is None or not creds.credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authentication credentials",
+        )
+
+    token = creds.credentials
+
+    # --- ÉTAPE 1 : BYPASS PRIORITAIRE (MODE DÉMO) ---
+    # On autorise les tokens générés par le dashboard (ex: demo-token-admin-123)
+    if settings.use_seed_data and token.startswith("demo-token-"):
+        return CurrentUser(
+            user_id=settings.demo_user_id,
+            session_id=999,  # Session fictive pour le mode démo
+            status="admin" if settings.demo_user_id == 1 else "utilisateur",
+        )
+
+    # --- ÉTAPE 2 : LOGIQUE RÉELLE (DÉCODAGE JWT) ---
+    try:
+        payload = decode_jwt(
+            token=token,
+            secret=settings.jwt_secret,
+            issuer=settings.jwt_issuer,
+        )
+    except JWTExpiredError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+        ) from exc
+    except (JWTInvalidTokenError, JWTIssuerError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        ) from exc
+
+    # Extraction des données du payload (pour le mode BDD réelle)
+    uid = payload.get("uid")
+    sid = payload.get("sid")
+    status_ = payload.get("status")
+
+    # --- ÉTAPE 3 : VÉRIFICATION DU SCHÉMA DU TOKEN ---
     if (
         not isinstance(uid, int)
         or not isinstance(sid, int)

@@ -18,14 +18,14 @@ def get_app_data():
             pseudo="admin",
             password="mdpadmin",
             email="admin@admin.com",
-            id_stock=101,
+            id_stock=[101, 102],
         ),
         GenericUser(
             id_user=2,
             pseudo="user1",
             password="mdpuser1",
             email="user1@example.com",
-            id_stock=102,
+            id_stock=103,
         ),
     ]
 
@@ -44,7 +44,9 @@ def get_app_data():
 
     # 3. Stock principal (ID 101 pour correspondre au GenericUser)
     stock_1 = Stock(101, "Frigo Admin")
-    stock_2 = Stock(102, "Stock vide")  # Stock vide pour l'autre utilisateur
+    stock_2 = Stock(102, "Placard Admin")
+
+    stock_3 = Stock(103, "Stock vide")  # Stock vide pour l'autre utilisateur
     today = date.today()
 
     # Ajout d'items avec gestion FEFO (First Expired, First Out)
@@ -52,14 +54,20 @@ def get_app_data():
     stock_1.add_item(
         2, 505, 1.0, today + timedelta(days=5)
     )  # Lait lot 2 (périme avant)
-    stock_1.add_item(1, 501, 1000, today + timedelta(days=30))  # Farine
-    stock_1.add_item(3, 503, 12, today + timedelta(days=20))  # Oeufs
-    stock_1.add_item(4, 504, 500, today + timedelta(days=60))  # Sucre
+    stock_1.add_item(6, 501, 500, today + timedelta(days=30))  # Beurre
+
+    stock_2.add_item(3, 601, 12, today + timedelta(days=20))  # Oeufs
+    stock_2.add_item(4, 602, 500, today + timedelta(days=60))  # Sucre
+    stock_2.add_item(1, 603, 1000, today + timedelta(days=90))  # Farine
 
     return {
         "users": users_list,
         "ingredients": ingredients,
-        "stocks": {stock_1.id_stock: stock_1, stock_2.id_stock: stock_2},
+        "stocks": {
+            stock_1.id_stock: stock_1,
+            stock_2.id_stock: stock_2,
+            stock_3.id_stock: stock_3,
+        },
     }
 
 

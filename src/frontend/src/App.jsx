@@ -1,112 +1,138 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import "./App.css";
+import Home from "./components/Home";
 
-import Login from "./components/Login";
-import CreationCompte from "./components/CreationCompte";
-import Stock from "./components/Stock";
+import Auth from "./components/Auth";
+
+import Register from "./components/Register";
+
+import AdminAuth from "./components/AdminAuth";
+import InterfaceAdmin from "./components/InterfaceAdmin";
 import GestionUtilisateurs from "./components/GestionUtilisateurs";
 import GestionIngredients from "./components/GestionIngredients";
+import GestionStocks from "./components/GestionStocks";
+import GestionRecettes from "./components/GestionRecettes";
+
+import Stock from "./components/Stock";
 
 function App() {
-  // --- ÉTATS DE L'APPLICATION ---
-  const [user, setUser] = useState(null);
-  const [is_registering, setIsRegistering] = useState(false);
-  const [show_stock, setShow_stock] = useState(false);
+  // --- LES VARIABLES D'ÉTAT ---
+  // 1. Variable user : contiendra l'objet complet renvoyé par l'API (null par défaut)
+  const [user, set_user] = useState(null);
 
-  // État pour la navigation administrative (null, 'users', 'ingredients', 'stocks', 'recettes')
-  const [adminView, setAdminView] = useState(null);
+  // 2. Variable action : détermine quel bouton a été cliqué pour l'affichage
+  const [action, set_action] = useState("accueil");
 
-  // --- LOGIQUE DE CONNEXION ---
-  const handleLogin = (data) => {
-    console.log("--- 🔓 Connexion réussie ---");
-    console.log(
-      "Utilisateur :",
-      data.user.username,
-      "| Rôle :",
-      data.user.status,
-    );
+  // 3. Variable connexion : boolean pour savoir si on bascule sur l'interface stock
+  const [est_connecte, set_est_connecte] = useState(false);
 
-    setUser(data);
-    setShow_stock(true);
+  // 4. Savoir si la session actuelle est une session admin
+  const [admin_connecte, set_admin_connecte] = useState(false);
+
+  // 5. Variables de gestion
+  const [gestion_utilisateurs, set_gestion_utilisateurs] = useState(false);
+  const [gestion_ingredients, set_gestion_ingredients] = useState(false);
+  const [gestion_stocks, set_gestion_stocks] = useState(false);
+  const [gestion_recettes, set_gestion_recettes] = useState(false);
+
+  // --- LOGIQUE DE LIAISON ---
+
+  // Gère le clic sur les boutons de Home.jsx (Connexion, Inscription, etc.)
+  const gerer_clic_bouton = (nom_bouton) => {
+    console.log(`Bouton cliqué : ${nom_bouton}`);
+    set_action(nom_bouton);
   };
 
-  const handleGoToSignup = () => {
-    setIsRegistering(true);
+  // Gère le succès de l'authentification provenant de Auth.jsx
+  const gerer_connexion_reussie = (donnees_utilisateur, est_admin = false) => {
+    console.log("Connexion établie. Admin ?", est_admin);
+    set_user(donnees_utilisateur);
+    set_admin_connecte(est_admin); // On utilise la variable que tu as créée en ligne 20
+    set_est_connecte(true);
   };
 
-  // --- LOGIQUE DE DÉCONNEXION ---
-  const handleLogout = () => {
-    console.log("--- 🚪 Déconnexion : Réinitialisation complète ---");
-    setUser(null);
-    setShow_stock(false);
-    setIsRegistering(false);
-    setAdminView(null); // On ferme systématiquement les vues admin
-  };
-
-  // --- RENDU ---
   return (
-    <div className="app">
-      <h1>📦 Génération de Recettes à partir d'un stock</h1>
+    <div className="ecran-connexion">
+      {/* Éléments visuels de fond (fixes pour toute l'app) */}
+      <div className="fond-image"></div>
+      <div className="overlay-sombre"></div>
 
-      {/* CAS 1 : UTILISATEUR NON CONNECTÉ */}
-      {!show_stock && (
+      {/* Rendu conditionnel basé sur l'état de connexion */}
+      {!est_connecte ? (
         <>
-          {is_registering ? (
-            <CreationCompte
-              onBack={() => setIsRegistering(false)}
-              onRegisterSuccess={() => setShow_stock(true)}
-            />
-          ) : (
-            <Login
-              onLogin={handleLogin}
-              onGoToSignup={handleGoToSignup}
-              onGuestAccess={() => setShow_stock(true)}
+          {action === "accueil" && <Home on_clic_bouton={gerer_clic_bouton} />}
+
+          {action === "connexion" && (
+            <Auth
+              on_login={gerer_connexion_reussie}
+              on_back={() => set_action("accueil")}
             />
           )}
-        </>
-      )}
 
-      {/* CAS 2 : UTILISATEUR CONNECTÉ */}
-      {show_stock && (
-        <>
-          {/* Si aucune vue admin n'est sélectionnée : Affichage du Stock/Dashboard classique */}
-          {!adminView ? (
-            <Stock
-              user={user}
-              onLogout={handleLogout}
-              onNavigateAdmin={(view) => setAdminView(view)}
+          {action === "inscription" && (
+            <Register
+              on_register_success={(data) => {
+                console.log("Inscription réussie !", data);
+                set_action("connexion"); // Redirige vers la connexion après succès
+              }}
+              on_back={() => set_action("accueil")}
             />
+          )}
+
+          {action === "admin" && (
+            <AdminAuth
+              on_login={(data) => gerer_connexion_reussie(data, true)}
+              on_back={() => set_action("accueil")}
+            />
+          )}
+
+          {/* Fonction des autres boutons */}
+        </>
+      ) : (
+        /* ÉCRAN APRÈS CONNEXION RÉUSSIE */
+        <>
+          {/* NAVIGATION DES PAGES DE GESTION */}
+          {gestion_utilisateurs ? (
+            <GestionUtilisateurs
+              on_back={() => set_gestion_utilisateurs(false)}
+            />
+          ) : gestion_ingredients ? (
+            <GestionIngredients
+              on_back={() => set_gestion_ingredients(false)}
+            />
+          ) : gestion_stocks ? ( // AJOUTE CE BLOC
+            <GestionStocks on_back={() => set_gestion_stocks(false)} />
+          ) : gestion_recettes ? ( // AJOUTE CE BLOC
+            <GestionRecettes on_back={() => set_gestion_recettes(false)} />
           ) : (
-            /* SI UNE VUE ADMIN EST SÉLECTIONNÉE */
+            /* SI AUCUNE PAGE DE GESTION N'EST OUVERTE, ON MONTRE LE MENU */
             <>
-              {adminView === "users" && (
-                <GestionUtilisateurs onBack={() => setAdminView(null)} />
-              )}
-
-              {adminView === "ingredients" && (
-                <GestionIngredients onBack={() => setAdminView(null)} />
-              )}
-
-              {/* Espaces réservés pour les futures fonctionnalités */}
-              {(adminView === "stocks" || adminView === "recettes") && (
-                <div className="container-principal">
-                  <div className="sous-container">
-                    <div className="login-form">
-                      <h3 className="stock-titre">
-                        🛠️ Gestion des {adminView}
-                      </h3>
-                      <p className="message">
-                        Module en cours de développement...
-                      </p>
-                      <button
-                        className="bouton"
-                        onClick={() => setAdminView(null)}
-                      >
-                        Retour
-                      </button>
-                    </div>
-                  </div>
-                </div>
+              {admin_connecte ? (
+                <InterfaceAdmin
+                  user={user?.user}
+                  on_clic_users={() => set_gestion_utilisateurs(true)}
+                  on_clic_ingredients={() => set_gestion_ingredients(true)}
+                  on_clic_stocks={() => set_gestion_stocks(true)} // AJOUTE CETTE LIGNE
+                  on_clic_recettes={() => set_gestion_recettes(true)} // AJOUTE CETTE LIGNE
+                  on_logout={() => {
+                    set_est_connecte(false);
+                    set_admin_connecte(false);
+                    set_action("accueil");
+                  }}
+                />
+              ) : (
+                /* REMPLACEMENT ICI : ON APPELLE LE COMPOSANT STOCK */
+                <>
+                  {console.log("APP.JSX - État user complet :", user)}
+                  <Stock
+                    user={user?.user || user}
+                    on_logout={() => {
+                      set_est_connecte(false);
+                      set_action("accueil");
+                    }}
+                    on_navigate_admin={() => {}}
+                  />
+                </>
               )}
             </>
           )}
