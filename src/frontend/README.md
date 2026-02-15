@@ -7,6 +7,8 @@ Cliquez sur le schéma pour explorer les composants :
 
 [![Cliquez pour ouvrir la version interactive](../../Documentation/Images/Cheminement_frontend-Orchestrateur.drawio.svg)](https://viewer.diagrams.net/?target=blank&nav=1&viewbox=%7B%22x%22%3A0%2C%22y%22%3A0%2C%22width%22%3A800%2C%22height%22%3A600%7D#Uhttps%3A%2F%2Fraw.githubusercontent.com%2FTON_PSEUDO%2FTON_REPO%2Fmain%2FDocumentation%2FImages%2FCheminement_frontend-Orchestrateur.drawio.svg)
 
+[Lien cliquable descrisption drawio](https://app.diagrams.net/?src=about#HProjet-ingenierie-logiciel-2A-JerRouTes%2Fprojet2A%2Fmain%2FDocumentation%2FImages%2FCheminement_frontend.drawio#%7B%22pageId%22%3A%22BIcJ0cg6pnKJ7ZAmj4WJ%22%7D)
+
 ______________________________________________________________________
 
 ## 🚀 Installation
