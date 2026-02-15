@@ -15,11 +15,20 @@ const Auth = ({ on_login, on_back }) => {
     set_message_erreur("");
     set_est_en_chargement(true);
 
+    console.log("Données saisies :", { identifiant, mot_de_passe });
+
     try {
       const credentials = { login: identifiant, password: mot_de_passe };
       const user_data = await login(credentials);
+
+      console.log("Réponse du endpoint (succès) :", user_data);
+
       on_login(user_data);
     } catch (error) {
+      console.error(
+        "Erreur renvoyée par le endpoint :",
+        error?.response?.data || error.message,
+      );
       const status = error?.response?.status;
       const detail = error?.response?.data?.detail;
 

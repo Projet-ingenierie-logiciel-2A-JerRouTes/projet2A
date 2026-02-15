@@ -47,7 +47,7 @@ function App() {
   const gerer_connexion_reussie = (donnees_utilisateur, est_admin = false) => {
     console.log("Connexion établie. Admin ?", est_admin);
     set_user(donnees_utilisateur);
-    set_admin_connecte(est_admin); // On utilise la variable que tu as créée en ligne 20
+    set_admin_connecte(est_admin);
     set_est_connecte(true);
   };
 
@@ -112,8 +112,8 @@ function App() {
                   user={user?.user}
                   on_clic_users={() => set_gestion_utilisateurs(true)}
                   on_clic_ingredients={() => set_gestion_ingredients(true)}
-                  on_clic_stocks={() => set_gestion_stocks(true)} // AJOUTE CETTE LIGNE
-                  on_clic_recettes={() => set_gestion_recettes(true)} // AJOUTE CETTE LIGNE
+                  on_clic_stocks={() => set_gestion_stocks(true)}
+                  on_clic_recettes={() => set_gestion_recettes(true)}
                   on_logout={() => {
                     set_est_connecte(false);
                     set_admin_connecte(false);
@@ -121,7 +121,6 @@ function App() {
                   }}
                 />
               ) : (
-                /* REMPLACEMENT ICI : ON APPELLE LE COMPOSANT STOCK */
                 <>
                   {console.log("APP.JSX - État user complet :", user)}
                   <Stock
