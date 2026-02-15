@@ -1,1 +1,1 @@
-[⬅ Retour au README](../../README.md)
+[⬅ Retour au README](../README.md)
