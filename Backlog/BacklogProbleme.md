@@ -10,3 +10,5 @@
   - Le nom de l'utilisateur affiché dans le header doit correspondre au compte connecté.
 
 ______________________________________________________________________
+
+[⬅ Retour au README](../../README.md)

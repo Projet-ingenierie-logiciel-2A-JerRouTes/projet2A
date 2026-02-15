@@ -63,3 +63,5 @@ ______________________________________________________________________
   - Le bouton "Ajouter un stock" doit rester visible et fonctionnel, même si la liste est vide.
 
 ______________________________________________________________________
+
+[⬅ Retour au README](../../README.md)

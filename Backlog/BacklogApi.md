@@ -19,3 +19,5 @@ ______________________________________________________________________
   - Si l'utilisateur n'a aucun stock, l'API doit renvoyer une liste vide [] avec un code 200 OK.
 
 ______________________________________________________________________
+
+[⬅ Retour au README](../../README.md)
