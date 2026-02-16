@@ -104,3 +104,27 @@ def logout(
 ) -> None:
     auth_service = _auth_service()
     auth_service.logout(session_id=cu.session_id)
+
+
+@router.get(
+    "/",
+    response_model=list[UserPublic],
+    summary="Récupérer tous les utilisateurs",
+    description="Renvoie la liste complète des utilisateurs enregistrés",
+    dependencies=[Depends(get_current_user_checked_exists)],
+)
+def get_all_users() -> list[UserPublic]:
+    user_service = UserService()
+    users = (
+        user_service.get_all_users()
+    )  # Vous devrez créer cette méthode dans UserService
+
+    return [
+        UserPublic(
+            user_id=u.user_id,
+            username=u.username,
+            email=u.email,
+            status=u.status,
+        )
+        for u in users
+    ]

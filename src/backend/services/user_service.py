@@ -67,6 +67,20 @@ class UserService:
         return row
 
     # --------------------------------------------------------------
+    # Récupération tous les utilisateurs
+    # --------------------------------------------------------------
+
+    @log
+    def get_all_users(self) -> list[User]:
+        """
+        Récupère la liste complète des utilisateurs.
+        Gère le mode démo et le mode réel via le DAO.
+        """
+        # Cette méthode doit être implémentée dans ton UserDAO
+        users = self._user_dao.get_all_users()
+        return users
+
+    # --------------------------------------------------------------
     # Inscription / Auth
     # --------------------------------------------------------------
 

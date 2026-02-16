@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Package, PlusCircle, LogOut, SquarePen, Trash2 } from "lucide-react";
 
 // Imports des appels API
-import { getAllStocks, getInfoStock } from "../api/stockApi";
+import { getAllStocks_v2, getInfoStock } from "../api/stockApi";
 
 // Import du hook personnalisé pour la logique du tableau
 import { userStockTable } from "../hooks/userStockTable";
@@ -31,7 +31,7 @@ const Stock = ({ user, on_logout }) => {
         set_chargement_initial(true);
 
         // 1. On récupère les IDs bruts appartenant à l'utilisateur
-        const ids_bruts = await getAllStocks(user?.user_id);
+        const ids_bruts = await getAllStocks_v2(user?.user_id);
         console.log("📋 1. IDs bruts reçus :", ids_bruts);
 
         // 2. On transforme les IDs en tuples {id, nom} en appelant getInfoStock pour chaque
