@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_name }} - Dashboard</title>
+    <style>
+        :root {
+            --primary: #345371;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 700px;
+            padding: 3rem;
+            border-radius: 2rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+        }
+
+        /* Statuts hauts */
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .status-card {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .status-label {
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #94a3b8;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .status-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .status-value.off { color: var(--danger); }
+
+        /* Titre */
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin: 0 0 2.5rem 0;
+            font-weight: 800;
+        }
+
+        /* Liens de navigation */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            text-decoration: none;
+            font-weight: 600;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+            color: #475569;
+            background: white;
+        }
+
+        .btn-action:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        /* Infos config */
+        .info-panel {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            margin: 0.75rem 0;
+            font-size: 0.95rem;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+
+        .dot-real { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        .dot-demo { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <div class="status-grid">
+            <div class="status-card">
+                <span class="status-label">Frontend</span>
+                <span id="fe-status" class="status-value">VÉRIFICATION...</span>
+            </div>
+            <div class="status-card">
+                <span class="status-label">Backend</span>
+                <span class="status-value">CONNECTÉ</span>
+            </div>
+        </div>
+
+        <h1>{{ app_name }}</h1>
+
+        <div class="action-buttons">
+            <a href="{{ frontend_url }}" target="_blank" class="btn-action">
+                <span style="font-size: 1.5rem; margin-bottom: 5px;">🌐</span>
+                Ouvrir l'Application
+            </a>
+            <a href="/docs" target="_blank" class="btn-action">
+                <span style="font-size: 1.5rem; margin-bottom: 5px;">📂</span>
+                Swagger / Docs API
+            </a>
+        </div>
+
+        <div class="info-panel">
+            <div class="info-row">
+                <div class="dot {{ 'dot-real' if 'Réelle' in data_mode_text else 'dot-demo' }}"></div>
+                <strong>Source :</strong>&nbsp;{{ data_mode_text }}
+            </div>
+            <div class="info-row">
+                <div class="dot {{ 'dot-real' if 'SQL' in demo_user_info else 'dot-demo' }}"></div>
+                <strong>Session :</strong>&nbsp;{{ demo_user_info }}
+            </div>
+        </div>
+
+        <div class="footer">
+            Dernière mise à jour à {{ time }} | ENSAI Projet 2A
+        </div>
+    </div>
+
+    <script>
+        async function checkFE() {
+            const status = document.getElementById('fe-status');
+            try {
+                // On tente d'accéder au serveur de dev Vite
+                const res = await fetch("{{ frontend_url }}", { mode: 'no-cors' });
+                status.innerText = "CONNECTÉ";
+                status.classList.remove('off');
+            } catch (e) {
+                status.innerText = "HORS-LIGNE";
+                status.classList.add('off');
+            }
+        }
+        checkFE();
+        // Rafraîchir toutes les 30 secondes
+        setInterval(checkFE, 30000);
+    </script>
+</body>
+</html>
