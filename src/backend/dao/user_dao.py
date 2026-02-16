@@ -202,3 +202,28 @@ class UserDAO:
         except Exception:
             conn.rollback()
             raise
+
+    @log
+    def get_all_user_rows(self, limit: int | None = None) -> list[UserRow]:
+        conn = DBConnection().connection
+        with conn.cursor() as cur:
+            query = """
+                SELECT user_id, username, email, password_hash, status, created_at
+                FROM users
+                ORDER BY user_id
+            """
+            params: tuple[Any, ...] = ()
+
+            if limit is not None:
+                query += " LIMIT %s"
+                params = (limit,)
+
+            cur.execute(query, params)
+            rows = cur.fetchall()
+
+            return [UserRow(**row) for row in rows]
+
+    @log
+    def get_all_users(self, limit: int | None = None) -> list[User]:
+        user_rows = self.get_all_user_rows(limit=limit)
+        return [self._row_to_bo(row) for row in user_rows]
