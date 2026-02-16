@@ -28,6 +28,14 @@ class InvalidCredentialsError(UserServiceError):
 class UserNotFoundError(UserServiceError):
     """Utilisateur introuvable."""
 
+    pass
+
+
+class InvalidPasswordError(Exception):
+    """Exception levée quand le mot de passe est incorrect."""
+
+    pass
+
 
 # ---------------------------------------------------------------------
 # DTO (optionnel mais pratique)
@@ -111,23 +119,26 @@ class UserService:
     def authenticate(self, *, login: str, password: str) -> AuthResult:
         """
         Authentifie un user via email OU username (champ login).
+        Distingue désormais l'absence d'utilisateur du mauvais mot de passe.
         """
-        # 1) on essaie comme email
+        # 1) Recherche de l'utilisateur
         row = self._user_dao.get_user_row_by_email(login)
-
-        # 2) sinon comme username
         if row is None:
             row = self._user_dao.get_user_row_by_username(login)
 
         if row is None:
-            raise InvalidCredentialsError("Identifiants invalides.")
+            # ICI : L'identifiant n'existe pas
+            raise UserNotFoundError(f"L'identifiant '{login}' est inconnu.")
 
+        # 2) Vérification du mot de passe
         if not check_password(password, row.password_hash):
-            raise InvalidCredentialsError("Identifiants invalides.")
+            # CHANGEMENT ICI : On utilise InvalidPasswordError au lieu de InvalidCredentialsError
+            raise InvalidPasswordError("Le mot de passe saisi est incorrect.")
 
+        # 3) Récupération de l'objet métier
         user = self._user_dao.get_user_by_id(row.user_id)
         if user is None:
-            raise UserNotFoundError("Utilisateur introuvable.")
+            raise UserNotFoundError("Utilisateur introuvable en base de données.")
 
         return AuthResult(user=user)
 
