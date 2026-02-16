@@ -1,265 +1,176 @@
-import { useState, useEffect } from "react";
-import AddIngredientForm from "./AddIngredientForm";
-import { getAllIngredients, getStockDetails } from "../api/stockApi_vers_C";
+import React, { useState, useEffect } from "react";
+import { Package, PlusCircle, LogOut, SquarePen, Trash2 } from "lucide-react";
 
-// Dictionnaire de conversion pour les unités
-const unitLabels = {
-  GRAM: "g",
-  KILOGRAM: "kg",
-  MILIGRAM: "mg",
-  MILLILITER: "ml",
-  LITER: "L",
-  CENTIMETER: "cm",
-  PIECE: "pcs",
-};
+// Imports des appels API
+import { getAllStocks, getInfoStock } from "../api/stockApi";
 
-function Stock({ user, onLogout, onNavigateAdmin }) {
-  const [items, setItems] = useState({});
-  const [catalogue, setCatalogue] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error_message, setErrorMessage] = useState("");
-  const [showForm, setShowForm] = useState(false);
+// Import du hook personnalisé pour la logique du tableau
+import { userStockTable } from "../hooks/userStockTable";
 
+// Import du sous-composant extrait pour la lisibilité
+import SelecteurStock from "./SelecteurStock";
+
+import "../styles/Gestion.css";
+
+const Stock = ({ user, on_logout }) => {
+  // --- ÉTATS (STATES) ---
+  const [id_stock, set_id_stock] = useState(null); // ID du stock sélectionné (ex: 101)
+  const [list_nom_stock, set_list_nom_stock] = useState([]); // Liste de tuples {id_stock, nom_stock}
+  const [chargement_initial, set_chargement_initial] = useState(true);
+
+  // --- HOOK MÉTIER ---
+  // On récupère le tableau formaté (Nom, Quantité, Validité) via le hook
+  // Ce hook se relance automatiquement dès que id_stock change
+  const { formatted_stock } = userStockTable(id_stock);
+
+  // --- EFFET : CHARGEMENT INITIAL (IDs + NOMS) ---
   useEffect(() => {
-    const loadAllData = async () => {
-      console.log("--- 🏁 Initialisation du chargement des données ---");
-      setLoading(true);
-      setErrorMessage("");
-
+    const initialiser_page = async () => {
+      console.log("--- 🏁 1. DÉBUT : Initialisation des stocks ---");
       try {
-        // 1. Récupération du catalogue
-        const dataIngr = await getAllIngredients();
-        console.log("✅ Catalogue reçu :", dataIngr);
-        setCatalogue(dataIngr);
+        set_chargement_initial(true);
 
-        // 2. Récupération du stock utilisateur
-        if (user && user.id_stock) {
+        // 1. On récupère les IDs bruts appartenant à l'utilisateur
+        const ids_bruts = await getAllStocks(user?.user_id);
+        console.log("📋 1. IDs bruts reçus :", ids_bruts);
+
+        // 2. On transforme les IDs en tuples {id, nom} en appelant getInfoStock pour chaque
+        const promesses_noms = ids_bruts.map(async (id) => {
+          const info = await getInfoStock(id);
+          return { id_stock: id, nom_stock: info.name };
+        });
+
+        const liste_complete = await Promise.all(promesses_noms);
+        console.log("✅ 1. Liste de tuples (ID/Nom) prête :", liste_complete);
+
+        set_list_nom_stock(liste_complete);
+
+        // 3. On sélectionne le premier stock par défaut
+        if (liste_complete.length > 0) {
           console.log(
-            `📡 Récupération du stock ID ${user.id_stock} pour ${user.pseudo}`,
+            "🎯 1. Sélection auto du premier stock :",
+            liste_complete[0].id_stock,
           );
-          const dataStock = await getStockDetails(user.id_stock);
-          console.log("📦 Données du stock :", dataStock.items_by_ingredient);
-          setItems(dataStock.items_by_ingredient || {});
+          set_id_stock(liste_complete[0].id_stock);
         }
       } catch (err) {
-        console.error(
-          "❌ Erreur de chargement :",
-          err.response?.data || err.message,
-        );
-        setErrorMessage(
-          err.response?.data?.detail ||
-            "Erreur lors de la récupération des données",
-        );
+        console.error("❌ 1. Erreur initialisation :", err);
       } finally {
-        setLoading(false);
+        set_chargement_initial(false);
       }
     };
 
-    loadAllData();
+    initialiser_page();
   }, [user]);
 
-  const getIngredientInfo = (id) => {
-    return catalogue.find((i) => String(i.id_ingredient) === String(id));
-  };
-
-  const handleAddIngredient = (newIngredientData) => {
-    console.log("➕ Ajout d'un lot :", newIngredientData);
-    let finalId = newIngredientData.id_ingredient;
-
-    if (finalId === null) {
-      finalId =
-        catalogue.length > 0
-          ? Math.max(...catalogue.map((i) => i.id_ingredient)) + 1
-          : 1;
-      const nouvelIng = {
-        id_ingredient: finalId,
-        name: newIngredientData.name,
-        unit: newIngredientData.unit,
-      };
-      setCatalogue((prev) => [...prev, nouvelIng]);
-    }
-
-    const nouveauLot = {
-      quantity: newIngredientData.quantity,
-      expiry_date: newIngredientData.expiry_date,
-      name: newIngredientData.name,
-      unit: newIngredientData.unit,
-    };
-
-    setItems((prevItems) => ({
-      ...prevItems,
-      [finalId]: [...(prevItems[finalId] || []), nouveauLot],
-    }));
-
-    setShowForm(false);
-  };
+  // --- LOG DE SUIVI DU TABLEAU ---
+  console.log(
+    "📊 Données formatées reçues du hook pour le tableau :",
+    formatted_stock,
+  );
 
   return (
-    <div className="container-principal">
-      {/* --- BLOC PRINCIPAL : INVENTAIRE --- */}
-      <div className="sous-container">
-        <div className="login-form" style={{ maxWidth: "800px" }}>
-          <h3 className="stock-titre">
-            {user ? `Inventaire de ${user.pseudo}` : "Stock (Mode Invité)"}
-          </h3>
-
-          {loading ? (
-            <p className="message">Broyage des données en cours...</p>
-          ) : (
-            <>
-              {!showForm && (
-                <div className="stock-table-container">
-                  {Object.keys(items).length > 0 ? (
-                    <table className="stock-table">
-                      <thead>
-                        <tr>
-                          <th>Ingrédient</th>
-                          <th>Quantité</th>
-                          <th>Expiration</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {Object.entries(items).map(([id, lots]) => {
-                          const info = getIngredientInfo(id);
-                          return lots.map((lot, i) => (
-                            <tr key={`${id}-${i}`}>
-                              <td
-                                className="ingredient-name"
-                                style={{ textTransform: "capitalize" }}
-                              >
-                                {info ? info.name : lot.name || id}
-                              </td>
-                              <td>
-                                {lot.quantity}{" "}
-                                {unitLabels[info ? info.unit : lot.unit] ||
-                                  (info ? info.unit : lot.unit)}
-                              </td>
-                              <td className="expiry-date">{lot.expiry_date}</td>
-                            </tr>
-                          ));
-                        })}
-                      </tbody>
-                    </table>
-                  ) : (
-                    <p
-                      style={{
-                        color: "gray",
-                        padding: "20px",
-                        textAlign: "center",
-                      }}
-                    >
-                      Aucun ingrédient. Votre frigo est vide (instabilité
-                      thermique ?).
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {showForm && (
-                <AddIngredientForm
-                  catalogue={catalogue}
-                  onAdd={handleAddIngredient}
-                  onCancel={() => setShowForm(false)}
-                />
-              )}
-
-              {/* BOUTONS D'ACTION (STOCK) */}
-              {!showForm && (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                    marginTop: "20px",
-                  }}
-                >
-                  <button
-                    type="button"
-                    className="bouton"
-                    onClick={() => setShowForm(true)}
-                  >
-                    Ajouter un ingrédient
-                  </button>
-                  <button
-                    type="button"
-                    className="bouton"
-                    style={{ backgroundColor: "#6c757d" }}
-                    onClick={onLogout}
-                  >
-                    Déconnexion
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+    <div className="carte-centrale gestion-panel">
+      {/* ENTÊTE AVEC TITRE ET BOUTON AJOUT */}
+      <div className="entete-gestion">
+        <div className="titre-groupe">
+          <Package size={32} color="#3b82f6" />
+          <h1 className="titre-principal">
+            Inventaire de {user?.username || "Utilisateur"}
+          </h1>
+        </div>
+        <div className="barre-outils">
+          <button className="bouton-action btn-ajout-user">
+            <PlusCircle size={18} /> Ajouter un ingrédient
+          </button>
         </div>
       </div>
 
-      {/* --- BLOC ADMINISTRATION (Conditionnel) --- */}
-      {/* Note : Vérifie si ton backend renvoie "Administrateur" ou "admin" */}
-      {user && (user.role === "Administrateur" || user.role === "admin") && (
-        <div className="sous-container" style={{ marginTop: "20px" }}>
-          <div
-            className="login-form"
-            style={{ maxWidth: "800px", border: "2px solid gold" }}
-          >
-            <h3 className="stock-titre" style={{ color: "gold" }}>
-              🛡️ Administration Système
-            </h3>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
-                marginTop: "15px",
-              }}
-            >
-              <button
-                className="bouton"
-                onClick={() => {
-                  console.log("Navigation vers : utilisateurs");
-                  onNavigateAdmin("users");
-                }}
-              >
-                Gérer utilisateurs
-              </button>
-              <button
-                className="bouton"
-                onClick={() => {
-                  console.log("Navigation vers : ingredients");
-                  onNavigateAdmin("ingredients");
-                }}
-              >
-                Gérer ingrédients
-              </button>
-              <button
-                className="bouton"
-                onClick={() => {
-                  console.log("Navigation vers : stocks");
-                }}
-              >
-                Gérer stocks
-              </button>
-              <button
-                className="bouton"
-                onClick={() => {
-                  console.log("Navigation vers : recettes");
-                }}
-              >
-                Gérer recettes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ZONE DE SÉLECTION DU STOCK */}
+      <div style={{ marginBottom: "20px" }}>
+        <p
+          style={{ color: "#475569", fontSize: "0.9rem", marginBottom: "8px" }}
+        >
+          Choisir un inventaire :
+        </p>
+        <SelecteurStock
+          list_id_stock={list_nom_stock}
+          on_change_stock={(id) => {
+            console.log("🖱️ Changement de stock demandé :", id);
+            set_id_stock(id); // Déclenche la mise à jour du hook userStockTable
+          }}
+        />
+      </div>
 
-      {error_message && (
-        <div className="sous-container">
-          <div className="message message-negatif">🛑 {error_message}</div>
-        </div>
-      )}
+      {/* TABLEAU DES INGRÉDIENTS */}
+      <div className="conteneur-tableau">
+        <table className="tableau-gestion">
+          <thead>
+            <tr>
+              <th>Nom ingrédient</th>
+              <th>Quantité</th>
+              <th>Validité</th>
+              <th style={{ textAlign: "center" }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {formatted_stock.length > 0 ? (
+              formatted_stock.map((item) => (
+                <tr key={item.stock_item_id}>
+                  <td>{item.nom_ingredient}</td>
+                  <td>{item.quantite_affichage}</td>
+                  <td>{item.validite}</td>
+                  <td style={{ textAlign: "center" }}>
+                    <div
+                      className="barre-outils"
+                      style={{ justifyContent: "center" }}
+                    >
+                      <button
+                        className="btn-icone"
+                        onClick={() =>
+                          console.log("📝 Editer lot :", item.stock_item_id)
+                        }
+                      >
+                        <SquarePen size={18} color="#1e293b" />
+                      </button>
+                      <button
+                        className="btn-icone btn-suppr"
+                        onClick={() =>
+                          console.log("🗑️ Supprimer lot :", item.stock_item_id)
+                        }
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan="4"
+                  style={{
+                    textAlign: "center",
+                    padding: "30px",
+                    color: "#94a3b8",
+                  }}
+                >
+                  {chargement_initial
+                    ? "Chargement des données..."
+                    : "Ce stock est vide."}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* BOUTON DE DÉCONNEXION */}
+      <button className="bouton-retour-gestion" onClick={on_logout}>
+        <LogOut size={18} /> Déconnexion
+      </button>
     </div>
   );
-}
+};
 
 export default Stock;

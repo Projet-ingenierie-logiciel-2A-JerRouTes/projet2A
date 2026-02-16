@@ -1,0 +1,114 @@
+.gestion-panel {
+  max-width: 1000px !important;
+  width: 95%;
+}
+
+.entete-gestion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 1rem;
+}
+
+.titre-groupe {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.barre-outils {
+  display: flex;
+  gap: 10px;
+}
+
+.bouton-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-ajout-admin {
+  background-color: #ef4444;
+}
+.btn-ajout-user {
+  background-color: #3b82f6;
+}
+
+.conteneur-tableau {
+  max-height: 450px; /* Tu peux ajuster cette hauteur (ex: 400px ou 60vh) */
+  overflow: auto; /* Active la barre de défilement verticale si besoin */ /* Active la barre de défilement horizontale si besoin */
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+}
+
+.tableau-gestion {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.tableau-gestion th,
+.tableau-gestion td {
+  padding: 15px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.badge-role {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: white;
+}
+
+.bg-admin {
+  background-color: #ef4444;
+}
+.bg-user {
+  background-color: #94a3b8;
+}
+
+.btn-icone {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.btn-suppr:hover {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.bouton-retour-gestion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2rem;
+  background: none;
+  border: none;
+  color: #64748b;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Pour garder l'en-tête du tableau (Nom, Catégorie...) visible pendant le défilement */
+.tableau-gestion thead {
+  position: sticky;
+  top: 0;
+  background-color: #f8fafc;
+  z-index: 10;
+}
