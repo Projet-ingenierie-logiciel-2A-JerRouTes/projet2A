@@ -3,6 +3,8 @@
 Cette partie du projet contient l’interface utilisateur développée avec **React** et **Vite**.\
 Elle permet l’interaction avec l’API backend (FastAPI) pour l’authentification des utilisateurs et la gestion des données.
 
+[✏️ Modifier le schéma de cheminement (draw.io)](https://app.diagrams.net/?src=about#HProjet-ingenierie-logiciel-2A-JerRouTes%2Fprojet2A%2Fmain%2FDocumentation%2FImages%2FCheminement_frontend.drawio#%7B%22pageId%22%3A%22BIcJ0cg6pnKJ7ZAmj4WJ%22%7D)
+
 ______________________________________________________________________
 
 ## 🚀 Installation
