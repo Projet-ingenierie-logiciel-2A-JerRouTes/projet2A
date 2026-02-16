@@ -9,14 +9,19 @@ from src.backend.api.schemas.auth import (
     RegisterRequest,
     TokenPairResponse,
 )
+from src.backend.exceptions import (
+    InvalidPasswordError,
+    InvalidRefreshTokenError,
+    UserAlreadyExistsError,
+    UserEmailAlreadyExistsError,
+    UserNotFoundError,
+)
 from src.backend.services.auth_service import (
     AuthService,
 )
-
-# C'EST ICI QU'IL FAUT TOUT IMPORTER DEPUIS USER_SERVICE
 from src.backend.services.user_service import (
-    InvalidPasswordError,
-    UserNotFoundError,
+    # InvalidPasswordError,
+    # UserNotFoundError,
     UserService,
 )
 
@@ -30,6 +35,21 @@ def _map_service_errors(exc: Exception) -> HTTPException:
     """
     Transforme les exceptions métier en exceptions HTTP avec messages personnalisés.
     """
+    # Erreur - REGISTER
+    # Cas 1 : L'utilisateur existe déjà (409)
+    if isinstance(exc, UserAlreadyExistsError):
+        return HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Identifiant déjà utilisé",
+        )
+
+    if isinstance(exc, UserEmailAlreadyExistsError):
+        return HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Mail déjà utilisé",
+        )
+
+    # Erreur - LOGIN
     # Cas 1 : L'utilisateur n'existe pas (404)
     if isinstance(exc, UserNotFoundError):
         return HTTPException(
@@ -42,6 +62,13 @@ def _map_service_errors(exc: Exception) -> HTTPException:
         return HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Mot de passe incorrect. Veuillez réessayer.",
+        )
+
+    # Erreur - REFRESH
+    if isinstance(exc, InvalidRefreshTokenError):
+        return HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Problème dans le refresh",
         )
 
     return HTTPException(
@@ -80,6 +107,11 @@ def _auth_service() -> AuthService:
     status_code=status.HTTP_201_CREATED,
     summary="Inscription d'un nouvel utilisateur",
     response_description="Utilisateur créé avec succès, retourne les tokens de session",
+    responses={
+        409: {"description": "L'identifiant (email ou pseudo) existe déjà."},
+        422: {"description": "Format de données incorrects"},
+        500: {"description": "Erreur interne du serveur."},
+    },
 )
 def register(req: RegisterRequest, request: Request) -> TokenPairResponse:
     """
@@ -114,6 +146,12 @@ def register(req: RegisterRequest, request: Request) -> TokenPairResponse:
     response_model=TokenPairResponse,
     summary="Connexion utilisateur",
     response_description="Retourne les tokens JWT (access et refresh) et le profil utilisateur",
+    responses={
+        404: {"description": "L'identifiant (email ou pseudo) n'existe pas."},
+        401: {"description": "Le mot de passe est incorrect."},
+        422: {"description": "Format de données incorrects"},
+        500: {"description": "Erreur interne du serveur."},
+    },
 )
 def login(req: LoginRequest, request: Request) -> TokenPairResponse:
     """
@@ -145,6 +183,11 @@ def login(req: LoginRequest, request: Request) -> TokenPairResponse:
     response_model=TokenPairResponse,
     summary="Renouvellement du token d'accès",
     response_description="Nouveau couple de tokens (Access & Refresh)",
+    responses={
+        401: {"description": "Problème dans le refresh"},
+        422: {"description": "Format de données incorrects"},
+        500: {"description": "Erreur interne du serveur."},
+    },
 )
 def refresh(req: RefreshRequest) -> TokenPairResponse:
     """

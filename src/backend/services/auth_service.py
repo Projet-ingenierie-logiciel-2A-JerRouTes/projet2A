@@ -7,26 +7,30 @@ import secrets
 
 from src.backend.dao.session_dao import SessionDAO
 from src.backend.dao.user_dao import UserDAO
+
+# ---------------------------------------------------------------------
+# Exceptions -> gerer dans src.backend.exceptions.py
+# ---------------------------------------------------------------------
+from src.backend.exceptions import (
+    InvalidPasswordError,
+    InvalidRefreshTokenError,
+    UserNotFoundError,
+)
 from src.backend.utils.jwt_utils import encode_jwt
 from src.backend.utils.log_decorator import log
 from src.backend.utils.securite import check_password
 
 
-# ---------------------------------------------------------------------
-# Exceptions
-# ---------------------------------------------------------------------
+# class AuthServiceError(Exception):
+#    pass
 
 
-class AuthServiceError(Exception):
-    pass
+# class InvalidCredentialsError(AuthServiceError):
+#    pass
 
 
-class InvalidCredentialsError(AuthServiceError):
-    pass
-
-
-class InvalidRefreshTokenError(AuthServiceError):
-    pass
+# class InvalidRefreshTokenError(AuthServiceError):
+#    pass
 
 
 # ---------------------------------------------------------------------
@@ -109,11 +113,11 @@ class AuthService:
             row = self._user_dao.get_user_row_by_username(login)
 
         if row is None:
-            raise InvalidCredentialsError("Identifiants invalides.")
+            raise UserNotFoundError("Identifiants invalides.")
 
         # 2) vérifier le mot de passe
         if not check_password(password, row.password_hash):
-            raise InvalidCredentialsError("Identifiants invalides.")
+            raise InvalidPasswordError("Identifiants invalides.")
 
         # 3) créer session + refresh token
         refresh = self._new_refresh_token()

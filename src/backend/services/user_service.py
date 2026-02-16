@@ -4,37 +4,40 @@ from dataclasses import dataclass
 
 from src.backend.business_objects.user import User
 from src.backend.dao.user_dao import UserDAO, UserRow
-from src.backend.utils.log_decorator import log
-from src.backend.utils.securite import check_password, hash_password
-
 
 # ---------------------------------------------------------------------
 # Exceptions "métier"
 # ---------------------------------------------------------------------
+from src.backend.exceptions import (
+    InvalidPasswordError,
+    UserAlreadyExistsError,
+    UserEmailAlreadyExistsError,
+    UserNotFoundError,
+)
+from src.backend.utils.log_decorator import log
+from src.backend.utils.securite import check_password, hash_password
 
 
 class UserServiceError(Exception):
     """Base des erreurs du service user."""
 
 
-class UserAlreadyExistsError(UserServiceError):
-    """Email ou username déjà utilisé."""
+# class UserAlreadyExistsError(UserServiceError):
+#    """Email ou username déjà utilisé."""
 
 
 class InvalidCredentialsError(UserServiceError):
     """Identifiants invalides."""
 
 
-class UserNotFoundError(UserServiceError):
-    """Utilisateur introuvable."""
+# class UserNotFoundError(UserServiceError):
+#    """Utilisateur introuvable."""
+#    pass
 
-    pass
 
-
-class InvalidPasswordError(Exception):
-    """Exception levée quand le mot de passe est incorrect."""
-
-    pass
+# class InvalidPasswordError(Exception):
+#    """Exception levée quand le mot de passe est incorrect."""
+#    pass
 
 
 # ---------------------------------------------------------------------
@@ -102,7 +105,7 @@ class UserService:
     ) -> User:
         # Unicité métier : username + email
         if self._user_dao.get_user_row_by_email(email) is not None:
-            raise UserAlreadyExistsError("Email déjà utilisé.")
+            raise UserEmailAlreadyExistsError("Email déjà utilisé.")
         if self._user_dao.get_user_row_by_username(username) is not None:
             raise UserAlreadyExistsError("Nom d’utilisateur déjà utilisé.")
 
@@ -126,13 +129,12 @@ class UserService:
         if row is None:
             row = self._user_dao.get_user_row_by_username(login)
 
+        # 1) Vérification de l'existance du user
         if row is None:
-            # ICI : L'identifiant n'existe pas
             raise UserNotFoundError(f"L'identifiant '{login}' est inconnu.")
 
         # 2) Vérification du mot de passe
         if not check_password(password, row.password_hash):
-            # CHANGEMENT ICI : On utilise InvalidPasswordError au lieu de InvalidCredentialsError
             raise InvalidPasswordError("Le mot de passe saisi est incorrect.")
 
         # 3) Récupération de l'objet métier
