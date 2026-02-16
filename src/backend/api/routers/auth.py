@@ -70,20 +70,36 @@ def register(req: RegisterRequest, request: Request) -> TokenPairResponse:
     )
 
 
-@router.post("/login", response_model=TokenPairResponse)
+@router.post(
+    "/login",
+    response_model=TokenPairResponse,
+    summary="Connexion utilisateur",
+    response_description="Retourne les tokens JWT (access et refresh) et le profil utilisateur",
+)
+# @router.post("/login", response_model=TokenPairResponse)
 def login(req: LoginRequest, request: Request) -> TokenPairResponse:
+    """
+    Authentifie un utilisateur et génère une session sécurisée.
+
+    - **login**: Pseudo ou Email de l'utilisateur
+    - **password**: Mot de passe en clair (sera vérifié via bcrypt ou check_password)
+
+    Le serveur récupère automatiquement l'IP et le User-Agent pour sécuriser la session.
+    """
     auth_service = _auth_service()
 
     ip = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")
 
     try:
+        # Appel au service qui gère maintenant les modes Démo et Réel
         tokens = auth_service.login(
             login=req.login,
             password=req.password,
             ip=ip,
             user_agent=user_agent,
         )
+
     except InvalidCredentialsError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
 

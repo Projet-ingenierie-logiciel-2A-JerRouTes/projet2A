@@ -7,7 +7,7 @@ import { setTokens, clearTokens } from "./tokenStorage";
  */
 export async function login_v2(credentials) {
   // Envoie : { login_v2: "pseudo", password: "..." }
-  const res = await API.post("/api/auth/login_v2", credentials);
+  const res = await API.post("/api/auth/login", credentials);
 
   if (res.data) {
     // On stocke les tokens
