@@ -7,17 +7,33 @@ from src.backend.api.schemas.ingredients import IngredientCreateIn, IngredientOu
 from src.backend.dao.ingredient_dao import IngredientDAO
 
 
-router = APIRouter(prefix="/ingredients", tags=["ingredients"])
+router = APIRouter(prefix="/api/ingredients", tags=["ingredients"])
 
+# ==========================================================
+# LISTE DES INGRÉDIENTS
+# ==========================================================
 
 @router.get("", response_model=list[IngredientOut])
 def list_ingredients(
     _cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
 ):
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Route non implémentée: ajouter IngredientDAO.list_ingredients().",
-    )
+    """
+    Retourne la liste complète des ingrédients disponibles.
+    Accessible à tout utilisateur authentifié.
+    """
+    dao = IngredientDAO()
+    ingredients = dao.list_ingredients(with_tags=True)
+
+    return [
+        IngredientOut(
+            ingredient_id=ing.id_ingredient,
+            name=ing.name,
+            unit=ing.unit.value,  # Enum → string
+            tag_ids=ing.id_tags,
+        )
+        for ing in ingredients
+    ]
+
 
 
 @router.post("", response_model=IngredientOut)

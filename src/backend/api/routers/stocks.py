@@ -22,7 +22,7 @@ from src.backend.services.stock_service import (
 )
 
 
-router = APIRouter(prefix="/stocks", tags=["stocks"])
+router = APIRouter(prefix="/api/stocks", tags=["stocks"])
 
 
 def _map_service_errors(exc: Exception) -> HTTPException:

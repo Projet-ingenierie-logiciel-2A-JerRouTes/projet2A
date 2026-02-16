@@ -257,3 +257,50 @@ class IngredientDAO:
         except Exception:
             conn.rollback()
             raise
+
+
+    @log
+    def list_ingredients(self, with_tags: bool = True) -> list[Ingredient]:
+        """
+        Récupère la liste complète des ingrédients présents en base.
+
+        Args:
+            with_tags (bool):
+                Si True, charge également les identifiants des tags associés
+                à chaque ingrédient.
+
+        Returns:
+            list[Ingredient]:
+                Liste d'objets métier Ingredient triés par nom.
+        """
+        # Connexion à la base via le singleton DBConnection
+        conn = DBConnection().connection
+
+        with conn.cursor() as cur:
+            # On récupère tous les ingrédients
+            cur.execute(
+                """
+                SELECT ingredient_id, name, unit
+                FROM ingredient
+                ORDER BY name ASC
+                """
+            )
+
+            rows = cur.fetchall()
+
+            ingredients: list[Ingredient] = []
+
+            # Transformation des lignes SQL en objets métier
+            for r in rows:
+                row_obj = IngredientRow(**r)
+
+                # Chargement optionnel des tags associés
+                tags = (
+                    self._get_tag_ids(cur, row_obj.ingredient_id)
+                    if with_tags
+                    else []
+                )
+
+                ingredients.append(self._row_to_bo(row_obj, tags))
+
+            return ingredients

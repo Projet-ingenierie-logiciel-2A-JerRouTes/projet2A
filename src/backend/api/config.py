@@ -17,7 +17,7 @@ class Settings:
     )
 
     # Durées de vie des tokens
-    access_ttl_minutes: int = int(os.getenv("ACCESS_TTL_MINUTES", "15"))
+    access_ttl_minutes: int = int(os.getenv("ACCESS_TTL_MINUTES", "60"))
     refresh_ttl_days: int = int(os.getenv("REFRESH_TTL_DAYS", "7"))
 
     # CORS (frontend local par défaut)

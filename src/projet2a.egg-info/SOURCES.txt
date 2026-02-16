@@ -77,7 +77,6 @@ src/backend/utils/log_init.py
 src/backend/utils/reset_database.py
 src/backend/utils/securite.py
 src/backend/utils/singleton.py
-src/frontend/node_modules/flatted/python/flatted.py
 src/frontend/src/main_frontend.py
 src/frontend/src/seed_data.py
 src/projet2a.egg-info/PKG-INFO
