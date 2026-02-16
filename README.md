@@ -212,6 +212,7 @@ ______________________________________________________________________
 - [Architecture & Cohérence des Données](Backlog/BacklogArchi.md)
 - [FrontEnd](Backlog/BacklogFront.md)
 - [BackEnd](Backlog/BacklogBack.md)
+- [DAO](Backlog/BacklogDAO.md)
 
 ______________________________________________________________________
 
