@@ -71,14 +71,13 @@ class UserService:
     # --------------------------------------------------------------
 
     @log
-    def get_all_users(self) -> list[User]:
+    def get_all_users(self, limit: int | None = None) -> list[User]:
         """
-        Récupère la liste complète des utilisateurs.
-        Gère le mode démo et le mode réel via le DAO.
+        Récupère la liste des utilisateurs.
+
+        :param limit: Nombre maximal d'utilisateurs à récupérer (optionnel)
         """
-        # Cette méthode doit être implémentée dans ton UserDAO
-        users = self._user_dao.get_all_users()
-        return users
+        return self._user_dao.get_all_users(limit=limit)
 
     # --------------------------------------------------------------
     # Inscription / Auth
