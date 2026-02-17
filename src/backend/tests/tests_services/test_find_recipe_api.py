@@ -9,6 +9,7 @@ Ces tests valident :
 from __future__ import annotations
 
 from src.backend.business_objects.recipe import Recipe
+from src.backend.business_objects.user import GenericUser
 from src.backend.services.find_recipe import IngredientSearchQuery
 from src.backend.services.find_recipe_api import ApiFindRecipe
 
@@ -131,9 +132,17 @@ class FakeRecipeDAO:
             Recipe: Recette créée (avec un id local).
         """
         new_id = 1000 + len(self._db)
+
+        uid = int(fk_user_id or 0)
+        creator = GenericUser(
+            id_user=uid,
+            pseudo=f"user{uid}" if uid != 0 else "system",
+            password="____",
+        )
+
         recipe = Recipe(
             recipe_id=new_id,
-            creator_id=fk_user_id or 0,
+            creator=creator,
             status=status or "draft",
             prep_time=int(prep_time or 0),
             portions=int(portion or 1),

@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from src.backend.business_objects.recipe import Recipe
+from src.backend.business_objects.user import GenericUser
 from src.backend.dao.db_connection import DBConnection
 from src.backend.utils.log_decorator import log
 
@@ -45,9 +46,17 @@ class RecipeDAO:
     ) -> Recipe:
         """Transforme une ligne BDD (+ relations) en objet métier `Recipe`."""
 
+        user_id = int(row.fk_user_id or 0)
+
+        creator = GenericUser(
+            id_user=user_id,
+            pseudo=f"user{user_id}" if user_id != 0 else "system",
+            password="____",
+        )
+
         recipe = Recipe(
             recipe_id=row.recipe_id,
-            creator_id=row.fk_user_id or 0,
+            creator=creator,
             status=row.status or "draft",
             prep_time=row.prep_time or 0,
             portions=row.portion or 1,
