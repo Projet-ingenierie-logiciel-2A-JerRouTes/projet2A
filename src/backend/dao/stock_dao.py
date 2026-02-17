@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any
 
-from src.backend.business_objects.stock import Stock
-from src.backend.dao.db_connection import DBConnection
-from src.backend.utils.log_decorator import log
+from business_objects.stock import Stock
+from dao.db_connection import DBConnection
+from utils.log_decorator import log
 
 
 @dataclass(frozen=True, slots=True)

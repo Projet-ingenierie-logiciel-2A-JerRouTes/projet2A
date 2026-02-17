@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 import hashlib
 
-from src.backend.dao.session_dao import SessionDAO
+from dao.session_dao import SessionDAO
 
 
 # ---------------------------------------------------------------------

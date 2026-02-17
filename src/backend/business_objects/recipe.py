@@ -1,4 +1,4 @@
-from src.backend.business_objects.user import User
+from business_objects.user import User
 
 
 class Recipe:

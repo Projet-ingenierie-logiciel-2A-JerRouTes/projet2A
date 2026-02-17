@@ -1,4 +1,4 @@
-from src.backend.business_objects.unit import Unit
+from business_objects.unit import Unit
 
 
 class Ingredient:

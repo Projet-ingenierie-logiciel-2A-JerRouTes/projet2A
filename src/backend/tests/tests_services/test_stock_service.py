@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from datetime import date
 
 import pytest
-from src.backend.services.stock_service import (
+
+from services.stock_service import (
     ConsumeResult,
     ForbiddenError,
     NotFoundError,
@@ -42,7 +43,7 @@ def mock_db_ownership(mocker):
     db = mocker.Mock(name="DBConnectionInstance")
     db.connection = conn
 
-    mocker.patch("src.backend.services.stock_service.DBConnection", return_value=db)
+    mocker.patch("services.stock_service.DBConnection", return_value=db)
 
     return conn, cur
 

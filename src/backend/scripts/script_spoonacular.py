@@ -2,7 +2,8 @@ import os
 
 from deep_translator import GoogleTranslator
 from dotenv import load_dotenv
-from src.backend.clients.spoonacular_client import fetch_detailed_recipes_by_ingredients
+
+from clients.spoonacular_client import fetch_detailed_recipes_by_ingredients
 
 
 def _translate(text: str, *, target: str = "fr") -> str:

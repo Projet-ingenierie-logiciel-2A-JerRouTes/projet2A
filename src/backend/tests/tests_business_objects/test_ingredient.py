@@ -1,6 +1,7 @@
 import pytest
-from src.backend.business_objects.ingredient import Ingredient
-from src.backend.business_objects.unit import Unit
+
+from business_objects.ingredient import Ingredient
+from business_objects.unit import Unit
 
 
 # ---------------------------

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import pytest
-from src.backend.services.find_recipe import IngredientSearchQuery
-from src.backend.services.find_recipe_db import DbFindRecipe
+
+from services.find_recipe import IngredientSearchQuery
+from services.find_recipe_db import DbFindRecipe
 
 
 @pytest.fixture
@@ -21,7 +22,7 @@ def service(dao) -> DbFindRecipe:
 
 
 def test_get_by_id_returns_none_when_not_found(service, dao, mocker):
-    recipe_cls = mocker.patch("src.backend.services.find_recipe_db.Recipe")
+    recipe_cls = mocker.patch("services.find_recipe_db.Recipe")
 
     dao.get_recipe_by_id.return_value = None
 
@@ -33,8 +34,8 @@ def test_get_by_id_returns_none_when_not_found(service, dao, mocker):
 
 
 def test_get_by_id_maps_row_to_recipe(service, dao, mocker):
-    recipe_cls = mocker.patch("src.backend.services.find_recipe_db.Recipe")
-    user_cls = mocker.patch("src.backend.services.find_recipe_db.GenericUser")
+    recipe_cls = mocker.patch("services.find_recipe_db.Recipe")
+    user_cls = mocker.patch("services.find_recipe_db.GenericUser")
     fake_user = user_cls.return_value
 
     dao.get_recipe_by_id.return_value = {
@@ -65,8 +66,8 @@ def test_get_by_id_maps_row_to_recipe(service, dao, mocker):
 
 
 def test_get_by_id_casts_types(service, dao, mocker):
-    recipe_cls = mocker.patch("src.backend.services.find_recipe_db.Recipe")
-    user_cls = mocker.patch("src.backend.services.find_recipe_db.GenericUser")
+    recipe_cls = mocker.patch("services.find_recipe_db.Recipe")
+    user_cls = mocker.patch("services.find_recipe_db.GenericUser")
     fake_user = user_cls.return_value
 
     dao.get_recipe_by_id.return_value = {
@@ -102,7 +103,7 @@ def test_get_by_id_casts_types(service, dao, mocker):
 def test_search_by_ingredients_returns_empty_when_no_valid_ingredients(
     service, dao, mocker
 ):
-    recipe_cls = mocker.patch("src.backend.services.find_recipe_db.Recipe")
+    recipe_cls = mocker.patch("services.find_recipe_db.Recipe")
 
     q1 = IngredientSearchQuery(ingredients=[])
     q2 = IngredientSearchQuery(ingredients=["", "   ", "\n"])
@@ -115,7 +116,7 @@ def test_search_by_ingredients_returns_empty_when_no_valid_ingredients(
 
 
 def test_search_by_ingredients_normalizes_and_calls_dao(service, dao, mocker):
-    recipe_cls = mocker.patch("src.backend.services.find_recipe_db.Recipe")
+    recipe_cls = mocker.patch("services.find_recipe_db.Recipe")
 
     dao.find_recipes_by_ingredients.return_value = []
 
@@ -135,8 +136,8 @@ def test_search_by_ingredients_normalizes_and_calls_dao(service, dao, mocker):
 
 
 def test_search_by_ingredients_maps_rows_to_recipes(service, dao, mocker):
-    recipe_cls = mocker.patch("src.backend.services.find_recipe_db.Recipe")
-    user_cls = mocker.patch("src.backend.services.find_recipe_db.GenericUser")
+    recipe_cls = mocker.patch("services.find_recipe_db.Recipe")
+    user_cls = mocker.patch("services.find_recipe_db.GenericUser")
     fake_user = user_cls.return_value
 
     dao.find_recipes_by_ingredients.return_value = [
@@ -175,8 +176,8 @@ def test_search_by_ingredients_maps_rows_to_recipes(service, dao, mocker):
 
 
 def test_search_by_ingredients_casts_types(service, dao, mocker):
-    recipe_cls = mocker.patch("src.backend.services.find_recipe_db.Recipe")
-    user_cls = mocker.patch("src.backend.services.find_recipe_db.GenericUser")
+    recipe_cls = mocker.patch("services.find_recipe_db.Recipe")
+    user_cls = mocker.patch("services.find_recipe_db.GenericUser")
     fake_user = user_cls.return_value
 
     dao.find_recipes_by_ingredients.return_value = [

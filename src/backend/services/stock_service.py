@@ -3,11 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 
-from src.backend.dao.db_connection import DBConnection
-from src.backend.dao.ingredient_dao import IngredientDAO
-from src.backend.dao.stock_dao import StockDAO
-from src.backend.dao.stock_item_dao import StockItemDAO, StockItemRow
-from src.backend.utils.log_decorator import log
+from dao.db_connection import DBConnection
+from dao.ingredient_dao import IngredientDAO
+from dao.stock_dao import StockDAO
+from dao.stock_item_dao import StockItemDAO, StockItemRow
+from utils.log_decorator import log
 
 
 class StockServiceError(Exception):

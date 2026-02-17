@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from src.backend.business_objects.recipe import Recipe
-from src.backend.services.find_recipe import FindRecipe, IngredientSearchQuery
+from business_objects.recipe import Recipe
+from services.find_recipe import FindRecipe, IngredientSearchQuery
 
 
 """Factory / façade unifiée de recherche de recettes.

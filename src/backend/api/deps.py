@@ -5,10 +5,10 @@ from dataclasses import dataclass
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from src.backend.api.config import settings
-from src.backend.services.stock_service import StockService
-from src.backend.services.user_service import UserNotFoundError, UserService
-from src.backend.utils.jwt_utils import (
+from api.config import settings
+from services.stock_service import StockService
+from services.user_service import UserNotFoundError, UserService
+from utils.jwt_utils import (
     JWTExpiredError,
     JWTInvalidTokenError,
     JWTIssuerError,

@@ -2,16 +2,16 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from src.backend.api.config import settings
-from src.backend.api.deps import CurrentUser, get_current_user_checked_exists
-from src.backend.api.schemas.users import (
+from api.config import settings
+from api.deps import CurrentUser, get_current_user_checked_exists
+from api.schemas.users import (
     ChangePasswordRequest,
     MeResponse,
     UpdateMeRequest,
     UserPublic,
 )
-from src.backend.services.auth_service import AuthService
-from src.backend.services.user_service import (
+from services.auth_service import AuthService
+from services.user_service import (
     InvalidCredentialsError,
     UserAlreadyExistsError,
     UserNotFoundError,

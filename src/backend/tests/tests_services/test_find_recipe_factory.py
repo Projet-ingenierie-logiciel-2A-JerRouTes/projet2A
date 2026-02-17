@@ -3,10 +3,11 @@ from __future__ import annotations
 from unittest.mock import Mock
 
 import pytest
-from src.backend.business_objects.recipe import Recipe
-from src.backend.business_objects.user import GenericUser
-from src.backend.services.find_recipe import IngredientSearchQuery
-from src.backend.services.find_recipe_factory import FindRecipeFactory
+
+from business_objects.recipe import Recipe
+from business_objects.user import GenericUser
+from services.find_recipe import IngredientSearchQuery
+from services.find_recipe_factory import FindRecipeFactory
 
 
 @pytest.fixture

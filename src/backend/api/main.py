@@ -7,14 +7,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
-from src.backend.api.config import settings
-from src.backend.api.routers.auth import router as auth_router
-from src.backend.api.routers.ingredients import router as ingredients_router
-from src.backend.api.routers.stocks import router as stocks_router
-from src.backend.api.routers.users import router as users_router
+from api.config import settings
+from api.routers.auth import router as auth_router
+from api.routers.ingredients import router as ingredients_router
+from api.routers.stocks import router as stocks_router
+from api.routers.users import router as users_router
 
 
-# from src.backend.api.routers.recipes import router as recipes_router  # futur
+# from api.routers.recipes import router as recipes_router  # futur
 
 
 app = FastAPI(title=settings.app_name)

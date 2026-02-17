@@ -2,24 +2,24 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request, status
 
-from src.backend.api.config import settings
-from src.backend.api.schemas.auth import (
+from api.config import settings
+from api.schemas.auth import (
     LoginRequest,
     RefreshRequest,
     RegisterRequest,
     TokenPairResponse,
 )
-from src.backend.exceptions import (
+from exceptions import (
     InvalidPasswordError,
     InvalidRefreshTokenError,
     UserAlreadyExistsError,
     UserEmailAlreadyExistsError,
     UserNotFoundError,
 )
-from src.backend.services.auth_service import (
+from services.auth_service import (
     AuthService,
 )
-from src.backend.services.user_service import (
+from services.user_service import (
     # InvalidPasswordError,
     # UserNotFoundError,
     UserService,

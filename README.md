@@ -158,7 +158,7 @@ sudo docker compose up -d
 #### 2️⃣ Lancer le backend
 
 ```bash
-uv run uvicorn src.backend.api.main:app --reload
+uv run uvicorn api.main:app --reload
 ```
 
 Backend accessible sur :\

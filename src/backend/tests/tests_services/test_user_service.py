@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import pytest
-from src.backend.business_objects.user import GenericUser
-from src.backend.services.user_service import (
+
+from business_objects.user import GenericUser
+from services.user_service import (
     AuthResult,
     InvalidCredentialsError,
     UserAlreadyExistsError,
+    UserEmailAlreadyExistsError,
     UserNotFoundError,
     UserService,
 )
@@ -109,9 +111,7 @@ def test_register_ok(service, mock_dao, mocker):
     mock_dao.get_user_row_by_username.return_value = None
 
     # mock hash_password
-    mocker.patch(
-        "src.backend.services.user_service.hash_password", return_value="HASHED"
-    )
+    mocker.patch("services.user_service.hash_password", return_value="HASHED")
 
     created_user = GenericUser(10, "alice", "HASHED")
     mock_dao.create_user.return_value = created_user
@@ -135,9 +135,9 @@ def test_register_email_already_used(service, mock_dao, mocker):
     )
     mock_dao.get_user_row_by_username.return_value = None
 
-    mock_hash = mocker.patch("src.backend.services.user_service.hash_password")
+    mock_hash = mocker.patch("services.user_service.hash_password")
 
-    with pytest.raises(UserAlreadyExistsError):
+    with pytest.raises(UserEmailAlreadyExistsError):
         service.register(username="alice", email="alice@example.com", password="x")
 
     mock_hash.assert_not_called()
@@ -148,7 +148,7 @@ def test_register_username_already_used(service, mock_dao, mocker):
     mock_dao.get_user_row_by_email.return_value = None
     mock_dao.get_user_row_by_username.return_value = make_user_row(username="alice")
 
-    mock_hash = mocker.patch("src.backend.services.user_service.hash_password")
+    mock_hash = mocker.patch("services.user_service.hash_password")
 
     with pytest.raises(UserAlreadyExistsError):
         service.register(username="alice", email="alice@example.com", password="x")
@@ -170,7 +170,7 @@ def test_authenticate_with_email_ok(service, mock_dao, mocker):
     mock_dao.get_user_row_by_username.return_value = None  # pas utilisé
     mock_dao.get_user_by_id.return_value = GenericUser(3, "alice", "HASH")
 
-    mocker.patch("src.backend.services.user_service.check_password", return_value=True)
+    mocker.patch("services.user_service.check_password", return_value=True)
 
     res = service.authenticate(login="alice@example.com", password="Azerty123!")
 
@@ -191,7 +191,7 @@ def test_authenticate_with_username_ok(service, mock_dao, mocker):
     mock_dao.get_user_row_by_username.return_value = row
     mock_dao.get_user_by_id.return_value = GenericUser(4, "bob", "HASH")
 
-    mocker.patch("src.backend.services.user_service.check_password", return_value=True)
+    mocker.patch("services.user_service.check_password", return_value=True)
 
     res = service.authenticate(login="bob", password="Azerty123!")
 
@@ -205,7 +205,7 @@ def test_authenticate_user_not_found(service, mock_dao, mocker):
     mock_dao.get_user_row_by_email.return_value = None
     mock_dao.get_user_row_by_username.return_value = None
 
-    mocker.patch("src.backend.services.user_service.check_password", return_value=True)
+    mocker.patch("services.user_service.check_password", return_value=True)
 
     with pytest.raises(InvalidCredentialsError):
         service.authenticate(login="nope", password="x")
@@ -220,7 +220,7 @@ def test_authenticate_bad_password(service, mock_dao, mocker):
     mock_dao.get_user_row_by_email.return_value = row
     mock_dao.get_user_row_by_username.return_value = None
 
-    mocker.patch("src.backend.services.user_service.check_password", return_value=False)
+    mocker.patch("services.user_service.check_password", return_value=False)
 
     with pytest.raises(InvalidCredentialsError):
         service.authenticate(login="alice@example.com", password="wrong")
@@ -236,7 +236,7 @@ def test_authenticate_inconsistent_db_user_missing(service, mock_dao, mocker):
     mock_dao.get_user_row_by_username.return_value = None
     mock_dao.get_user_by_id.return_value = None
 
-    mocker.patch("src.backend.services.user_service.check_password", return_value=True)
+    mocker.patch("services.user_service.check_password", return_value=True)
 
     with pytest.raises(UserNotFoundError):
         service.authenticate(login="alice@example.com", password="Azerty123!")
@@ -303,10 +303,8 @@ def test_change_password_ok(service, mock_dao, mocker):
     row = make_user_row(user_id=1, password_hash="OLD_HASH")
     mock_dao.get_user_row_by_id.return_value = row
 
-    mocker.patch("src.backend.services.user_service.check_password", return_value=True)
-    mocker.patch(
-        "src.backend.services.user_service.hash_password", return_value="NEW_HASH"
-    )
+    mocker.patch("services.user_service.check_password", return_value=True)
+    mocker.patch("services.user_service.hash_password", return_value="NEW_HASH")
 
     mock_dao.update_user.return_value = GenericUser(1, "alice", "NEW_HASH")
 
@@ -319,8 +317,8 @@ def test_change_password_wrong_old_password(service, mock_dao, mocker):
     row = make_user_row(user_id=1, password_hash="OLD_HASH")
     mock_dao.get_user_row_by_id.return_value = row
 
-    mocker.patch("src.backend.services.user_service.check_password", return_value=False)
-    mock_hash = mocker.patch("src.backend.services.user_service.hash_password")
+    mocker.patch("services.user_service.check_password", return_value=False)
+    mock_hash = mocker.patch("services.user_service.hash_password")
 
     with pytest.raises(InvalidCredentialsError):
         service.change_password(user_id=1, old_password="wrong", new_password="new")
@@ -331,7 +329,7 @@ def test_change_password_wrong_old_password(service, mock_dao, mocker):
 
 def test_change_password_user_not_found(service, mock_dao, mocker):
     mock_dao.get_user_row_by_id.return_value = None
-    mocker.patch("src.backend.services.user_service.check_password", return_value=True)
+    mocker.patch("services.user_service.check_password", return_value=True)
 
     with pytest.raises(UserNotFoundError):
         service.change_password(user_id=999, old_password="x", new_password="y")
@@ -343,10 +341,8 @@ def test_change_password_update_returns_none(service, mock_dao, mocker):
     row = make_user_row(user_id=1, password_hash="OLD_HASH")
     mock_dao.get_user_row_by_id.return_value = row
 
-    mocker.patch("src.backend.services.user_service.check_password", return_value=True)
-    mocker.patch(
-        "src.backend.services.user_service.hash_password", return_value="NEW_HASH"
-    )
+    mocker.patch("services.user_service.check_password", return_value=True)
+    mocker.patch("services.user_service.hash_password", return_value="NEW_HASH")
 
     mock_dao.update_user.return_value = None
 

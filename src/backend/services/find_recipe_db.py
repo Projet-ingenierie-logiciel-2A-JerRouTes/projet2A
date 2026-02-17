@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from src.backend.business_objects.recipe import Recipe
-from src.backend.business_objects.user import GenericUser
-from src.backend.services.find_recipe import FindRecipe, IngredientSearchQuery
+from business_objects.recipe import Recipe
+from business_objects.user import GenericUser
+from services.find_recipe import FindRecipe, IngredientSearchQuery
 
 
 class RecipeDao(Protocol):

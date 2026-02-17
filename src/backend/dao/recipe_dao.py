@@ -4,10 +4,10 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
 
-from src.backend.business_objects.recipe import Recipe
-from src.backend.business_objects.user import GenericUser
-from src.backend.dao.db_connection import DBConnection
-from src.backend.utils.log_decorator import log
+from business_objects.recipe import Recipe
+from business_objects.user import GenericUser
+from dao.db_connection import DBConnection
+from utils.log_decorator import log
 
 
 @dataclass(frozen=True, slots=True)

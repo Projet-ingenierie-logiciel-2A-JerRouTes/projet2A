@@ -5,9 +5,10 @@ from datetime import date
 
 from fastapi.testclient import TestClient
 import pytest
-from src.backend.api.deps import get_current_user_checked_exists, get_stock_service
-from src.backend.api.main import app
-from src.backend.services.stock_service import (
+
+from api.deps import get_current_user_checked_exists, get_stock_service
+from api.main import app
+from services.stock_service import (
     ForbiddenError,
     NotFoundError,
     ValidationError,
@@ -105,7 +106,7 @@ def test_list_my_stocks_ok(client, auth_user_override, mocker):
         FakeStock(id_stock=1, nom="Cuisine"),
         FakeStock(id_stock=2, nom="Garage"),
     ]
-    mocker.patch("src.backend.dao.stock_dao.StockDAO", return_value=stock_dao_instance)
+    mocker.patch("dao.stock_dao.StockDAO", return_value=stock_dao_instance)
 
     resp = client.get("/stocks")
     assert resp.status_code == 200

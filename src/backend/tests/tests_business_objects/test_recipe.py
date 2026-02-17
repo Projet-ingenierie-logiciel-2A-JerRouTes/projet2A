@@ -1,6 +1,7 @@
 import pytest
-from src.backend.business_objects.recipe import Recipe
-from src.backend.business_objects.user import GenericUser
+
+from business_objects.recipe import Recipe
+from business_objects.user import GenericUser
 
 
 # ---------------------------

@@ -8,10 +8,10 @@ Ces tests valident :
 
 from __future__ import annotations
 
-from src.backend.business_objects.recipe import Recipe
-from src.backend.business_objects.user import GenericUser
-from src.backend.services.find_recipe import IngredientSearchQuery
-from src.backend.services.find_recipe_api import ApiFindRecipe
+from business_objects.recipe import Recipe
+from business_objects.user import GenericUser
+from services.find_recipe import IngredientSearchQuery
+from services.find_recipe_api import ApiFindRecipe
 
 
 # -------------------------
@@ -173,7 +173,7 @@ def test_search_by_ingredients_without_dao_returns_bo(monkeypatch):
         ]
 
     monkeypatch.setattr(
-        "src.backend.services.find_recipe_api.fetch_detailed_recipes_by_ingredients",
+        "services.find_recipe_api.fetch_detailed_recipes_by_ingredients",
         fake_fetch,
     )
 
@@ -205,7 +205,7 @@ def test_search_by_ingredients_with_dao_creates_in_db(monkeypatch):
         ]
 
     monkeypatch.setattr(
-        "src.backend.services.find_recipe_api.fetch_detailed_recipes_by_ingredients",
+        "services.find_recipe_api.fetch_detailed_recipes_by_ingredients",
         fake_fetch,
     )
 
@@ -234,7 +234,7 @@ def test_search_by_ingredients_with_dao_deduplicates(monkeypatch):
         ]
 
     monkeypatch.setattr(
-        "src.backend.services.find_recipe_api.fetch_detailed_recipes_by_ingredients",
+        "services.find_recipe_api.fetch_detailed_recipes_by_ingredients",
         fake_fetch,
     )
 
