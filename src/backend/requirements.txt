@@ -8,8 +8,10 @@ bcrypt
 pyyaml
 
 # --- Base de données ---
-psycopg2
+#psycopg2 -> sinon docker compose plante
 psycopg2-binary
 
 # --- Utilitaires ---
 pydantic
+
+email-validator

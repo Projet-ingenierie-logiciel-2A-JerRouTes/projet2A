@@ -18,7 +18,7 @@ class DBConnection(metaclass=Singleton):
         dotenv.load_dotenv()  # charge le fichier .env
         try:
             self.__connection = psycopg2.connect(
-                host=os.getenv("POSTGRES_HOST"),
+                host=os.getenv("POSTGRES_HOST", "db"),
                 port=os.getenv("POSTGRES_PORT"),
                 database=os.getenv("POSTGRES_DATABASE"),
                 user=os.getenv("POSTGRES_USER"),
