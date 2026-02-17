@@ -168,7 +168,7 @@ out/
 
 ### Project-specific additions (Backend/UV/Docker/IDE/OS) ###
 # UV
-# (On recommande de versionner uv.lock pour la reproductibilité)
+# (On recommande de versionner uv.lock pour la reproductibilité ?)
 # Décommente la ligne suivante si tu ne veux PAS committer uv.lock
 # uv.lock
 
