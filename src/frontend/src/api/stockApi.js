@@ -5,7 +5,7 @@ import API from "./apiClient";
  * Correspond à @app.get("/ingredients")
  */
 export async function getAllIngredients() {
-  const res = await API.get("/ingredients");
+  const res = await API.get("/api/ingredients");
   return res.data;
 }
 
@@ -14,7 +14,7 @@ export async function getAllIngredients() {
  * Correspond à @app.get("/stocks/{id_stock}")
  */
 export async function getStockDetails(idStock) {
-  const res = await API.get(`/stocks/${idStock}/lots`);
+  const res = await API.get(`/api/stocks/${idStock}/lots`);
   return res.data;
 }
 
@@ -23,7 +23,7 @@ export async function getStockDetails(idStock) {
  * Correspond à @app.get("/stocks")
  */
 export async function getAllStocks_v2() {
-  const res = await API.get("/stocks");
+  const res = await API.get("/api/stocks");
   return res.data;
 }
 
@@ -32,7 +32,7 @@ export async function getAllStocks_v2() {
  * Correspond à @app.get("/stocks")
  */
 export async function getAllStocks(user_id) {
-  const res = await API.get(`/stocks/user/${user_id}`);
+  const res = await API.get(`/api/stocks/user/${user_id}`);
   return res.data;
 }
 
@@ -41,6 +41,6 @@ export async function getAllStocks(user_id) {
  * Correspond à @app.get("/stocks/{id_stock}")
  */
 export async function getInfoStock(idStock) {
-  const res = await API.get(`/stocks/${idStock}`);
+  const res = await API.get(`/api/stocks/${idStock}`);
   return res.data;
 }

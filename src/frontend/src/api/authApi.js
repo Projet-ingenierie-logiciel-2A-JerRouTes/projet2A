@@ -5,8 +5,8 @@ import { setTokens, clearTokens } from "./tokenStorage";
  * Connexion utilisateur
  * @param {Object} credentials - Doit contenir { pseudo, password }
  */
-export async function login_v2(credentials) {
-  // Envoie : { login_v2: "pseudo", password: "..." }
+export async function login(credentials) {
+  // Envoie : { login "pseudo", password: "..." }
   const res = await API.post("/api/auth/login", credentials);
 
   if (res.data) {
@@ -23,35 +23,6 @@ export async function login_v2(credentials) {
   return res.data;
 }
 
-/**
- * Connexion utilisateur
- * @param {Object} credentials - Contient { login, password }
- * @param {boolean} is_admin - Si true, ajoute ?admin=true à la requête pour le backend
- */
-export async function login(credentials, is_admin = false) {
-  // Construction dynamique de l'URL avec le Query Parameter 'admin'
-  // Si is_admin est vrai, l'URL devient /api/auth/login?admin=true
-  const url = is_admin ? "/api/auth/login?admin=true" : "/api/auth/login";
-
-  // Envoi de la requête POST au backend
-  const res = await API.post(url, credentials);
-
-  if (res.data) {
-    // Stockage des tokens (access et refresh)
-    setTokens(res.data);
-
-    // Récupération immédiate du profil complet (pseudo, rôle, etc.)
-    const profileRes = await API.get("/api/users/me");
-
-    // Fusion des tokens et des informations utilisateur pour le state global
-    return {
-      ...res.data,
-      user: profileRes.data.user,
-    };
-  }
-
-  return res.data;
-}
 
 /**
  * Création de compte

@@ -4,29 +4,40 @@ from dataclasses import dataclass
 
 from src.backend.business_objects.user import User
 from src.backend.dao.user_dao import UserDAO, UserRow
-from src.backend.utils.log_decorator import log
-from src.backend.utils.securite import check_password, hash_password
-
 
 # ---------------------------------------------------------------------
 # Exceptions "métier"
 # ---------------------------------------------------------------------
+from src.backend.exceptions import (
+    InvalidPasswordError,
+    UserAlreadyExistsError,
+    UserEmailAlreadyExistsError,
+    UserNotFoundError,
+)
+from src.backend.utils.log_decorator import log
+from src.backend.utils.securite import check_password, hash_password
 
 
 class UserServiceError(Exception):
     """Base des erreurs du service user."""
 
 
-class UserAlreadyExistsError(UserServiceError):
-    """Email ou username déjà utilisé."""
+# class UserAlreadyExistsError(UserServiceError):
+#    """Email ou username déjà utilisé."""
 
 
 class InvalidCredentialsError(UserServiceError):
     """Identifiants invalides."""
 
 
-class UserNotFoundError(UserServiceError):
-    """Utilisateur introuvable."""
+# class UserNotFoundError(UserServiceError):
+#    """Utilisateur introuvable."""
+#    pass
+
+
+# class InvalidPasswordError(Exception):
+#    """Exception levée quand le mot de passe est incorrect."""
+#    pass
 
 
 # ---------------------------------------------------------------------
@@ -94,7 +105,7 @@ class UserService:
     ) -> User:
         # Unicité métier : username + email
         if self._user_dao.get_user_row_by_email(email) is not None:
-            raise UserAlreadyExistsError("Email déjà utilisé.")
+            raise UserEmailAlreadyExistsError("Email déjà utilisé.")
         if self._user_dao.get_user_row_by_username(username) is not None:
             raise UserAlreadyExistsError("Nom d’utilisateur déjà utilisé.")
 
@@ -111,23 +122,25 @@ class UserService:
     def authenticate(self, *, login: str, password: str) -> AuthResult:
         """
         Authentifie un user via email OU username (champ login).
+        Distingue désormais l'absence d'utilisateur du mauvais mot de passe.
         """
-        # 1) on essaie comme email
+        # 1) Recherche de l'utilisateur
         row = self._user_dao.get_user_row_by_email(login)
-
-        # 2) sinon comme username
         if row is None:
             row = self._user_dao.get_user_row_by_username(login)
 
+        # 1) Vérification de l'existance du user
         if row is None:
-            raise InvalidCredentialsError("Identifiants invalides.")
+            raise UserNotFoundError(f"L'identifiant '{login}' est inconnu.")
 
+        # 2) Vérification du mot de passe
         if not check_password(password, row.password_hash):
-            raise InvalidCredentialsError("Identifiants invalides.")
+            raise InvalidPasswordError("Le mot de passe saisi est incorrect.")
 
+        # 3) Récupération de l'objet métier
         user = self._user_dao.get_user_by_id(row.user_id)
         if user is None:
-            raise UserNotFoundError("Utilisateur introuvable.")
+            raise UserNotFoundError("Utilisateur introuvable en base de données.")
 
         return AuthResult(user=user)
 

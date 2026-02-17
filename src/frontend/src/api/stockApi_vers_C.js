@@ -5,7 +5,7 @@ import API from "./apiClient";
  * Correspond à @app.get("/api/auth/ingredients")
  */
 export async function getAllIngredients() {
-  const res = await API.get("/api/auth/ingredients");
+  const res = await API.get("/api/ingredients");
   return res.data;
 }
 
@@ -14,7 +14,7 @@ export async function getAllIngredients() {
  * Correspond à @app.get("/api/auth/stock/{id_stock}")
  */
 export async function getStockDetails(idStock) {
-  const res = await API.get(`/api/auth/stock/${idStock}`);
+  const res = await API.get(`/api/stock/${idStock}`);
   return res.data;
 }
 
@@ -23,6 +23,6 @@ export async function getStockDetails(idStock) {
  * Correspond à @app.get("/api/auth/stocks")
  */
 export async function getAllStocks() {
-  const res = await API.get("/api/auth/stocks");
+  const res = await API.get("/api/stocks");
   return res.data;
 }

@@ -127,13 +127,35 @@ ______________________________________________________________________
 - Python 3.11+
 - Docker & Docker Compose
 
-### 1️⃣ Lancer la base de données
+### Avec les conteneurs
+
+1. Etape 1 : Rendre le script exécutable
+
+```bash
+chmod +x start.sh
+```
+
+2. Etape 2 : Lancer le script
+
+```bash
+./start.sh
+```
+
+Le dashbaord est directement disponible dans votre navigateur
+
+Explication des éléments de contenerisation
+
+- [Contenerisation](Documentation/Infos_divers/contenerisation.md)
+
+### Manuellement
+
+#### 1️⃣ Lancer la base de données
 
 ```bash
 sudo docker compose up -d
 ```
 
-### 2️⃣ Lancer le backend
+#### 2️⃣ Lancer le backend
 
 ```bash
 uv run uvicorn src.backend.api.main:app --reload
@@ -142,7 +164,7 @@ uv run uvicorn src.backend.api.main:app --reload
 Backend accessible sur :\
 👉 http://127.0.0.1:8000
 
-### 3️⃣ Lancer le frontend
+#### 3️⃣ Lancer le frontend
 
 ```bash
 cd src/frontend
@@ -164,13 +186,13 @@ Exemple de variables d’environnement :
 ```env
 PYTHONPATH=src
 
-POSTGRES_HOST=localhost
+POSTGRES_HOST=db
 POSTGRES_PORT=5432
 POSTGRES_DATABASE=projet2a
+POSTGRES_DB=projet2a
 POSTGRES_USER=projet_user
 POSTGRES_PASSWORD=projet_pwd
-
-POSTGRES_SCHEMA=projet_dao
+POSTGRES_SCHEMA=projet_test_dao
 ```
 
 ### Frontend

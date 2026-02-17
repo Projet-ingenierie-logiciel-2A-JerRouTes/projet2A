@@ -1,5 +1,20 @@
 ## API
 
+### User Story : Documentation API
+
+- **Tâche** : Ajouter la documentation pour chaque endpoint
+
+- **Critères d'acceptation** :
+
+  - Chaque endpoint API à un @router détaillé
+  - Chaque endpoint API à un docstring
+
+- **Tâche en cours**
+
+  - Fait pour auth.py
+
+______________________________________________________________________
+
 ### User Story : GET stock/{id_stock} src/backend/api/routers/stocks :: get_stock_info
 
 - **Tâche** : Implémenter l'endpoint pour la partie BDD.

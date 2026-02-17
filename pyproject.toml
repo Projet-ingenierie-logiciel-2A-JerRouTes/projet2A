@@ -43,6 +43,7 @@ target-version = "py313"
 # I : Tri automatique des imports (Isort)
 # W : Avertissements de style (Warnings)
 select = ["E", "F", "I", "W"]
+ignore = ["B008"]
 
 # Dossiers à ignorer par le linter (fichiers générés ou virtuels)
 exclude = [
