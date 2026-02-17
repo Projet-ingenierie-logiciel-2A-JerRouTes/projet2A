@@ -57,10 +57,15 @@ def dashboard():
         "{{ app_name }}": settings.app_name,
         "{{ frontend_url }}": frontend_url,
         "{{ time }}": datetime.now().strftime("%H:%M:%S"),
-        "{{ data_mode_text }}": "Base de Données Réelle",  # Puisque tu ne veux plus de mode démo
-        "{{ demo_user_info }}": "PostgreSQL Active",
+        "{{ data_mode_text }}": "Base de Données Réelle (PostgreSQL)",
+        "{{ demo_user_info }}": """
+            <ul style='list-style-type: disc; margin: 10px 0; padding-left: 20px; text-align: left; color: #475569;'>
+                <li><b>admin</b> : mdpAdmin123</li>
+                <li><b>alice</b> : mdpAlice123</li>
+                <li><b>bob</b> : mdpBob123</li>
+            </ul>
+        """,
     }
-
     # Application des remplacements
     for key, value in replacements.items():
         content = content.replace(key, str(value))

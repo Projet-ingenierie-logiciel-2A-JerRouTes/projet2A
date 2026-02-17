@@ -1,11 +1,21 @@
+SET search_path TO projet_test_dao, public;
+
 -----------------------------------------------------
 -- INSERT : Users
 -----------------------------------------------------
 
+--INSERT INTO users (username, email, password_hash, status) VALUES
+--('admin', 'admin@mail.com', 'hashed_password_admin', 'admin'),
+--('alice', 'alice@mail.com', 'hashed_password_alice', 'user'),
+--('bob', 'bob@mail.com', 'hashed_password_bob', 'user');
+
 INSERT INTO users (username, email, password_hash, status) VALUES
-('admin', 'admin@mail.com', 'hashed_password_admin', 'admin'),
-('alice', 'alice@mail.com', 'hashed_password_alice', 'user'),
-('bob', 'bob@mail.com', 'hashed_password_bob', 'user');
+-- Mot de passe : mdpAdmin123 '$2b$12$3AT9XjBMYC7SSxzDMWB8SOPwo7h1kbXDGEQbIT3RQyIPE4hdW0VGm'
+('admin', 'admin@mail.com', '$2b$12$0kpkiPvqOdfvxrm1FfSxCeF5zviYlQ.ulSxYsAqEzLnNzmCahuvC.', 'admin'),
+-- Mot de passe : mdpAlice123
+('alice', 'alice@mail.com', '$2b$12$3AT9XjBMYC7SSxzDMWB8SOPwo7h1kbXDGEQbIT3RQyIPE4hdW0VGm', 'user'),
+-- Mot de passe : mdpBob123
+('bob', 'bob@mail.com', '$2b$12$.kxjZWdtgCgAnnsaWqZ3Du4izzNhWYFwRyUL.eoi9AEl2EisUiUx.', 'user');
 
 -----------------------------------------------------
 -- INSERT : Stock

@@ -101,7 +101,7 @@ services:
       
       # INITIALISATION : Chaque fichier .sql dans ./data est exécuté au PREMIER lancement.
       # Indispensable pour créer vos tables et insérer vos données de test automatiquement.
-      - ./data:/docker-entrypoint-initdb.d/
+      #- ./data:/docker-entrypoint-initdb.d/
     
     # ISOLATION & SÉCURITÉ : On s'assure que Postgres répond avant de lancer le reste.
     healthcheck:
@@ -199,17 +199,9 @@ Cette commande arrête les services et supprime les volumes anonymes (ce qui vid
 sudo docker compose down -v
 ```
 
-2. Vider le cache de construction (Build Cache)
+2. Nettoyage global
 
-C'est souvent ici que les erreurs persistent. Cette commande supprime toutes les couches de construction inutilisées :
-
-```bash
-sudo docker builder prune -f
-```
-
-3. Nettoyage global (Optionnel mais recommandé)
-
-Si tu veux libérer un maximum d'espace et supprimer tout ce qui n'est pas utilisé (images orphelines, réseaux) :
+Pour libérer un maximum d'espace et supprimer tout ce qui n'est pas utilisé (images orphelines, réseaux) :
 
 ```bash
 sudo docker system prune -a --volumes -f
@@ -250,4 +242,7 @@ sudo docker compose logs backend
 
 # Pour le frontend
 sudo docker compose logs frontend
+
+# Pour le postgrey
+sudo docker compose logs projet2a_postgres
 ```
