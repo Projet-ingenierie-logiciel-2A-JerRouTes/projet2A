@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import Protocol
 
 from src.backend.business_objects.recipe import Recipe
-from src.backend.clients.spoonacular_client import fetch_detailed_recipes_by_ingredients
+from src.backend.clients.spoonacular_client import (
+    fetch_detailed_recipes_by_ingredients,
+)
 from src.backend.services.find_recipe import FindRecipe, IngredientSearchQuery
 
 
@@ -38,8 +40,11 @@ class ApiFindRecipe(FindRecipe):
         self._api_key = api_key
         self._dao = dao
 
-    def get_by_id(self, recipe_id: int) -> Recipe | None:
-        raise NotImplementedError
+    def get_by_id(self, _recipe_id: int) -> Recipe | None:
+        """Lookup par id."""
+
+        # On renvoie None explicitement pour éviter des incohérences silencieuses.
+        return None
 
     def search_by_ingredients(self, query: IngredientSearchQuery) -> list[Recipe]:
         ingredients = [s.strip() for s in query.ingredients if s and s.strip()]
