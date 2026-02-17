@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Eye, EyeOff, LogIn, Undo2, AlertCircle } from "lucide-react";
-import { login_v2 } from "../api/authApi";
+import { Eye, EyeOff, LogIn, ShieldCheck, Undo2, AlertCircle } from "lucide-react";
+import { login } from "../api/authApi";
 import "../styles/Auth.css";
 
-const Auth = ({ on_login, on_back }) => {
+const Auth = ({ on_login, on_back, est_admin = false }) => {
   const [identifiant, set_identifiant] = useState("");
   const [mot_de_passe, set_mot_de_passe] = useState("");
   const [voir_mdp, set_voir_mdp] = useState(false);
@@ -15,37 +15,62 @@ const Auth = ({ on_login, on_back }) => {
     set_message_erreur("");
     set_est_en_chargement(true);
 
-    console.log("Données saisies :", { identifiant, mot_de_passe });
-
     try {
       const credentials = { login: identifiant, password: mot_de_passe };
-      const user_data = await login_v2(credentials);
+      
+      // On utilise la fonction login factorisée qui récupère tokens + profil
+      const user_data = await login(credentials);
 
-      console.log("Réponse du endpoint (succès) :", user_data);
+      // Vérification spécifique pour l'accès Admin
+      if (est_admin) {
+        // On vérifie le statut dans l'objet user fusionné par auth.js
+        const statut_utilisateur = user_data.user?.status; 
 
+        if (statut_utilisateur !== "admin") {
+          set_message_erreur("Compte non autorisé (pas de droit administrateur)");
+          set_est_en_chargement(false);
+          return; // Bloque la redirection
+        }
+      }
+
+      console.log(`Connexion ${est_admin ? "Admin" : "User"} réussie :`, user_data);
       on_login(user_data);
+
     } catch (error) {
-      console.error(
-        "Erreur renvoyée par le endpoint :",
-        error?.response?.data || error.message,
-      );
+      console.error("Erreur de connexion :", error);
       const status = error?.response?.status;
       const detail = error?.response?.data?.detail;
 
-      if (status === 404) set_message_erreur("Utilisateur inconnu");
-      else if (status === 401) set_message_erreur("Mot de passe incorrect");
-      else set_message_erreur(detail || "Erreur de connexion");
+      if (status === 404) {
+        set_message_erreur(est_admin ? "Administrateur inconnu" : "Utilisateur inconnu");
+      } else if (status === 401) {
+        set_message_erreur("Mot de passe incorrect");
+      } else {
+        set_message_erreur(detail || "Erreur de connexion au serveur");
+      }
     } finally {
       set_est_en_chargement(false);
     }
   };
 
+  // Configuration visuelle dynamique
+  const couleur_theme = est_admin ? "#ef4444" : "#345371";
+
   return (
     <div className="conteneur-auth">
-      <div className="carte-auth">
+      <div 
+        className="carte-auth" 
+        style={est_admin ? { borderTop: `5px solid ${couleur_theme}` } : {}}
+      >
         <div className="entete-auth">
-          <LogIn size={28} color="#345371" />
-          <h2 className="titre-auth">Connexion</h2>
+          {est_admin ? (
+            <ShieldCheck size={32} color={couleur_theme} />
+          ) : (
+            <LogIn size={28} color={couleur_theme} />
+          )}
+          <h2 className="titre-auth">
+            {est_admin ? "Espace Admin" : "Connexion"}
+          </h2>
         </div>
 
         {message_erreur && (
@@ -57,11 +82,13 @@ const Auth = ({ on_login, on_back }) => {
 
         <form onSubmit={gerer_soumission} className="formulaire-auth">
           <div className="groupe-champ">
-            <label htmlFor="identifiant-input">Identifiant</label>
+            <label htmlFor="id-input">
+              {est_admin ? "Identifiant Admin" : "Identifiant"}
+            </label>
             <input
-              id="identifiant-input"
+              id="id-input"
               type="text"
-              placeholder="Email ou pseudo"
+              placeholder={est_admin ? "Pseudo ou Email admin" : "Email ou pseudo"}
               value={identifiant}
               onChange={(e) => set_identifiant(e.target.value)}
               className="entree-texte"
@@ -74,7 +101,7 @@ const Auth = ({ on_login, on_back }) => {
             <label htmlFor="mdp-input">Mot de passe</label>
             <div className="conteneur-mdp">
               <input
-                id="mdp_input"
+                id="mdp-input"
                 type={voir_mdp ? "text" : "password"}
                 placeholder="••••••••"
                 value={mot_de_passe}
@@ -97,9 +124,13 @@ const Auth = ({ on_login, on_back }) => {
             <button
               type="submit"
               className="bouton-valider"
+              style={{ backgroundColor: couleur_theme }}
               disabled={est_en_chargement}
             >
-              {est_en_chargement ? "Connexion..." : "Valider"}
+              {est_en_chargement 
+                ? "Vérification..." 
+                : est_admin ? "Accéder au Dashboard" : "Valider"
+              }
             </button>
             <button type="button" onClick={on_back} className="bouton-retour">
               <Undo2 size={18} />
