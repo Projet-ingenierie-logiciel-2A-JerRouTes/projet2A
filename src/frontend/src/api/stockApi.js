@@ -35,3 +35,13 @@ export async function getInfoStock(idStock) {
   const res = await API.get(`/api/stocks/${idStock}`);
   return res.data;
 }
+
+/**
+ * Ajouter un stock de nom donné
+ * Correspond à @app.post("api/stocks/${name}")
+ */
+export async function createStock(name) {
+  // On envoie un objet { name: name } en deuxième argument d'axios.post
+  const res = await API.post("/api/stocks", { name: name });
+  return res.data;
+}

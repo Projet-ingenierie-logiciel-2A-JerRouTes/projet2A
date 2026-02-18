@@ -1,3 +1,6 @@
+/* ==========================================================================
+   1. STRUCTURE & CONTENEURS
+   ========================================================================== */
 .gestion-panel {
   max-width: 1000px !important;
   width: 95%;
@@ -18,34 +21,12 @@
   gap: 15px;
 }
 
-.barre-outils {
-  display: flex;
-  gap: 10px;
-}
-
-.bouton-action {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.btn-ajout-admin {
-  background-color: #ef4444;
-}
-.btn-ajout-user {
-  background-color: #3b82f6;
-}
-
+/* ==========================================================================
+   2. TABLEAUX (Inventaire)
+   ========================================================================== */
 .conteneur-tableau {
-  max-height: 450px; /* Tu peux ajuster cette hauteur (ex: 400px ou 60vh) */
-  overflow: auto; /* Active la barre de défilement verticale si besoin */ /* Active la barre de défilement horizontale si besoin */
+  max-height: 450px;
+  overflow: auto;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   background: white;
@@ -57,28 +38,106 @@
   text-align: left;
 }
 
+.tableau-gestion thead {
+  position: sticky;
+  top: 0;
+  background-color: #f8fafc;
+  z-index: 10;
+}
+
 .tableau-gestion th,
 .tableau-gestion td {
   padding: 15px;
   border-bottom: 1px solid #f1f5f9;
 }
 
-.badge-role {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-transform: uppercase;
+/* ==========================================================================
+   3. FORMULAIRES DE SAISIE (Nouveau Stock / Ingrédient)
+   ========================================================================== */
+.conteneur-saisie-stock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 5%);
+  animation: slide-down 0.3s ease-out;
+}
+
+.entree-stock {
+  flex: 1;
+  padding: 12px 15px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.entree-stock:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 10%);
+}
+
+.groupe-boutons-saisie {
+  display: flex;
+  gap: 10px;
+}
+
+/* ==========================================================================
+   4. BOUTONS & ACTIONS
+   ========================================================================== */
+
+/* Base commune */
+.bouton-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
   color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.bg-admin {
+.barre-outils {
+  display: flex;
+  gap: 10px;
+}
+
+/* Variantes de couleurs */
+.btn-ingredient-style { background-color: #22c55e !important; } /* Vert */
+.btn-stock-style      { background-color: #ef4444 !important; } /* Rouge */
+.btn-recette-style    { background-color: #f59e0b !important; } /* Orange */
+
+/* Boutons spécifiques Saisie */
+.bouton-valider-saisie {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bouton-annuler-saisie {
   background-color: #ef4444;
-}
-.bg-user {
-  background-color: #94a3b8;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
+/* Boutons icônes (Edition/Suppression) */
 .btn-icone {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -88,11 +147,7 @@
   margin-right: 5px;
 }
 
-.btn-suppr:hover {
-  color: #ef4444;
-  border-color: #ef4444;
-}
-
+/* Utilitaires & Retours */
 .bouton-retour-gestion {
   display: flex;
   align-items: center;
@@ -105,10 +160,35 @@
   cursor: pointer;
 }
 
-/* Pour garder l'en-tête du tableau (Nom, Catégorie...) visible pendant le défilement */
-.tableau-gestion thead {
-  position: sticky;
-  top: 0;
-  background-color: #f8fafc;
-  z-index: 10;
+/* ==========================================================================
+   5. ETATS & ANIMATIONS (Hover, Badges, Keyframes)
+   ========================================================================== */
+.bouton-action:hover,
+.bouton-valider-saisie:hover,
+.bouton-annuler-saisie:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 10%);
+}
+
+.btn-suppr:hover {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.badge-role {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: white;
+}
+
+.bg-admin { background-color: #ef4444; }
+.bg-user  { background-color: #94a3b8; }
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

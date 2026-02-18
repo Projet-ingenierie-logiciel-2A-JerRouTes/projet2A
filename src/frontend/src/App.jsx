@@ -22,12 +22,18 @@ function App() {
   const [action, set_action] = useState("accueil");
   const [est_connecte, set_est_connecte] = useState(false);
   const [admin_connecte, set_admin_connecte] = useState(false);
+  const [id_stock, set_id_stock] =useState(null)
+  const [id_ingredient, set_id_ingredient] =useState(null)
 
   // Variables de gestion d'interface
   const [gestion_utilisateurs, set_gestion_utilisateurs] = useState(false);
   const [gestion_ingredients, set_gestion_ingredients] = useState(false);
   const [gestion_stocks, set_gestion_stocks] = useState(false);
   const [gestion_recettes, set_gestion_recettes] = useState(false);
+
+  // Variable d'ajout et de suppression d'élément
+  const [ajout_stock, set_ajout_stock] = useState(false);
+  const [ajout_indregient, set_ajout_ingredient] = useState(false);
 
   // --- LOGIQUE DE LIAISON ---
 
@@ -118,7 +124,9 @@ function App() {
                 <Stock
                   user={user?.user || user}
                   on_logout={gerer_deconnexion}
-                  on_navigate_admin={() => {}} 
+                  id_stock={id_stock}
+                  set_id_stock={set_id_stock}
+                  set_ajout_ingredient={set_ajout_ingredient}
                 />
               )}
             </>

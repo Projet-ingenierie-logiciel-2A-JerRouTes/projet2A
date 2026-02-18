@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
-import "../styles/SelecteurStock.css"; // Importation du nouveau fichier CSS
+import "../styles/SelecteurStock.css"; 
 
 const SelecteurStock = ({ list_id_stock, on_change_stock }) => {
   const [est_ouvert, set_est_ouvert] = useState(false);
