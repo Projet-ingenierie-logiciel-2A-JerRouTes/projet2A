@@ -35,8 +35,11 @@ def _map_service_errors(exc: Exception) -> HTTPException:
     """
     Transforme les exceptions métier en exceptions HTTP avec messages personnalisés.
     """
-    # Erreur - REGISTER
-    # Cas 1 : L'utilisateur existe déjà (409)
+
+    # ----------------------------
+    # REGISTER
+    # ----------------------------
+
     if isinstance(exc, UserAlreadyExistsError):
         return HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -49,27 +52,44 @@ def _map_service_errors(exc: Exception) -> HTTPException:
             detail="Mail déjà utilisé",
         )
 
-    # Erreur - LOGIN
-    # Cas 1 : L'utilisateur n'existe pas (404)
+    # ----------------------------
+    # LOGIN
+    # ----------------------------
+
     if isinstance(exc, UserNotFoundError):
         return HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Identifiant inconnu. Ce compte n'existe pas.",
         )
 
-    # Cas 2 : Le mot de passe est faux (401)
     if isinstance(exc, InvalidPasswordError):
         return HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Mot de passe incorrect. Veuillez réessayer.",
         )
 
-    # Erreur - REFRESH
+    # 🔥 AJOUT IMPORTANT
+    # Certains services lèvent une exception générique
+    # avec le message "Identifiants invalides."
+    if "Identifiants invalides" in str(exc):
+        return HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Identifiants invalides.",
+        )
+
+    # ----------------------------
+    # REFRESH
+    # ----------------------------
+
     if isinstance(exc, InvalidRefreshTokenError):
         return HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Problème dans le refresh",
         )
+
+    # ----------------------------
+    # Cas non géré
+    # ----------------------------
 
     return HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
