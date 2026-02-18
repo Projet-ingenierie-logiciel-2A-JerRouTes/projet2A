@@ -3,7 +3,8 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from src.backend.dao.session_dao import SessionDAO, UserSession
+
+from dao.session_dao import SessionDAO, UserSession
 
 
 # ---------------------------------------------------------------------
@@ -35,7 +36,7 @@ def mock_db(mocker):
     db.connection = conn
 
     # Patch DBConnection dans le module utilisé par la DAO
-    mocker.patch("src.backend.dao.session_dao.DBConnection", return_value=db)
+    mocker.patch("dao.session_dao.DBConnection", return_value=db)
 
     return conn, cur
 

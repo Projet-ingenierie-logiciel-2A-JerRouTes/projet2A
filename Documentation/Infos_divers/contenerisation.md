@@ -65,7 +65,7 @@ EXPOSE 8000
 # Pour FastAPI, on utilise uvicorn au lieu de "python main.py" 
 # car cela permet de gérer les requêtes asynchrones et le rechargement à chaud
 #CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-CMD ["uvicorn", "src.backend.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 ```
 
 ### Docker-compose

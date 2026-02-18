@@ -7,11 +7,12 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 import logging
 from unittest import mock
+
 import dotenv
 
-from src.backend.dao.db_connection import DBConnection
-from src.backend.utils.log_decorator import log
-from src.backend.utils.singleton import Singleton
+from dao.db_connection import DBConnection
+from utils.log_decorator import log
+from utils.singleton import Singleton
 
 
 class ResetDatabase(metaclass=Singleton):

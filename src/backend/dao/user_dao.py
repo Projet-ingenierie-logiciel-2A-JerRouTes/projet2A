@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from src.backend.business_objects.user import Admin, GenericUser, User
-from src.backend.dao.db_connection import DBConnection
-from src.backend.utils.log_decorator import log
+from business_objects.user import Admin, GenericUser, User
+from dao.db_connection import DBConnection
+from utils.log_decorator import log
 
 
 @dataclass(frozen=True, slots=True)

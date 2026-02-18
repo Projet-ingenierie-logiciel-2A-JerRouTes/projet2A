@@ -3,10 +3,10 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from src.backend.business_objects.ingredient import Ingredient
-from src.backend.business_objects.unit import Unit
-from src.backend.dao.db_connection import DBConnection
-from src.backend.utils.log_decorator import log
+from business_objects.ingredient import Ingredient
+from business_objects.unit import Unit
+from dao.db_connection import DBConnection
+from utils.log_decorator import log
 
 
 @dataclass(frozen=True, slots=True)
@@ -258,7 +258,6 @@ class IngredientDAO:
             conn.rollback()
             raise
 
-
     @log
     def list_ingredients(self, with_tags: bool = True) -> list[Ingredient]:
         """
@@ -296,9 +295,7 @@ class IngredientDAO:
 
                 # Chargement optionnel des tags associés
                 tags = (
-                    self._get_tag_ids(cur, row_obj.ingredient_id)
-                    if with_tags
-                    else []
+                    self._get_tag_ids(cur, row_obj.ingredient_id) if with_tags else []
                 )
 
                 ingredients.append(self._row_to_bo(row_obj, tags))

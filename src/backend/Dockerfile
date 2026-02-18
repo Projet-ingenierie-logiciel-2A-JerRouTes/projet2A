@@ -1,38 +1,26 @@
-# OLD
-###########################################################
-#FROM python:3.13.12-trixie
-#
-#COPY . .
-#
-#RUN pip install -r requirements.txt
-#
-#ENTRYPOINT ["python", "main.py"]
-#
-# on choisit la commande lancée au démarragegit
-##############################################################
-
-
-# Utilisation de votre image de base (Trixie est une version de Debian)
 FROM python:3.13-slim
 
-# Définition du dossier de travail (évite de copier à la racine du conteneur)
-#WORKDIR /app
-WORKDIR /projet
+# Dossier de travail
+WORKDIR /app
 
-# Copie uniquement du fichier de dépendances pour optimiser le cache Docker
-COPY requirements.txt .
+# Installer curl pour installer uv
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Installation des dépendances
-RUN pip install --no-cache-dir -r requirements.txt
+# Installer uv
+RUN curl -Ls https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
 
-# Copie de tout le reste du code source vers /app
-#COPY . .
-COPY . ./src/backend/
+# Copier uniquement les fichiers de dépendances
+COPY pyproject.toml uv.lock ./
 
-# EXPOSE est crucial pour que Docker sache que le port 8000 doit être ouvert
+# Installer les dépendances (prod uniquement)
+RUN uv sync --frozen --no-dev
+
+# Copier le reste du backend
+COPY . .
+
+# Exposer le port FastAPI
 EXPOSE 8000
 
-# Pour FastAPI, on utilise uvicorn au lieu de "python main.py" 
-# car cela permet de gérer les requêtes asynchrones et le rechargement à chaud
-#CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-CMD ["uvicorn", "src.backend.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Lancer l'API
+CMD ["uv", "run", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

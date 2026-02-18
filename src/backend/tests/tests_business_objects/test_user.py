@@ -1,5 +1,6 @@
 import pytest
-from src.backend.business_objects.user import Admin, GenericUser
+
+from business_objects.user import Admin, GenericUser
 
 
 @pytest.fixture(autouse=True)

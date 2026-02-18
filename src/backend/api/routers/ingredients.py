@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from src.backend.api.deps import CurrentUser, get_current_user_checked_exists
-from src.backend.api.schemas.ingredients import IngredientCreateIn, IngredientOut
-from src.backend.dao.ingredient_dao import IngredientDAO
+from api.deps import CurrentUser, get_current_user_checked_exists
+from api.schemas.ingredients import IngredientCreateIn, IngredientOut
+from dao.ingredient_dao import IngredientDAO
 
 
 router = APIRouter(prefix="/api/ingredients", tags=["ingredients"])
@@ -12,6 +12,7 @@ router = APIRouter(prefix="/api/ingredients", tags=["ingredients"])
 # ==========================================================
 # LISTE DES INGRÉDIENTS
 # ==========================================================
+
 
 @router.get("", response_model=list[IngredientOut])
 def list_ingredients(
@@ -33,7 +34,6 @@ def list_ingredients(
         )
         for ing in ingredients
     ]
-
 
 
 @router.post("", response_model=IngredientOut)

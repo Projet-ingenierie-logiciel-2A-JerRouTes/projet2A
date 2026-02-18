@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from src.backend.dao.db_connection import DBConnection
-from src.backend.utils.log_decorator import log
+from dao.db_connection import DBConnection
+from utils.log_decorator import log
 
 
 @dataclass(frozen=True, slots=True)

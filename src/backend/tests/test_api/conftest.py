@@ -4,8 +4,8 @@ from fastapi.testclient import TestClient
 import pytest
 
 # ⚠️ adapte l'import de notre app FastAPI si besoin
-from src.backend.api.main import app
-from src.backend.utils.reset_database import ResetDatabase
+from api.main import app
+from utils.reset_database import ResetDatabase
 
 
 @pytest.fixture(scope="session", autouse=True)

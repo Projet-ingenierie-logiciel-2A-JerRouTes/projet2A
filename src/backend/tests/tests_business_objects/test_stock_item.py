@@ -1,7 +1,8 @@
 from datetime import date, timedelta
 
 import pytest
-from src.backend.business_objects.stock_item import StockItem
+
+from business_objects.stock_item import StockItem
 
 
 # ---------------------------

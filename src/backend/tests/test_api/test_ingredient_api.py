@@ -4,8 +4,9 @@ from dataclasses import dataclass
 
 from fastapi.testclient import TestClient
 import pytest
-from src.backend.api.deps import get_current_user_checked_exists
-from src.backend.api.main import app
+
+from api.deps import get_current_user_checked_exists
+from api.main import app
 
 
 @dataclass
@@ -46,7 +47,7 @@ def test_create_ingredient_forbidden_if_not_admin(client):
     app.dependency_overrides[get_current_user_checked_exists] = _override_user
 
     resp = client.post(
-        "/ingredients", json={"name": "Farine", "unit": "g", "tag_ids": []}
+        "api/ingredients", json={"name": "Farine", "unit": "g", "tag_ids": []}
     )
     assert resp.status_code == 403
     assert "admin" in resp.json()["detail"].lower()
@@ -66,12 +67,10 @@ def test_create_ingredient_ok_admin(client, mocker):
         id_tags=[1, 2],
     )
 
-    mocker.patch(
-        "src.backend.api.routers.ingredients.IngredientDAO", return_value=dao_instance
-    )
+    mocker.patch("api.routers.ingredients.IngredientDAO", return_value=dao_instance)
 
     resp = client.post(
-        "/ingredients", json={"name": "Farine", "unit": "g", "tag_ids": [1, 2]}
+        "api/ingredients", json={"name": "Farine", "unit": "g", "tag_ids": [1, 2]}
     )
     assert resp.status_code == 200
     assert resp.json() == {

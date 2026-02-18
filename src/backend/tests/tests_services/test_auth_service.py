@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from src.backend.services.auth_service import (
+
+from services.auth_service import (
     AuthService,
     InvalidCredentialsError,
     InvalidRefreshTokenError,
@@ -91,7 +92,7 @@ def test_login_ok_with_email(service, mock_user_dao, mock_session_dao, mocker):
     mock_user_dao.get_user_row_by_email.return_value = row
     mock_user_dao.get_user_row_by_username.return_value = None
 
-    mocker.patch("src.backend.services.auth_service.check_password", return_value=True)
+    mocker.patch("services.auth_service.check_password", return_value=True)
 
     # Refresh token déterministe
     mocker.patch.object(service, "_new_refresh_token", return_value="REFRESH_1")
@@ -104,9 +105,7 @@ def test_login_ok_with_email(service, mock_user_dao, mock_session_dao, mocker):
     )
 
     # JWT déterministe
-    mocker.patch(
-        "src.backend.services.auth_service.encode_jwt", return_value="ACCESS_TOKEN"
-    )
+    mocker.patch("services.auth_service.encode_jwt", return_value="ACCESS_TOKEN")
 
     # Act
     tokens = service.login(
@@ -138,16 +137,14 @@ def test_login_ok_with_username(service, mock_user_dao, mock_session_dao, mocker
     )
     mock_user_dao.get_user_row_by_username.return_value = row
 
-    mocker.patch("src.backend.services.auth_service.check_password", return_value=True)
+    mocker.patch("services.auth_service.check_password", return_value=True)
     mocker.patch.object(service, "_new_refresh_token", return_value="REFRESH_2")
     mock_session_dao.create_session.return_value = FakeSession(
         session_id=200,
         fk_user_id=11,
         refresh_token_hash=service._hash_refresh("REFRESH_2"),
     )
-    mocker.patch(
-        "src.backend.services.auth_service.encode_jwt", return_value="ACCESS_TOKEN_2"
-    )
+    mocker.patch("services.auth_service.encode_jwt", return_value="ACCESS_TOKEN_2")
 
     # Act
     tokens = service.login(login="bob", password="pwd")
@@ -174,7 +171,7 @@ def test_login_invalid_credentials_bad_password(service, mock_user_dao, mocker):
     mock_user_dao.get_user_row_by_email.return_value = row
     mock_user_dao.get_user_row_by_username.return_value = None
 
-    mocker.patch("src.backend.services.auth_service.check_password", return_value=False)
+    mocker.patch("services.auth_service.check_password", return_value=False)
 
     with pytest.raises(InvalidCredentialsError):
         service.login(login="alice@example.com", password="wrong")
@@ -216,9 +213,7 @@ def test_refresh_ok(service, mock_user_dao, mock_session_dao, mocker):
     )
 
     # jwt déterministe
-    mocker.patch(
-        "src.backend.services.auth_service.encode_jwt", return_value="ACCESS_NEW"
-    )
+    mocker.patch("services.auth_service.encode_jwt", return_value="ACCESS_NEW")
 
     # Act
     tokens = service.refresh(refresh_token=old_refresh)

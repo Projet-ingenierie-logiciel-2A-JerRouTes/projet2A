@@ -37,3 +37,9 @@ class InvalidPasswordError(BaseAppError):
     """Levée quand le mot de passe est incorrect."""
 
     pass
+
+
+class InvalidCredentialsError(BaseAppError):
+    """Levée quand les identifiants (login/mot de passe) sont invalides."""
+
+    pass

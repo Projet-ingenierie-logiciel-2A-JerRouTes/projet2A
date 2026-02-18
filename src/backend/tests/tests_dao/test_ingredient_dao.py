@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import pytest
-from src.backend.business_objects.ingredient import Ingredient
-from src.backend.business_objects.unit import Unit
-from src.backend.dao.ingredient_dao import IngredientDAO
+
+from business_objects.ingredient import Ingredient
+from business_objects.unit import Unit
+from dao.ingredient_dao import IngredientDAO
 
 
 # ---------------------------------------------------------------------
@@ -35,7 +36,7 @@ def mock_db(mocker):
     db = mocker.Mock(name="DBConnectionInstance")
     db.connection = conn
 
-    mocker.patch("src.backend.dao.ingredient_dao.DBConnection", return_value=db)
+    mocker.patch("dao.ingredient_dao.DBConnection", return_value=db)
 
     return conn, cur
 

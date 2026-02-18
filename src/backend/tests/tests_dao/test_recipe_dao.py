@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import pytest
-from src.backend.dao.recipe_dao import RecipeDAO
+
+from dao.recipe_dao import RecipeDAO
 
 
 # ---------------------------------------------------------------------
@@ -40,7 +41,7 @@ def mock_db(mocker):
     db.connection = conn
 
     # Patch DBConnection dans le module utilisé par la DAO
-    mocker.patch("src.backend.dao.recipe_dao.DBConnection", return_value=db)
+    mocker.patch("dao.recipe_dao.DBConnection", return_value=db)
 
     return conn, cur
 

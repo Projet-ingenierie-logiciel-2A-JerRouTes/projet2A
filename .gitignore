@@ -1,58 +1,190 @@
-# ==============================================================================
-# FICHIER .GITIGNORE - PROJET 2A (Gestionnaire de Stock)
-# Regroupe les exclusions pour Python (Ruff/Pytest) et React (Node.js)
-# ==============================================================================
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
-# --- [ NODE.JS / REACT ] ---
-# On ne commit JAMAIS les bibliothèques installées (trop lourd)
-node_modules/
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff
+instance/
+.webassets-cache
+
+# Scrapy stuff
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pipenv
+#Pipfile.lock
+
+# poetry
+#poetry.lock
+
+# pdm
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath
+*.sage.py
+
+# Environments
+.env
+.env.*
+!.env.example
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder / Rope
+.spyderproject
+.spyproject
+.ropeproject
+
+# mkdocs
+/site
+
+# mypy / pyre / pytype
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+### Python Patch ###
+# Poetry local configuration file
+poetry.toml
+
+# ruff
+.ruff_cache/
+
+# LSP config files
+pyrightconfig.json
+
+### Node ###
+# Logs
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependency directories
+node_modules/
 .pnp/
 .pnp.js
 
-# Dossiers de build (fichiers générés pour la production)
+# Build output
 dist/
 build/
-.next/
 out/
+.next/
 
-# --- [ PYTHON / BACKEND ] ---
-# Fichiers compilés et cache
-__pycache__/
-*.py[codz]
-*$py.class
-.ruff_cache/
-.pytest_cache/
-.mypy_cache/
+# Cache directories
+.cache/
+.npm/
+.yarn/
+.pnpm-store/
 
-# Environnements virtuels (indispensable pour l'internat lundi)
-.venv/
-venv/
-env/
-ENV/
-.env
-.envrc
+### Project-specific additions (Backend/UV/Docker/IDE/OS) ###
+# UV
+# (On recommande de versionner uv.lock pour la reproductibilité ?)
+# Décommente la ligne suivante si tu ne veux PAS committer uv.lock
+# uv.lock
 
-# Tests et Couverture
-.coverage
-.coverage.*
-htmlcov/
-nosetests.xml
-coverage.xml
+# VS Code / JetBrains
+.vscode/
+.idea/
 
-# --- [ SYSTÈME ET ÉDITEURS ] ---
-# Windows (Fichiers de prévisualisation)
+# OS
+.DS_Store
 Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# VS Code (Paramètres locaux de l'éditeur)
-.vscode/
-# Note : On ignore souvent .vscode pour ne pas imposer ses réglages aux autres
+# Docker
+docker-compose.override.yml
 
-# --- [ BASES DE DONNÉES ] ---
-# Si tu utilises SQLite en local pour tes tests
+# Local DB files (si SQLite en local)
 *.sqlite3
 *.sqlite3-journal

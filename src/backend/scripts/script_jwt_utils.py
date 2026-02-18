@@ -1,6 +1,6 @@
 from datetime import UTC, datetime, timedelta
 
-from src.backend.utils.jwt_utils import decode_jwt, encode_jwt
+from utils.jwt_utils import decode_jwt, encode_jwt
 
 
 secret = "test"

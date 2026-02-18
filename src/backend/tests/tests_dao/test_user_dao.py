@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import pytest
-from src.backend.business_objects.user import Admin, GenericUser
-from src.backend.dao.user_dao import UserDAO
+
+from business_objects.user import Admin, GenericUser
+from dao.user_dao import UserDAO
 
 
 # ---------------------------------------------------------------------
@@ -35,7 +36,7 @@ def mock_db(mocker):
     db.connection = conn
 
     # Patch DBConnection dans le module utilisé par la DAO
-    mocker.patch("src.backend.dao.user_dao.DBConnection", return_value=db)
+    mocker.patch("dao.user_dao.DBConnection", return_value=db)
 
     return conn, cur
 

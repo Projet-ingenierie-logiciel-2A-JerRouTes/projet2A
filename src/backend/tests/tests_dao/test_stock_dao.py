@@ -3,7 +3,8 @@ from __future__ import annotations
 from datetime import date
 
 import pytest
-from src.backend.dao.stock_dao import StockDAO
+
+from dao.stock_dao import StockDAO
 
 
 @pytest.fixture
@@ -23,7 +24,7 @@ def mock_db(mocker):
     db = mocker.Mock(name="DBConnectionInstance")
     db.connection = conn
 
-    mocker.patch("src.backend.dao.stock_dao.DBConnection", return_value=db)
+    mocker.patch("dao.stock_dao.DBConnection", return_value=db)
 
     return conn, cur
 

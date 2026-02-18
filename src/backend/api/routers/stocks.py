@@ -2,19 +2,19 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from src.backend.api.deps import (
+from api.deps import (
     CurrentUser,
     get_current_user_checked_exists,
     get_stock_service,
 )
-from src.backend.api.schemas.stocks import (
+from api.schemas.stocks import (
     ConsumeIn,
     StockCreateIn,
     StockItemCreateIn,
     StockItemOut,
     StockOut,
 )
-from src.backend.services.stock_service import (
+from services.stock_service import (
     ForbiddenError,
     NotFoundError,
     StockService,
@@ -55,7 +55,7 @@ def list_my_stocks(
     cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
 ):
     # Ici on utilise StockDAO directement (simple)
-    from src.backend.dao.stock_dao import StockDAO
+    from dao.stock_dao import StockDAO
 
     dao = StockDAO()
     stocks = dao.list_user_stocks(

@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from src.backend.business_objects.recipe import Recipe
+from business_objects.recipe import Recipe
 
 
 @dataclass(frozen=True)

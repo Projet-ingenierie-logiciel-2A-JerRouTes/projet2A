@@ -32,5 +32,11 @@ class Settings:
         ]
     )
 
+    # =========================
+    # Services externes
+    # =========================
+    # Clé Spoonacular (optionnelle) – utilisée pour compléter les recettes via API.
+    api_key_spoonacular: str | None = os.getenv("API_KEY_SPOONACULAR") or None
+
 
 settings = Settings()

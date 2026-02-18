@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from src.backend.business_objects.recipe import Recipe
-from src.backend.clients.spoonacular_client import fetch_detailed_recipes_by_ingredients
-from src.backend.services.find_recipe import FindRecipe, IngredientSearchQuery
+from business_objects.recipe import Recipe
+from business_objects.user import GenericUser
+from clients.spoonacular_client import (
+    fetch_detailed_recipes_by_ingredients,
+)
+from services.find_recipe import FindRecipe, IngredientSearchQuery
 
 
 class RecipeWriteDao(Protocol):
@@ -38,8 +41,9 @@ class ApiFindRecipe(FindRecipe):
         self._api_key = api_key
         self._dao = dao
 
-    def get_by_id(self, recipe_id: int) -> Recipe | None:
-        raise NotImplementedError
+    def get_by_id(self, _recipe_id: int) -> Recipe | None:
+        """Lookup par id."""
+        return None
 
     def search_by_ingredients(self, query: IngredientSearchQuery) -> list[Recipe]:
         ingredients = [s.strip() for s in query.ingredients if s and s.strip()]
@@ -60,11 +64,9 @@ class ApiFindRecipe(FindRecipe):
             instructions_required=True,
         )
 
-        # Si pas de DAO -> juste renvoyer des BO
         if self._dao is None:
             return [self._detailed_to_bo(r) for r in detailed]
 
-        # Sinon : on persiste en BDD au passage
         saved: list[Recipe] = []
         for r in detailed:
             saved.append(self._get_or_create_local_recipe(r))
@@ -72,9 +74,11 @@ class ApiFindRecipe(FindRecipe):
 
     @staticmethod
     def _detailed_to_bo(r) -> Recipe:
+        creator = GenericUser(id_user=0, pseudo="external", password="____")
+
         recipe = Recipe(
             recipe_id=int(r.id),
-            creator_id=0,
+            creator=creator,
             status="public",
             prep_time=int(r.ready_in_minutes or 0),
             portions=int(r.servings or 1),
@@ -88,21 +92,17 @@ class ApiFindRecipe(FindRecipe):
         return recipe
 
     def _get_or_create_local_recipe(self, r) -> Recipe:
-        """Crée la recette en BDD si pas déjà présente (déduplication par titre)."""
         assert self._dao is not None
 
         title = (r.title or "").strip()
 
-        # 1) Tentative de retrouver une recette existante via le titre
         if title:
             candidates = self._dao.list_recipes(name_ilike=title, limit=10, offset=0)
             for c in candidates:
-                # en BDD la DAO met le texte dans translations["fr"]["name"]
                 fr_name = (c.translations.get("fr") or {}).get("name", "")
                 if fr_name.strip().lower() == title.lower():
                     return c
 
-        # 2) Sinon : créer
         description_parts: list[str] = []
         if getattr(r, "source_url", None):
             description_parts.append(f"Source: {r.source_url}")
@@ -129,6 +129,5 @@ class ApiFindRecipe(FindRecipe):
             description=description,
         )
 
-        # optionnel : conserver aussi une traduction EN
         created.add_translation("en", title, description or "")
         return created
