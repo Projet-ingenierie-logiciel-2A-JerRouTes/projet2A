@@ -47,7 +47,7 @@ def test_create_ingredient_forbidden_if_not_admin(client):
     app.dependency_overrides[get_current_user_checked_exists] = _override_user
 
     resp = client.post(
-        "/ingredients", json={"name": "Farine", "unit": "g", "tag_ids": []}
+        "api/ingredients", json={"name": "Farine", "unit": "g", "tag_ids": []}
     )
     assert resp.status_code == 403
     assert "admin" in resp.json()["detail"].lower()
@@ -70,7 +70,7 @@ def test_create_ingredient_ok_admin(client, mocker):
     mocker.patch("api.routers.ingredients.IngredientDAO", return_value=dao_instance)
 
     resp = client.post(
-        "/ingredients", json={"name": "Farine", "unit": "g", "tag_ids": [1, 2]}
+        "api/ingredients", json={"name": "Farine", "unit": "g", "tag_ids": [1, 2]}
     )
     assert resp.status_code == 200
     assert resp.json() == {
