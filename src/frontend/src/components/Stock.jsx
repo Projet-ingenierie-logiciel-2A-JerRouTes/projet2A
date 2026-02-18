@@ -6,7 +6,7 @@ import SelecteurStock from "./SelecteurStock";
 import BarreSaisieStock from "./BarreSaisieStock";
 import "../styles/Gestion.css";
 
-const Stock = ({ user, on_logout, set_ajout_ingredient, id_stock, set_id_stock }) => {
+const Stock = ({ user, on_logout, set_ajout_ingredient, id_stock, set_id_stock, set_chercher_recette }) => {
   // --- ÉTATS UTILES ---
   const [chargement_initial, set_chargement_initial] = useState(true);
   const [affichage_barre, set_affichage_barre] = useState(false);
@@ -128,9 +128,21 @@ const Stock = ({ user, on_logout, set_ajout_ingredient, id_stock, set_id_stock }
         </button>
       </div>
 
+      <div style={{ marginTop: "15px", display: "flex", gap: "10px" }}>
+        {/* NOUVEAU BOUTON : RECHERCHE DE RECETTE */}
+        <button 
+          className="bouton-action btn-recette-style"
+          onClick={() => set_chercher_recette(true)}
+        >
+          🔍 Trouver des recettes
+        </button>
+      </div>
+
       <button className="bouton-retour-gestion" onClick={on_logout}>
         <LogOut size={18} /> Déconnexion
       </button>
+
+      
     </div>
   );
 };
