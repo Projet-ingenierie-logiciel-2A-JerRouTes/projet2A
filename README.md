@@ -70,6 +70,26 @@ La base de données PostgreSQL gère les entités principales du projet :
 
 ______________________________________________________________________
 
+### 🖥️ BackEnd
+
+Le backend est développé avec **FastAPI (Python)** et constitue le cœur métier de l’application.
+
+Il gère :
+
+- l’authentification sécurisée des utilisateurs (JWT),
+- la logique métier,
+- l’accès à la base PostgreSQL,
+- la gestion des stocks et des ingrédients,
+- l’exposition de l’API REST consommée par le frontend.
+
+📘 Documentation détaillée :  
+[README du backend](src/backend/README.md)
+
+Le backend est totalement indépendant du frontend et peut être exécuté séparément.
+
+
+______________________________________________________________________
+
 ### 🖥️ FrontEnd
 
 Le frontend est développé avec **React** et **Vite**.
