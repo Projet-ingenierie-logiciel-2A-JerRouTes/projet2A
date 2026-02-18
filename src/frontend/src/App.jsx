@@ -15,6 +15,7 @@ import GestionRecettes from "./components/GestionRecettes";
 
 // Composants Utilisateur
 import Stock from "./components/Stock";
+import AffichageRecettes from "./components/AfficherRecettes";
 
 function App() {
   // --- LES VARIABLES D'ÉTAT ---
@@ -34,6 +35,7 @@ function App() {
   // Variable d'ajout et de suppression d'élément
   const [ajout_stock, set_ajout_stock] = useState(false);
   const [ajout_indregient, set_ajout_ingredient] = useState(false);
+  const [chercher_recette, set_chercher_recette] = useState(false)
 
   // --- LOGIQUE DE LIAISON ---
 
@@ -121,13 +123,21 @@ function App() {
                   on_logout={gerer_deconnexion}
                 />
               ) : (
-                <Stock
-                  user={user?.user || user}
-                  on_logout={gerer_deconnexion}
-                  id_stock={id_stock}
-                  set_id_stock={set_id_stock}
-                  set_ajout_ingredient={set_ajout_ingredient}
-                />
+                /* ALTERNANCE ENTRE INVENTAIRE ET RECETTES */
+                chercher_recette ? (
+                  <AffichageRecettes 
+                    set_chercher_recette={set_chercher_recette} 
+                  />
+                ) : (
+                  <Stock
+                    user={user?.user || user}
+                    on_logout={gerer_deconnexion}
+                    id_stock={id_stock}
+                    set_id_stock={set_id_stock}
+                    set_ajout_ingredient={set_ajout_ingredient}
+                    set_chercher_recette={set_chercher_recette} // <-- Très important pour que le bouton marche
+                  />
+                )
               )}
             </>
           )}
