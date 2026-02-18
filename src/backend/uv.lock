@@ -44,6 +44,7 @@ dependencies = [
     { name = "httpx" },
     { name = "psycopg2-binary" },
     { name = "pydantic" },
+    { name = "pytest" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "requests" },
