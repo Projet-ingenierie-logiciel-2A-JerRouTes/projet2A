@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse
 from api.config import settings
 from api.routers.auth import router as auth_router
 from api.routers.ingredients import router as ingredients_router
+from api.routers.recipes import router as recipes_router
 from api.routers.stocks import router as stocks_router
 from api.routers.users import router as users_router
 
@@ -33,7 +34,7 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(stocks_router)
 app.include_router(ingredients_router)
-# app.include_router(recipes_router)  # quand ça sera prêt
+app.include_router(recipes_router)
 
 
 @app.get("/", tags=["Système"], include_in_schema=False)

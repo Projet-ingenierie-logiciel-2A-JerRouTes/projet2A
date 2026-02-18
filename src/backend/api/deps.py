@@ -6,6 +6,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from api.config import settings
+from dao.recipe_dao import RecipeDAO
+from services.find_recipe import FindRecipe, IngredientSearchQuery
+from services.find_recipe_api import ApiFindRecipe
+from services.find_recipe_factory import FindRecipeFactory
 from services.stock_service import StockService
 from services.user_service import UserNotFoundError, UserService
 from utils.jwt_utils import (
@@ -114,3 +118,52 @@ def get_current_user_checked_exists(
 def get_stock_service() -> StockService:
     """Fournit une instance de StockService."""
     return StockService()
+
+
+# ---------------------------------------------------------------------
+# Recettes (FindRecipeFactory = DB + API)
+# ---------------------------------------------------------------------
+
+
+class _DbFindRecipe(FindRecipe):
+    """Implémentation DB de FindRecipe basée sur RecipeDAO."""
+
+    def __init__(self, dao: RecipeDAO):
+        self._dao = dao
+
+    def get_by_id(self, recipe_id: int):
+        return self._dao.get_recipe_by_id(int(recipe_id), with_relations=True)
+
+    def search_by_ingredients(self, query: IngredientSearchQuery):
+        return self._dao.find_recipes_by_ingredients(
+            query.ingredients,
+            limit=query.limit,
+            max_missing=query.max_missing,
+            strict_only=query.strict_only,
+            dish_type=query.dish_type,
+        )
+
+
+class _NoApiFindRecipe(FindRecipe):
+    """Fallback API désactivé (pas de clé)."""
+
+    def get_by_id(self, _recipe_id: int):
+        return None
+
+    def search_by_ingredients(self, _query: IngredientSearchQuery):
+        return []
+
+
+def get_recipe_finder() -> FindRecipe:
+    """Fournit le finder de recettes (orchestration DB + API)."""
+
+    recipe_dao = RecipeDAO()
+    db_finder: FindRecipe = _DbFindRecipe(recipe_dao)
+
+    # Si pas de clé Spoonacular, on désactive simplement le fallback API.
+    if not settings.api_key_spoonacular:
+        api_finder: FindRecipe = _NoApiFindRecipe()
+    else:
+        api_finder = ApiFindRecipe(api_key=settings.api_key_spoonacular, dao=recipe_dao)
+
+    return FindRecipeFactory(db=db_finder, api=api_finder)
