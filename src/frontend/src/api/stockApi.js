@@ -22,17 +22,8 @@ export async function getStockDetails(idStock) {
  * Récupère la liste de tous les stocks (vue globale)
  * Correspond à @app.get("/stocks")
  */
-export async function getAllStocks_v2() {
+export async function getAllStocks() {
   const res = await API.get("/api/stocks");
-  return res.data;
-}
-
-/**
- * Récupère la liste de tous les stocks (vue globale)
- * Correspond à @app.get("/stocks")
- */
-export async function getAllStocks(user_id) {
-  const res = await API.get(`/api/stocks/user/${user_id}`);
   return res.data;
 }
 

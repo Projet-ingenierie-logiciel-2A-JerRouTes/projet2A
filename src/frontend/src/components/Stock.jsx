@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Package, PlusCircle, LogOut, SquarePen, Trash2 } from "lucide-react";
 
 // Imports des appels API
-import { getAllStocks_v2, getInfoStock } from "../api/stockApi";
+import { getAllStocks, getInfoStock } from "../api/stockApi";
 
 // Import du hook personnalisé pour la logique du tableau
 import { userStockTable } from "../hooks/userStockTable";
@@ -26,33 +26,38 @@ const Stock = ({ user, on_logout }) => {
   // --- EFFET : CHARGEMENT INITIAL (IDs + NOMS) ---
   useEffect(() => {
     const initialiser_page = async () => {
+
+
       console.log("--- 🏁 1. DÉBUT : Initialisation des stocks ---");
+
       try {
         set_chargement_initial(true);
 
         // 1. On récupère les IDs bruts appartenant à l'utilisateur
-        const ids_bruts = await getAllStocks_v2(user?.user_id);
-        console.log("📋 1. IDs bruts reçus :", ids_bruts);
+        const ids_noms_stock = await getAllStocks(user?.user_id);
+        console.log("📋 1. IDs et noms stocks reçus :", ids_noms_stock);
 
         // 2. On transforme les IDs en tuples {id, nom} en appelant getInfoStock pour chaque
-        const promesses_noms = ids_bruts.map(async (id) => {
-          const info = await getInfoStock(id);
-          return { id_stock: id, nom_stock: info.name };
-        });
+        //const promesses_noms = ids_noms_stock.map(async (id) => {
+        //  const info = await getInfoStock(id);
+        //  return { id_stock: id, nom_stock: info.name };
+        //});
 
-        const liste_complete = await Promise.all(promesses_noms);
-        console.log("✅ 1. Liste de tuples (ID/Nom) prête :", liste_complete);
+        //const liste_complete = await Promise.all(promesses_noms);
+        //console.log("✅ 1. Liste de tuples (ID/Nom) prête :", liste_complete);
 
-        set_list_nom_stock(liste_complete);
+        set_list_nom_stock(ids_noms_stock);
+        //console.log("📋 test transfert :", list_nom_stock);
 
         // 3. On sélectionne le premier stock par défaut
-        if (liste_complete.length > 0) {
+        if (ids_noms_stock.length > 0) {
           console.log(
             "🎯 1. Sélection auto du premier stock :",
-            liste_complete[0].id_stock,
+            ids_noms_stock[0].stock_id,
           );
-          set_id_stock(liste_complete[0].id_stock);
+          set_id_stock(ids_noms_stock[0].stock_id);
         }
+
       } catch (err) {
         console.error("❌ 1. Erreur initialisation :", err);
       } finally {
@@ -69,6 +74,8 @@ const Stock = ({ user, on_logout }) => {
     formatted_stock,
   );
 
+  const nom_stock_actuel = list_nom_stock.find(s => s.stock_id === id_stock)?.name || "";
+
   return (
     <div className="carte-centrale gestion-panel">
       {/* ENTÊTE AVEC TITRE ET BOUTON AJOUT */}
@@ -81,7 +88,8 @@ const Stock = ({ user, on_logout }) => {
         </div>
         <div className="barre-outils">
           <button className="bouton-action btn-ajout-user">
-            <PlusCircle size={18} /> Ajouter un ingrédient
+            <PlusCircle size={18} /> 
+            Ajouter un ingrédient dans {nom_stock_actuel}
           </button>
         </div>
       </div>

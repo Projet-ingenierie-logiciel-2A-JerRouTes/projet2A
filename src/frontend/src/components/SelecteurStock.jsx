@@ -8,13 +8,17 @@ const SelecteurStock = ({ list_id_stock, on_change_stock }) => {
 
   // Initialisation du premier stock au chargement
   useEffect(() => {
+
+    console.log("Action dans selecteurStock")
+
     if (list_id_stock.length > 0 && !id_selectionne) {
-      set_id_selectionne(list_id_stock[0].id_stock);
+      set_id_selectionne(list_id_stock[0].stock_id);
     }
+
   }, [list_id_stock, id_selectionne]);
 
   // Recherche des informations du stock actuel
-  const stock_actuel = list_id_stock.find((s) => s.id_stock === id_selectionne);
+  const stock_actuel = list_id_stock.find((s) => s.stock_id === id_selectionne);
 
   const choisir_option = (id) => {
     set_id_selectionne(id);
@@ -30,7 +34,7 @@ const SelecteurStock = ({ list_id_stock, on_change_stock }) => {
         onClick={() => set_est_ouvert(!est_ouvert)}
       >
         <span>
-          {stock_actuel ? stock_actuel.nom_stock : "Choisir un stock"}
+          {stock_actuel ? stock_actuel.name : "Choisir un stock"}
         </span>
         <ChevronDown
           size={18}
@@ -43,11 +47,11 @@ const SelecteurStock = ({ list_id_stock, on_change_stock }) => {
         <ul className="selecteur-menu">
           {list_id_stock.map((item) => (
             <li
-              key={item.id_stock}
+              key={item.stock_id}
               className="selecteur-item"
-              onClick={() => choisir_option(item.id_stock)}
+              onClick={() => choisir_option(item.stock_id)}
             >
-              {item.nom_stock}
+              {item.name}
             </li>
           ))}
         </ul>
