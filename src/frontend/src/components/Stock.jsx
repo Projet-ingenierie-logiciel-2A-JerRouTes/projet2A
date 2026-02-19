@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Package, PlusCircle, LogOut, SquarePen, Trash2 } from "lucide-react";
-import { getAllStocks, createStock } from "../api/stockApi";
+import { getAllStocks, createStock, getAllIngredients } from "../api/stockApi";
 import { userStockTable } from "../hooks/userStockTable";
 import SelecteurStock from "./SelecteurStock";
 import BarreSaisieStock from "./BarreSaisieStock";
 import "../styles/Gestion.css";
 
-const Stock = ({ user, on_logout, set_ajout_ingredient, id_stock, set_id_stock, set_chercher_recette }) => {
+
+const Stock = ({ user, on_logout, set_ajout_ingredient, id_stock, set_id_stock, set_chercher_recette , set_list_nom_stock, list_nom_stock, set_catalogue }) => {
   // --- ÉTATS UTILES ---
   const [chargement_initial, set_chargement_initial] = useState(true);
   const [affichage_barre, set_affichage_barre] = useState(false);
-  const [list_nom_stock, set_list_nom_stock] = useState([]);
 
   // --- HOOK MÉTIER ---
   const { formatted_stock } = userStockTable(id_stock);
@@ -39,20 +39,38 @@ const Stock = ({ user, on_logout, set_ajout_ingredient, id_stock, set_id_stock, 
     const initialiser_page = async () => {
       try {
         set_chargement_initial(true);
-        const ids_noms_stock = await getAllStocks(user?.user_id);
+
+        // On lance les deux appels API en parallèle pour gagner du temps
+        const [ids_noms_stock, data_catalogue] = await Promise.all([
+          getAllStocks(user?.user_id || user?.id),
+          getAllIngredients()
+        ]);
+
+        // Mise à jour de la liste des stocks pour l'inventaire actuel
         set_list_nom_stock(ids_noms_stock);
 
+        // Mise à jour du catalogue dans l'orchestrateur (App.jsx) 
+        // pour l'autocomplétion du formulaire
+        if (set_catalogue) {
+          set_catalogue(data_catalogue);
+        }
+
+        // Sélection automatique du premier stock s'il existe
         if (ids_noms_stock.length > 0) {
           set_id_stock(ids_noms_stock[0].stock_id);
         }
       } catch (err) {
-        console.error("❌ Erreur initialisation:", err);
+        console.error("❌ Erreur initialisation complète:", err);
       } finally {
         set_chargement_initial(false);
       }
     };
-    initialiser_page();
-  }, [user, set_id_stock]);
+
+    if (user) {
+      initialiser_page();
+    }
+    // Ajout de set_catalogue dans les dépendances pour la remontée d'état
+  }, [user, set_id_stock, set_list_nom_stock, set_catalogue]);
 
   const nom_stock_actuel = list_nom_stock.find(s => s.stock_id === id_stock)?.name || "";
 

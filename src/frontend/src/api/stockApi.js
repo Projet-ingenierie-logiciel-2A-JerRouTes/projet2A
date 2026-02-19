@@ -45,3 +45,23 @@ export async function createStock(name) {
   const res = await API.post("/api/stocks", { name: name });
   return res.data;
 }
+
+/**
+ * Ajoute un lot d'ingrédient (stock_item) à un stock spécifique.
+ * L'ingredientId provient généralement de votre autocomplétion (catalogue).
+ * * @param {number} stock_id - L'identifiant du stock cible
+ * @param {number} ingredient_id - L'identifiant de l'ingrédient sélectionné
+ * @param {number} quantity - La quantité à ajouter
+ * @param {string|null} expiration_date - Date au format "YYYY-MM-DD" ou null
+ */
+export async function addStockItem(stock_id, ingredient_id, quantity, expiration_date = null) {
+  const payload = {
+    ingredient_id: ingredient_id,
+    quantity: parseFloat(quantity),
+    expiration_date: expiration_date,
+  };
+
+  // Correspond à @router.post("/api/stocks/{stock_id}/lots")
+  const res = await API.post(`/api/stocks/${stock_id}/lots`, payload);
+  return res.data;
+}
