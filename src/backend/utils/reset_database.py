@@ -16,14 +16,12 @@ from utils.singleton import Singleton
 
 
 class ResetDatabase(metaclass=Singleton):
-    """
-    Réinitialisation de la base de données
-    """
-
     @log
-    def lancer(self, test_dao=False):
+    def lancer(self, test_dao=False, populate=True):
         """Lancement de la réinitialisation des données
-        Si test_dao = True : réinitialisation des données de test"""
+        - test_dao=True  -> schéma de test
+        - populate=False -> base vierge (structure uniquement)
+        """
 
         dotenv.load_dotenv()
 
@@ -34,12 +32,10 @@ class ResetDatabase(metaclass=Singleton):
             schema = "projet_dao"
             pop_data_path = "data/pop_db.sql"
 
-        # On utilise un patch temporaire du dictionnaire os.environ
         with mock.patch.dict(os.environ, {"POSTGRES_SCHEMA": schema}):
-            self._reset_schema(schema, pop_data_path)
+            self._reset_schema(schema, pop_data_path if populate else None)
 
     def _reset_schema(self, schema, pop_data_path):
-        """Exécute le drop / create du schéma et les scripts SQL"""
         print(f" Initialisation du schéma : {schema}")
 
         create_schema = (
@@ -48,21 +44,30 @@ class ResetDatabase(metaclass=Singleton):
 
         with open("data/init_db.sql", encoding="utf-8") as f:
             init_db_as_string = f.read()
-        with open(pop_data_path, encoding="utf-8") as f:
-            pop_db_as_string = f.read()
+
+        pop_db_as_string = None
+        if pop_data_path is not None:
+            with open(pop_data_path, encoding="utf-8") as f:
+                pop_db_as_string = f.read()
 
         try:
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
-                    # Forcer le search_path vers le bon schéma
                     cursor.execute(create_schema)
                     cursor.execute(f"SET search_path TO {schema};")
 
                     cursor.execute(init_db_as_string)
-                    cursor.execute(pop_db_as_string)
+
+                    # Charger les données seulement si demandé
+                    if pop_db_as_string:
+                        cursor.execute(pop_db_as_string)
+
                 connection.commit()
 
-            print(f"Schéma {schema} réinitialisé avec succès !\n")
+            if pop_db_as_string:
+                print(f"Schéma {schema} réinitialisé avec succès (avec données) !\n")
+            else:
+                print(f"Schéma {schema} réinitialisé avec succès (vierge) !\n")
         except Exception:
             logging.exception(
                 f"Erreur lors de la réinitialisation du schéma {schema} :"
@@ -72,5 +77,5 @@ class ResetDatabase(metaclass=Singleton):
 
 if __name__ == "__main__":
     resetter = ResetDatabase()
-    resetter.lancer(False)  # Schéma principal : projet_dao
-    resetter.lancer(True)  # Schéma de test : projet_test_dao
+    resetter.lancer(False, populate=False)  # projet_dao (vierge)
+    resetter.lancer(True, populate=True)  # projet_test_dao (avec data)

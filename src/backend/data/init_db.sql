@@ -1,8 +1,8 @@
 -----------------------------------------------------
 -- INITIALISATION DU SCHÉMA
 -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS projet_test_dao;
-SET search_path TO projet_test_dao, public;
+-- CREATE SCHEMA IF NOT EXISTS projet_test_dao;
+-- SET search_path TO projet_test_dao, public;
 
 -----------------------------------------------------
 -- TYPE : User Status
