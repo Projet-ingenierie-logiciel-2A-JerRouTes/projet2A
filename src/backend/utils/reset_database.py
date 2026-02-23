@@ -11,6 +11,7 @@ from unittest import mock
 import dotenv
 
 from dao.db_connection import DBConnection
+from utils.ingredients_loader import load_ingredients
 from utils.log_decorator import log
 from utils.singleton import Singleton
 
@@ -61,6 +62,9 @@ class ResetDatabase(metaclass=Singleton):
                     # Charger les données seulement si demandé
                     if pop_db_as_string:
                         cursor.execute(pop_db_as_string)
+
+                    # Charger les ingrédients depuis l'ODS (idempotent)
+                    load_ingredients(cursor)
 
                 connection.commit()
 
