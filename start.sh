@@ -8,9 +8,7 @@ BACKEND_DIR="$ROOT_DIR/src/backend"
 FRONTEND_DIR="$ROOT_DIR/src/frontend"
 
 # ---------------------------------------------------------------------
-# 0) Charger les .env
-#    - d'abord celui de la racine (général)
-#    - ensuite celui du backend (prioritaire pour POSTGRES_*)
+# 0) Charger le .env du backend uniquement (backend indépendant)
 # ---------------------------------------------------------------------
 load_env_file() {
   local env_file="$1"
@@ -23,23 +21,22 @@ load_env_file() {
   fi
 }
 
-load_env_file "$ROOT_DIR/.env"
 load_env_file "$BACKEND_DIR/.env"
 
 # ---------------------------------------------------------------------
-# 1) Variables DB (compatibilité POSTGRES_DB / POSTGRES_DATABASE)
+# 1) Variables DB
 # ---------------------------------------------------------------------
 POSTGRES_USER="${POSTGRES_USER:-projet_user}"
-POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-projet_password}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-projet_pwd}"
 
-# Certaines configs utilisent POSTGRES_DATABASE au lieu de POSTGRES_DB
+# Compat POSTGRES_DB / POSTGRES_DATABASE
 if [ -n "${POSTGRES_DB:-}" ]; then
   POSTGRES_DB="$POSTGRES_DB"
 else
   POSTGRES_DB="${POSTGRES_DATABASE:-projet2a}"
 fi
 
-POSTGRES_SCHEMA="${POSTGRES_SCHEMA:-projet_test_dao}"
+POSTGRES_SCHEMA="${POSTGRES_SCHEMA:-projet_dao}"
 
 DB_CONTAINER="projet2a_postgres"
 BACKEND_PORT="${BACKEND_PORT:-8000}"
@@ -49,8 +46,7 @@ INIT_SQL="$BACKEND_DIR/data/init_db.sql"
 POP_SQL="$BACKEND_DIR/data/pop_db.sql"
 
 # ---------------------------------------------------------------------
-# 2) Lancement DB Docker (service "db" ou "postgres")
-#    -> on essaye db, sinon postgres (au cas où votre compose utilise ce nom)
+# 2) Lancement DB Docker
 # ---------------------------------------------------------------------
 echo "🐳 Lancement de la base de données (Docker)..."
 
@@ -73,24 +69,32 @@ echo "✅ Base de données OK (healthy)."
 # 3) Initialisation DB si nécessaire
 # ---------------------------------------------------------------------
 echo "🔎 Vérification de l'initialisation du schéma '$POSTGRES_SCHEMA'..."
-TABLE_EXISTS=$(sudo docker exec "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc \
-  "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = '$POSTGRES_SCHEMA' AND table_name = 'users');")
+
+TABLE_EXISTS=$(sudo docker exec "$DB_CONTAINER" \
+  psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc \
+  "SELECT EXISTS (
+      SELECT FROM information_schema.tables
+      WHERE table_schema = '$POSTGRES_SCHEMA'
+      AND table_name = 'users'
+  );")
 
 if [ "$TABLE_EXISTS" = "f" ]; then
   echo "📦 Initialisation de la base de données (Schéma + Data)..."
 
-  if [ ! -f "$INIT_SQL" ]; then
-    echo "❌ Fichier introuvable : $INIT_SQL"
-    exit 1
-  fi
+  # 0) Créer le schéma cible si nécessaire
+  sudo docker exec -i "$DB_CONTAINER" \
+    psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 \
+    -c "CREATE SCHEMA IF NOT EXISTS $POSTGRES_SCHEMA;"
 
-  if [ ! -f "$POP_SQL" ]; then
-    echo "❌ Fichier introuvable : $POP_SQL"
-    exit 1
-  fi
+  # 1) Exécuter init_db.sql dans le schéma cible
+  sudo docker exec -i -e PGOPTIONS="-c search_path=$POSTGRES_SCHEMA,public" "$DB_CONTAINER" \
+    psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 \
+    < "$INIT_SQL"
 
-  sudo docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < "$INIT_SQL"
-  sudo docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < "$POP_SQL"
+  # 2) Exécuter pop_db.sql dans le schéma cible
+  sudo docker exec -i -e PGOPTIONS="-c search_path=$POSTGRES_SCHEMA,public" "$DB_CONTAINER" \
+    psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 \
+    < "$POP_SQL"
 
   echo "✅ Base de données initialisée avec succès."
 else
@@ -111,10 +115,12 @@ cd "$ROOT_DIR" >/dev/null
 # ---------------------------------------------------------------------
 echo "⚛️  Lancement du frontend (local, npm)..."
 cd "$FRONTEND_DIR"
+
 if [ ! -d "node_modules" ]; then
   echo "📦 Installation des dépendances frontend (npm install)..."
   npm install
 fi
+
 npm run dev -- --host 0.0.0.0 --port "$FRONTEND_PORT" &
 FRONTEND_PID=$!
 cd "$ROOT_DIR" >/dev/null
@@ -123,8 +129,11 @@ cd "$ROOT_DIR" >/dev/null
 # 6) Ouverture navigateur
 # ---------------------------------------------------------------------
 echo "🌐 Ouverture des interfaces..."
-xdg-open "http://localhost:$FRONTEND_PORT" 2>/dev/null || echo "👉 Frontend : http://localhost:$FRONTEND_PORT"
-xdg-open "http://localhost:$BACKEND_PORT/docs" 2>/dev/null || echo "👉 API Docs : http://localhost:$BACKEND_PORT/docs"
+xdg-open "http://localhost:$FRONTEND_PORT" 2>/dev/null || \
+  echo "👉 Frontend : http://localhost:$FRONTEND_PORT"
+
+xdg-open "http://localhost:$BACKEND_PORT/docs" 2>/dev/null || \
+  echo "👉 API Docs : http://localhost:$BACKEND_PORT/docs"
 
 # ---------------------------------------------------------------------
 # 7) Cleanup (CTRL+C)
@@ -135,7 +144,7 @@ cleanup() {
   kill "$BACKEND_PID" 2>/dev/null || true
   kill "$FRONTEND_PID" 2>/dev/null || true
   echo "✅ Backend/Frontend arrêtés."
-  echo "ℹ️ La DB Docker reste active (docker compose stop postgres/db pour l'arrêter)."
+  echo "ℹ️ La DB Docker reste active (docker compose stop db pour l'arrêter)."
 }
 trap cleanup EXIT
 
