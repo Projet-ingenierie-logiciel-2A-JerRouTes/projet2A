@@ -29,10 +29,10 @@ class ResetDatabase(metaclass=Singleton):
 
         if test_dao:
             schema = "projet_test_dao"
-            pop_data_path = "backend/data/pop_db_test.sql"
+            pop_data_path = "data/pop_db_test.sql"
         else:
             schema = "projet_dao"
-            pop_data_path = "backend/data/pop_db.sql"
+            pop_data_path = "data/pop_db.sql"
 
         with mock.patch.dict(os.environ, {"POSTGRES_SCHEMA": schema}):
             self._reset_schema(schema, pop_data_path if populate else None)
@@ -44,7 +44,7 @@ class ResetDatabase(metaclass=Singleton):
             f"DROP SCHEMA IF EXISTS {schema} CASCADE; CREATE SCHEMA {schema};"
         )
 
-        with open("backend/data/init_db.sql", encoding="utf-8") as f:
+        with open("data/init_db.sql", encoding="utf-8") as f:
             init_db_as_string = f.read()
 
         pop_db_as_string = None

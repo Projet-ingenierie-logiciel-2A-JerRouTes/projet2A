@@ -20,6 +20,8 @@ dependencies = [
     # --- Appels HTTP externes ---
     "httpx>=0.27",
     "requests>=2.31",
+    "pandas>=3.0.1",
+    "odfpy>=1.4.1",
 ]
 
 [project.optional-dependencies]
