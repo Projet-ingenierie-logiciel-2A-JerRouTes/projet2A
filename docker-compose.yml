@@ -1,38 +1,60 @@
 # Note : La ligne 'version' est supprimée pour éviter le Warning Docker Compose V2.
 
 services:
-  # ============================================================================
+    # ============================================================================
   # SERVICE : BASE DE DONNÉES (Le socle de stockage)
   # ============================================================================
   db:
     # Utilisation d'une version stable de PostgreSQL
     image: postgres:16
     container_name: projet2a_postgres
+    
     # Redémarre automatiquement le conteneur si le PC redémarre ou si le service crash
     restart: always
     
-    # Configuration des variables d'environnement (Identifiants de connexion)
-    environment:
-      - POSTGRES_DB=${POSTGRES_DATABASE} # image officielle Postgres EXIGE ce nom exact pour créer la BDD
-      - POSTGRES_USER
-      - POSTGRES_PASSWORD
+    # ============================================================================
+    # CONFIGURATION DES IDENTIFIANTS (via le .env du backend)
+    # ----------------------------------------------------------------------------
+    # On utilise directement le fichier src/backend/.env pour que :
+    #  - le backend ET la base utilisent exactement les mêmes identifiants
+    #  - il n'y ait plus de dépendance au .env racine
+    #  - Docker Compose n'ait plus à résoudre des ${POSTGRES_*}
+    # ============================================================================
+    env_file:
+      - ./src/backend/.env
 
     # Expose le port de la base pour pouvoir y accéder depuis un outil comme DBeaver
     ports:
       - "5432:5432"
     
     volumes:
-      # PERSISTANCE : Lie un volume Docker au dossier de données de Postgres.
-      # Même après un 'docker compose down', les stocks d'Alice et Bob restent sauvés.
+      # ============================================================================
+      # PERSISTANCE
+      # ----------------------------------------------------------------------------
+      # Lie un volume Docker au dossier de données de Postgres.
+      # Même après un 'docker compose down', les données restent sauvegardées.
+      # ============================================================================
       - projet2a_pgdata:/var/lib/postgresql/data
       
-      # INITIALISATION : Chaque fichier .sql dans ./data est exécuté au PREMIER lancement.
-      # Indispensable pour créer vos tables et insérer vos données de test automatiquement.
+      # ============================================================================
+      # INITIALISATION AUTOMATIQUE
+      # ----------------------------------------------------------------------------
+      # Chaque fichier .sql dans ./data est exécuté UNIQUEMENT au premier lancement
+      # (quand le volume est vide).
+      # Indispensable pour créer vos tables et insérer les données de test.
+      # ============================================================================
       - ./data:/docker-entrypoint-initdb.d/
     
-    # ISOLATION & SÉCURITÉ : On s'assure que Postgres répond avant de lancer le reste.
+    # ============================================================================
+    # ISOLATION & SÉCURITÉ
+    # ----------------------------------------------------------------------------
+    # On vérifie que Postgres répond correctement avant de déclarer le service
+    # comme "healthy".
+    # Les $$ sont nécessaires pour éviter que Docker Compose ne remplace les
+    # variables trop tôt.
+    # ============================================================================
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U projet_user -d projet2a"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DATABASE"]
       interval: 5s   # Teste toutes les 5 secondes
       timeout: 5s    # Attend 5 secondes max pour une réponse
       retries: 10    # Réessaie 10 fois avant de déclarer le service "unhealthy"
