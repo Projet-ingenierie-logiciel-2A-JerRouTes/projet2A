@@ -1,14 +1,13 @@
 import os
 import sys
-
-
-# Ajoute autohttps://github.com/Projet-ingenierie-logiciel-2A-JerRouTes/projet2Amatiquement le dossier parent (src/) au PYTHONPATH
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
 import logging
+from pathlib import Path
 from unittest import mock
 
 import dotenv
+
+# Ajout automatique de src/ au PYTHONPATH
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from dao.db_connection import DBConnection
 from utils.ingredients_loader import load_ingredients
@@ -17,73 +16,96 @@ from utils.log_decorator import log
 from utils.singleton import Singleton
 
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / "data"
+INIT_SQL_PATH = DATA_DIR / "init_db.sql"
+POP_TEST_SQL_PATH = DATA_DIR / "pop_db_test.sql"
+POP_SQL_PATH = DATA_DIR / "pop_db.sql"
+
+
 class ResetDatabase(metaclass=Singleton):
     @log
-    def lancer(self, test_dao=False, populate=True):
-        """Lancement de la réinitialisation des données
-        - test_dao=True  -> schéma de test
-        - populate=False -> base vierge (structure uniquement)
+    def lancer(self, test_dao=True, populate=True):
+        """
+        Réinitialisation de la base
+
+        - test_dao=True  -> schéma projet_test_dao
+        - populate=True  -> insère les données SQL
         """
 
         dotenv.load_dotenv()
 
         if test_dao:
             schema = "projet_test_dao"
-            pop_data_path = "data/pop_db_test.sql"
+            pop_data_path = POP_TEST_SQL_PATH
         else:
             schema = "projet_dao"
-            pop_data_path = "data/pop_db.sql"
+            pop_data_path = POP_SQL_PATH
 
         with mock.patch.dict(os.environ, {"POSTGRES_SCHEMA": schema}):
             self._reset_schema(schema, pop_data_path if populate else None)
 
     def _reset_schema(self, schema, pop_data_path):
-        print(f" Initialisation du schéma : {schema}")
+        print(f"\n🔄 Initialisation du schéma : {schema}")
 
-        create_schema = (
-            f"DROP SCHEMA IF EXISTS {schema} CASCADE; CREATE SCHEMA {schema};"
+        create_schema_sql = (
+            f"DROP SCHEMA IF EXISTS {schema} CASCADE; "
+            f"CREATE SCHEMA {schema};"
         )
 
-        with open("data/init_db.sql", encoding="utf-8") as f:
-            init_db_as_string = f.read()
+        if not INIT_SQL_PATH.exists():
+            raise FileNotFoundError(f"Fichier manquant : {INIT_SQL_PATH}")
 
-        pop_db_as_string = None
-        if pop_data_path is not None:
-            with open(pop_data_path, encoding="utf-8") as f:
-                pop_db_as_string = f.read()
+        with INIT_SQL_PATH.open(encoding="utf-8") as f:
+            init_db_sql = f.read()
+
+        pop_db_sql = None
+        if pop_data_path and pop_data_path.exists():
+            with pop_data_path.open(encoding="utf-8") as f:
+                pop_db_sql = f.read()
 
         try:
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
-                    cursor.execute(create_schema)
+
+                    # Drop + Create schema
+                    cursor.execute(create_schema_sql)
+
+                    # Set search path
                     cursor.execute(f"SET search_path TO {schema};")
 
-                    cursor.execute(init_db_as_string)
+                    # Création structure
+                    cursor.execute(init_db_sql)
 
-                    # Charger les données seulement si demandé
-                    if pop_db_as_string:
-                        cursor.execute(pop_db_as_string)
+                    # Insertion données SQL si demandé
+                    if pop_db_sql:
+                        cursor.execute(pop_db_sql)
 
-                    # Charger les ingrédients depuis l'ODS (idempotent)
+                    # Import CSV ingrédients
                     load_ingredients(cursor)
 
-                    # Charger les ingrédients + tags depuis ODS (idempotent)
+                    # Import ODS ingrédients + tags
                     load_ingredients_tags(cursor)
 
                 connection.commit()
 
-            if pop_db_as_string:
-                print(f"Schéma {schema} réinitialisé avec succès (avec données) !\n")
+            if pop_db_sql:
+                print(f"✅ Schéma {schema} réinitialisé avec données.\n")
             else:
-                print(f"Schéma {schema} réinitialisé avec succès (vierge) !\n")
+                print(f"✅ Schéma {schema} réinitialisé (structure seule).\n")
+
         except Exception:
             logging.exception(
-                f"Erreur lors de la réinitialisation du schéma {schema} :"
+                f"❌ Erreur lors de la réinitialisation du schéma {schema}"
             )
             raise
 
 
 if __name__ == "__main__":
+    dotenv.load_dotenv()
+
     resetter = ResetDatabase()
-    resetter.lancer(False, populate=False)  # projet_dao (vierge)
-    resetter.lancer(True, populate=True)  # projet_test_dao (avec data)
+
+    print("🚀 Reset UNIQUEMENT du schéma projet_test_dao")
+
+    resetter.lancer(test_dao=True, populate=True)
