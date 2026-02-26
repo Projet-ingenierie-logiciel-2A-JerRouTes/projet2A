@@ -42,8 +42,9 @@ DB_CONTAINER="projet2a_postgres"
 BACKEND_PORT="${BACKEND_PORT:-8000}"
 FRONTEND_PORT="${FRONTEND_PORT:-5173}"
 
-INIT_SQL="$BACKEND_DIR/data/init_db.sql"
-POP_SQL="$BACKEND_DIR/data/pop_db.sql"
+python "$BACKEND_DIR/utils/reset_database.py"
+#INIT_SQL="$BACKEND_DIR/data/init_db.sql"
+#POP_SQL="$BACKEND_DIR/data/pop_db_test.sql"
 
 # ---------------------------------------------------------------------
 # 2) Lancement DB Docker
@@ -64,6 +65,19 @@ until [ "$(sudo docker inspect -f '{{.State.Health.Status}}' "$DB_CONTAINER" 2>/
   sleep 2
 done
 echo "✅ Base de données OK (healthy)."
+
+
+# ---------------------------------------------------------------------
+# 3) Réinitialisation via Python
+# ---------------------------------------------------------------------
+echo "📦 Réinitialisation de la base via reset_database.py..."
+
+cd "$BACKEND_DIR"
+uv run python utils/reset_database.py
+cd "$ROOT_DIR" >/dev/null
+
+echo "✅ Base prête."
+
 
 # ---------------------------------------------------------------------
 # 3) Initialisation DB si nécessaire
