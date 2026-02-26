@@ -4,11 +4,11 @@ SET search_path TO projet_test_dao, public;
 -- INSERT : Users (Généré avec le script dans les tests)
 -----------------------------------------------------
 
-INSERT INTO users (username, email, password_hash)
+INSERT INTO users (username, email, password_hash, status)
 VALUES
-('alice', 'alice@example.com', '$2b$12$3AT9XjBMYC7SSxzDMWB8SOPwo7h1kbXDGEQbIT3RQyIPE4hdW0VGm'),
-('bob', 'bob@example.com', '$2b$12$.kxjZWdtgCgAnnsaWqZ3Du4izzNhWYFwRyUL.eoi9AEl2EisUiUx.'),
-('admin', 'admin@example.com', '$2b$12$0kpkiPvqOdfvxrm1FfSxCeF5zviYlQ.ulSxYsAqEzLnNzmCahuvC.');
+('alice', 'alice@example.com', '$2b$12$3AT9XjBMYC7SSxzDMWB8SOPwo7h1kbXDGEQbIT3RQyIPE4hdW0VGm', 'user'),
+('bob', 'bob@example.com', '$2b$12$.kxjZWdtgCgAnnsaWqZ3Du4izzNhWYFwRyUL.eoi9AEl2EisUiUx.', 'user'),
+('admin', 'admin@example.com', '$2b$12$0kpkiPvqOdfvxrm1FfSxCeF5zviYlQ.ulSxYsAqEzLnNzmCahuvC.', 'admin');
 
 -----------------------------------------------------
 -- INSERT : Stock
