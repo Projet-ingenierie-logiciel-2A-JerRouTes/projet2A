@@ -1,7 +1,7 @@
 # Note : La ligne 'version' est supprimée pour éviter le Warning Docker Compose V2.
 
 services:
-    # ============================================================================
+  # ============================================================================
   # SERVICE : BASE DE DONNÉES (Le socle de stockage)
   # ============================================================================
   db:
@@ -43,7 +43,7 @@ services:
       # (quand le volume est vide).
       # Indispensable pour créer vos tables et insérer les données de test.
       # ============================================================================
-      - ./data:/docker-entrypoint-initdb.d/
+      - ./src/backend/data:/docker-entrypoint-initdb.d/
     
     # ============================================================================
     # ISOLATION & SÉCURITÉ
