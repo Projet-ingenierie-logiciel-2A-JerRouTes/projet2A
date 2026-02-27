@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Users, UserPlus, ShieldPlus, Trash2, Edit, Undo2 } from "lucide-react";
 import { getAllUsers } from "../api/usersApi";
-import AjoutUtilisateur from "./AjoutUtilisateur"; // Ton nouveau composant type Register
+import Register from "./Register";
 import "../styles/Gestion.css";
 
 const GestionUtilisateurs = ({ on_back }) => {
@@ -30,17 +30,17 @@ const GestionUtilisateurs = ({ on_back }) => {
 
   // --- RENDU CONDITIONNEL DU FORMULAIRE D'AJOUT ---
   if (vue_actuelle === "ajout_user" || vue_actuelle === "ajout_admin") {
-    return (
-      <AjoutUtilisateur 
-        est_admin_cree={vue_actuelle === "ajout_admin"}
-        on_back={() => set_vue_actuelle("liste")}
-        on_success={() => {
-          set_vue_actuelle("liste"); // Revient à la liste
-          rafraichir_liste(); // Force la mise à jour des données
-        }}
-      />
-    );
-  }
+  return (
+    <Register 
+      cre_admin={vue_actuelle === "ajout_admin"} // Passé ici en paramètre
+      on_back={() => set_vue_actuelle("liste")}
+      on_register_success={() => {
+        set_vue_actuelle("liste");
+        rafraichir_liste();
+      }}
+    />
+  );
+}
 
   // --- RENDU DE LA LISTE PRINCIPALE ---
   return (
