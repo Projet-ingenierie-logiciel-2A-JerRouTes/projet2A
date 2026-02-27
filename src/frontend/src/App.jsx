@@ -15,19 +15,21 @@ import GestionRecettes from "./components/GestionRecettes";
 
 // --- COMPOSANTS UTILISATEUR ---
 import Stock from "./components/Stock";
-import AffichageRecettes from "./components/AfficherRecettes";
+import AffichageRecettes from "./components/AfficherRecettes"; // La grille 3x2
+import AfficherRecetteDetail from "./components/AfficherRecetteDetail"; // La fiche détail
 import AddIngredientForm from "./components/AddIngredientForm";
 
 // --- HOOKS ---
 import { useTrouverRecetteInvite } from "./hooks/useTrouverRecetteInvite";
 
 function App() {
-  // --- ÉTATS ---
+  // --- ÉTATS DE NAVIGATION ET AUTH ---
   const [user, set_user] = useState(null);
   const [action, set_action] = useState("accueil");
   const [est_connecte, set_est_connecte] = useState(false);
   const [admin_connecte, set_admin_connecte] = useState(false);
 
+  // --- ÉTATS DE GESTION DES DONNÉES ---
   const [list_nom_stock, set_list_nom_stock] = useState([]);
   const [id_stock, set_id_stock] = useState(null);
   const [ajout_ingredient, set_ajout_ingredient] = useState(false);
@@ -35,14 +37,17 @@ function App() {
   const [catalogue, set_catalogue] = useState([]);
   const [vue_active_admin, set_vue_active_admin] = useState(null);
 
-  // --- LOGIQUE DU HOOK (Tableau de recettes) ---
+  // --- ÉTAT POUR LA RECETTE SÉLECTIONNÉE (Chef d'orchestre) ---
+  const [recette_selectionnee, set_recette_selectionnee] = useState(null);
+
+  // --- LOGIQUE DU HOOK (Récupère le tableau de 6 recettes) ---
   const { 
-    recettes: recettes_invite, // Correction : Pluriel pour correspondre au tableau
+    recettes: recettes_invite, 
     chargement: en_cours_invite, 
     reset_recherche_invite 
   } = useTrouverRecetteInvite(action === "invite" || chercher_recette);
 
-  // --- LOGIQUE NAVIGATION ---
+  // --- HANDLERS ---
   const gerer_connexion_reussie = (donnees_utilisateur, est_admin = false) => {
     set_user(donnees_utilisateur);
     set_admin_connecte(est_admin);
@@ -54,20 +59,20 @@ function App() {
     set_admin_connecte(false);
     set_user(null);
     set_action("accueil");
-    set_vue_active_admin(null);
-    set_ajout_ingredient(false);
-    set_chercher_recette(false);
+    set_recette_selectionnee(null);
   };
 
   const gerer_retour_accueil = () => {
     set_action("accueil");
     set_chercher_recette(false);
+    set_recette_selectionnee(null);
     if (reset_recherche_invite) reset_recherche_invite();
   };
 
-  // --- FONCTION DE RENDU ---
+  // --- FONCTION DE RENDU PRINCIPALE ---
   const rendu_contenu = () => {
     
+    // 1. UTILISATEUR NON CONNECTÉ
     if (!est_connecte) {
       if (action === "connexion") 
         return <Auth on_login={(d) => gerer_connexion_reussie(d, false)} on_back={gerer_retour_accueil} />;
@@ -78,13 +83,24 @@ function App() {
       if (action === "inscription") 
         return <Register on_register_success={() => set_action("connexion")} on_back={gerer_retour_accueil} />;
 
-      // MODE INVITÉ (Correction de la variable ici)
+      // MODE INVITÉ AVEC SYSTÈME GRILLE/DÉTAIL
       if (action === "invite") {
+        // Si l'utilisateur a cliqué sur un bullet
+        if (recette_selectionnee) {
+          return (
+            <AfficherRecetteDetail 
+              recette={recette_selectionnee} 
+              onBack={() => set_recette_selectionnee(null)} // Retour à la grille
+            />
+          );
+        }
+        // Sinon, on affiche la grille des 6 suggestions
         return (
           <AffichageRecettes 
             gerer_retour={gerer_retour_accueil} 
-            recettes={recettes_invite} // On passe le tableau de 6
-            chargement={en_cours_invite}    
+            recettes={recettes_invite} 
+            chargement={en_cours_invite}
+            on_select_recette={(r) => set_recette_selectionnee(r)} // Définit la recette à afficher
           />
         );
       }
@@ -92,6 +108,7 @@ function App() {
       return <Home on_clic_bouton={set_action} />;
     }
 
+    // 2. INTERFACE ADMINISTRATEUR
     if (admin_connecte) {
       if (vue_active_admin === "utilisateurs") return <GestionUtilisateurs on_back={() => set_vue_active_admin(null)} />;
       if (vue_active_admin === "ingredients") return <GestionIngredients on_back={() => set_vue_active_admin(null)} />;
@@ -110,26 +127,34 @@ function App() {
       );
     }
 
+    // 3. UTILISATEUR CONNECTÉ
     if (ajout_ingredient) {
       return (
         <AddIngredientForm 
           catalogue={catalogue} 
           liste_stocks={list_nom_stock}
           initial_stock_id={id_stock} 
-          onAdd={(data) => { set_ajout_ingredient(false); }}
+          onAdd={(data) => set_ajout_ingredient(false)}
           onCancel={() => set_ajout_ingredient(false)} 
         />
       );
     }
 
-    // MODE CONNECTÉ - RECHERCHE RECETTE
     if (chercher_recette) {
+      if (recette_selectionnee) {
+        return (
+          <AfficherRecetteDetail 
+            recette={recette_selectionnee} 
+            onBack={() => set_recette_selectionnee(null)} 
+          />
+        );
+      }
       return (
         <AffichageRecettes 
           gerer_retour={() => set_chercher_recette(false)}
-          recettes={recettes_invite} // Utilise aussi la grille de 6
+          recettes={recettes_invite} 
           chargement={en_cours_invite}
-          est_connecte={est_connecte}
+          on_select_recette={(r) => set_recette_selectionnee(r)}
         />
       );
     }

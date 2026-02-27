@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/ingredients", tags=["ingredients"])
 
 @router.get("", response_model=list[IngredientOut])
 def list_ingredients(
-    _cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+    #_cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
 ):
     """
     Retourne la liste complète des ingrédients disponibles.
