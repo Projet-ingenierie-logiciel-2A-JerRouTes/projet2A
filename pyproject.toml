@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "Gestionnaire de stock"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "pandas>=3.0.1",
+    "psycopg2-binary>=2.9.11",
+]
 
 [build-system]
 requires = ["setuptools", "wheel"]

@@ -42,7 +42,7 @@ DB_CONTAINER="projet2a_postgres"
 BACKEND_PORT="${BACKEND_PORT:-8000}"
 FRONTEND_PORT="${FRONTEND_PORT:-5173}"
 
-python "$BACKEND_DIR/utils/reset_database.py"
+#python "$BACKEND_DIR/utils/reset_database.py"
 #INIT_SQL="$BACKEND_DIR/data/init_db.sql"
 #POP_SQL="$BACKEND_DIR/data/pop_db_test.sql"
 

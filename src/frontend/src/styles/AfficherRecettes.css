@@ -1,0 +1,98 @@
+/* AffichageRecettes.css */
+
+.recette-container {
+  max-width: 550px;
+  margin: 20px auto;
+  border-radius: 40px;
+  padding: 40px;
+  background-color: #ffffff;
+  text-align: center;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.recette-titre-page {
+  color: #1e293b;
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.recette-nom {
+  color: #10b981;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 25px;
+}
+
+.recette-image-box {
+  width: 100%;
+  height: 280px;
+  border-radius: 25px;
+  overflow: hidden;
+  margin-bottom: 25px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  background-color: #f1f5f9; /* Fond en cas de chargement ou erreur */
+}
+
+.recette-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.recette-infos-barre {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.recette-description-box {
+  background-color: #f8fafc;
+  padding: 15px 25px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.recette-description-texte {
+  color: #475569;
+  font-style: italic;
+  margin: 0;
+}
+
+.recette-actions {
+  display: flex;
+  gap: 15px;
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-recette {
+  padding: 12px 25px;
+  border-radius: 15px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-recette:hover {
+  transform: translateY(-2px);
+}
+
+.btn-retour {
+  background-color: #ef4444;
+  color: white;
+}
+
+.btn-afficher {
+  background-color: #10b981;
+  color: white;
+}

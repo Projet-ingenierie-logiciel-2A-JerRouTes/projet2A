@@ -1,61 +1,65 @@
 import React from "react";
-import { Utensils, ArrowLeft, Loader2 } from "lucide-react";
+import { Clock, Users, ArrowLeft, Eye } from "lucide-react";
+import "../styles/AfficherRecettes.css";
 
-const AffichageRecettes = ({ set_chercher_recette, chargement_recettes = false }) => {
-  
-  // Simulation d'une liste vide pour l'instant
-  const liste_recettes = [];
-
+const AffichageRecettes = ({ gerer_retour, donnees_recette, chargement }) => {
   return (
-    <div className="carte-centrale recettes-panel">
-      {/* ENTÊTE AVEC BOUTON RETOUR */}
-      <div className="entete-recettes">
-        <button 
-          className="bouton-retour-icone" 
-          onClick={() => set_chercher_recette(false)}
-          title="Retour à l'inventaire"
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <div className="titre-groupe">
-          <Utensils size={32} color="#10b981" />
-          <h1 className="titre-principal">Suggestions de Recettes</h1>
-        </div>
-      </div>
+    <div className="recette-container">
+      <h1 className="recette-titre-page">Suggestion de recette</h1>
 
-      <div className="contenu-recettes">
-        {chargement_recettes ? (
-          /* ÉTAT DE CHARGEMENT */
-          <div className="etat-vide">
-            <Loader2 className="animation-spin" size={48} color="#10b981" />
-            <p>Calcul des meilleures recettes selon votre stock...</p>
-          </div>
-        ) : liste_recettes.length > 0 ? (
-          /* AFFICHAGE DES CARTES (À REMPLIR PLUS TARD) */
-          <div className="grille-recettes">
-            {/* Tes futures cartes ici */}
+      <div className="contenu">
+        {chargement ? (
+          <div style={{ padding: '40px' }}>Chargement du festin...</div>
+        ) : donnees_recette ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            
+            <h2 className="recette-nom">
+              {donnees_recette.name}
+            </h2>
+
+            <div className="recette-image-box">
+              <img 
+                src={donnees_recette.image_url} 
+                alt={donnees_recette.name} 
+                className="recette-image"
+                onError={(e) => { 
+                  // Fallback stable si le scraping échoue (Erreur 404/Blocking)
+                  e.target.src = "https://images.unsplash.com/photo-1495195129352-aec325a55b65?w=800"; 
+                }}
+              />
+            </div>
+
+            <div className="recette-infos-barre">
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Clock size={16}/> {donnees_recette.prep_time} min
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Users size={16}/> {donnees_recette.portions} pers.
+              </span>
+            </div>
+
+            <div className="recette-description-box">
+              <p className="recette-description-texte">
+                "{donnees_recette.description}"
+              </p>
+            </div>
+
+            <div className="recette-actions">
+              <button onClick={gerer_retour} className="btn-recette btn-retour">
+                <ArrowLeft size={18}/> Retour
+              </button>
+
+              <button 
+                className="btn-recette btn-afficher"
+                onClick={() => console.log("Lien recette:", donnees_recette.image_url)}
+              >
+                <Eye size={18}/> Afficher la recette
+              </button>
+            </div>
           </div>
         ) : (
-          /* ÉTAT VIDE / PLACEHOLDER */
-          <div className="etat-vide">
-            <p style={{ color: "#64748b", fontSize: "1.1rem" }}>
-              Aucune recette trouvée pour le moment. 
-            </p>
-            <p style={{ color: "#94a3b8", fontSize: "0.9rem" }}>
-              Le moteur de recherche sera bientôt disponible.
-            </p>
-          </div>
+          <div style={{ padding: '40px' }}>Aucune donnée disponible.</div>
         )}
-      </div>
-
-      {/* BOUTON POUR REVENIR À LA GESTION */}
-      <div style={{ marginTop: "30px", display: "flex", justifyContent: "center" }}>
-        <button 
-          className="bouton-action btn-stock-style" 
-          onClick={() => set_chercher_recette(false)}
-        >
-          Retour à l'inventaire
-        </button>
       </div>
     </div>
   );

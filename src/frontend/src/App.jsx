@@ -17,6 +17,7 @@ import GestionRecettes from "./components/GestionRecettes";
 import Stock from "./components/Stock";
 import AffichageRecettes from "./components/AfficherRecettes";
 import AddIngredientForm from "./components/AddIngredientForm"; // Assure-toi que l'import est là
+import {useTrouverRecetteInvite} from "./hooks/useTrouverRecetteInvite";
 
 function App() {
   // --- ÉTATS ---
@@ -24,7 +25,7 @@ function App() {
   const [action, set_action] = useState("accueil");
   const [est_connecte, set_est_connecte] = useState(false);
   const [admin_connecte, set_admin_connecte] = useState(false);
-  
+
   const [list_nom_stock, set_list_nom_stock] = useState([]);
   const [id_stock, set_id_stock] = useState(null);
   const [ajout_ingredient, set_ajout_ingredient] = useState(false);
@@ -33,7 +34,11 @@ function App() {
 
   const [vue_active_admin, set_vue_active_admin] = useState(null); 
 
-  
+  const { 
+    recette: recette_invite, 
+    chargement: en_cours_invite, 
+    reset_recherche_invite 
+  } = useTrouverRecetteInvite(action === "invite" || chercher_recette);
 
   // --- LOGIQUE ---
   const gerer_connexion_reussie = (donnees_utilisateur, est_admin = false) => {
@@ -57,14 +62,41 @@ function App() {
     
     if (!est_connecte) {
       if (action === "connexion") 
-        return <Auth on_login={(d) => gerer_connexion_reussie(d, false)} on_back={() => set_action("accueil")} 
-        />;
+        return <Auth on_login={(d) => gerer_connexion_reussie(d, false)} on_back={() => set_action("accueil")} />;
+      
       if (action === "admin") 
-        return <Auth est_admin={true} on_login={(d) => gerer_connexion_reussie(d, true)} on_back={() => set_action("accueil")} 
-        />;
+        return <Auth est_admin={true} on_login={(d) => gerer_connexion_reussie(d, true)} on_back={() => set_action("accueil")} />;
+      
       if (action === "inscription") 
-        return <Register on_register_success={() => set_action("connexion")} on_back={() => set_action("accueil")} 
-        />;
+        return <Register on_register_success={() => set_action("connexion")} on_back={() => set_action("accueil")} />;
+
+      /*if (action === "invite") {
+        return (
+          <AffichageRecettes 
+            // Cette fonction sera appelée quand on clique sur "Retour"
+            gerer_retour={() => {
+              set_action("accueil"); // Change la vue pour revenir au menu
+              set_chercher_recette(false); // Réinitialise l'état de recherche
+            }} 
+            donnees_recette={recette_invite} 
+            chargement={en_cours_invite}    
+          />
+        );}*/
+
+      if (action === "invite") {
+        return (
+          <AffichageRecettes 
+            gerer_retour={() => {
+              set_action("accueil"); 
+              set_chercher_recette(false); 
+              if (reset_recherche_invite) reset_recherche_invite(); // Nettoie la recette précédente
+            }} 
+            donnees_recette={recette_invite} 
+            chargement={en_cours_invite}    
+          />
+        );
+      }
+
       return <Home on_clic_bouton={set_action} />;
     }
 
@@ -105,8 +137,28 @@ function App() {
       );
     }
 
+    /*if (chercher_recette) {
+      return (
+        <AffichageRecettes 
+          set_chercher_recette={set_chercher_recette} 
+          est_connecte={est_connecte}
+        />
+      );
+    }*/
+
     if (chercher_recette) {
-      return <AffichageRecettes set_chercher_recette={set_chercher_recette} />;
+      return (
+        <AffichageRecettes 
+          // On utilise la même logique que pour le mode invité
+          gerer_retour={() => {
+            set_chercher_recette(false);
+            if (reset_recherche_invite) reset_recherche_invite();
+          }} 
+          est_connecte={est_connecte}
+          donnees_recette={recette_invite} // Ajout indispensable
+          chargement={en_cours_invite}    // Ajout indispensable
+        />
+      );
     }
 
     return (
