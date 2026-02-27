@@ -160,6 +160,14 @@
   cursor: pointer;
 }
 
+.btn-ajout-admin {
+  background-color: #ef4444 !important; /* Rouge Admin */
+}
+
+.btn-ajout-user {
+  background-color: #3b82f6 !important; /* Bleu Utilisateur (identique icône titre) */
+}
+
 /* ==========================================================================
    5. ETATS & ANIMATIONS (Hover, Badges, Keyframes)
    ========================================================================== */

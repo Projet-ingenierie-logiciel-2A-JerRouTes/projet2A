@@ -1,79 +1,69 @@
 import React, { useState, useEffect } from "react";
-import {
-  Wheat,
-  PlusCircle,
-  Trash2,
-  Edit,
-  Undo2,
-  AlertCircle,
-} from "lucide-react";
-import { getAllIngredients } from "../api/stockApi";
+import { Wheat, PlusCircle, Trash2, Edit, Undo2 } from "lucide-react";
+import { getAllIngredients } from "../api/stockApi"; // Utilise ton API existante
+import CreationIngredientGlobal from "./CreationIngredientGlobal"; 
 import "../styles/Gestion.css";
 
 const GestionIngredients = ({ on_back }) => {
   const [ingredients, set_ingredients] = useState([]);
   const [est_en_chargement, set_est_en_chargement] = useState(true);
-  const [message_erreur, set_message_erreur] = useState("");
+  const [vue_actuelle, set_vue_actuelle] = useState("liste"); // "liste" ou "ajout"
 
-  // Dictionnaire pour l'affichage propre des unités (tiré de ta V2)
-  const libelles_unites = {
-    GRAM: "g",
-    KILOGRAM: "kg",
-    MILIGRAM: "mg",
-    MILLILITER: "ml",
-    LITER: "L",
-    CENTIMETER: "cm",
-    PIECE: "pcs",
+  // Fonction pour charger et rafraîchir la liste
+  const rafraichir_liste = async () => {
+    set_est_en_chargement(true);
+    try {
+      const data = await getAllIngredients();
+      set_ingredients(data);
+    } catch (err) {
+      console.error("Erreur récupération ingrédients", err);
+    } finally {
+      set_est_en_chargement(false);
+    }
   };
 
   useEffect(() => {
-    const recuperer_ingredients = async () => {
-      try {
-        set_est_en_chargement(true);
-        const data = await getAllIngredients();
-        set_ingredients(data);
-      } catch (err) {
-        console.error("Erreur récupération ingrédients :", err);
-        set_message_erreur("Impossible de charger les ingrédients.");
-      } finally {
-        set_est_en_chargement(false);
-      }
-    };
-    recuperer_ingredients();
+    rafraichir_liste();
   }, []);
+
+  // RENDU DU FORMULAIRE D'AJOUT
+  if (vue_actuelle === "ajout") {
+    return (
+      <CreationIngredientGlobal 
+        onAdd={() => {
+          set_vue_actuelle("liste");
+          rafraichir_liste();
+        }}
+        onCancel={() => set_vue_actuelle("liste")}
+      />
+    );
+  }
 
   return (
     <div className="carte-centrale gestion-panel">
       <div className="entete-gestion">
         <div className="titre-groupe">
-          <Wheat size={32} color="#10b981" />
+          <Wheat size={32} color="#22c55e" />
           <h1 className="titre-principal">Gestion des Ingrédients</h1>
         </div>
         <div className="barre-outils">
-          <button
-            className="bouton-action"
-            style={{ backgroundColor: "#10b981" }}
+          {/* Bouton vert pour correspondre à ton design */}
+          <button 
+            className="bouton-action btn-ingredient-style" 
+            onClick={() => set_vue_actuelle("ajout")}
           >
             <PlusCircle size={18} /> Ajouter un ingrédient
           </button>
         </div>
       </div>
 
-      {message_erreur && (
-        <div className="alerte-erreur">
-          <AlertCircle size={18} />
-          <span>{message_erreur}</span>
-        </div>
-      )}
-
       {est_en_chargement ? (
-        <p className="message-chargement">Chargement de la liste...</p>
+        <p className="message-chargement">Chargement du référentiel...</p>
       ) : (
         <div className="conteneur-tableau">
           <table className="tableau-gestion">
             <thead>
               <tr>
-                {/* La colonne ID a été supprimée ici */}
                 <th>Nom de l'ingrédient</th>
                 <th>Catégorie</th>
                 <th>Unité de mesure</th>
@@ -82,18 +72,12 @@ const GestionIngredients = ({ on_back }) => {
             </thead>
             <tbody>
               {ingredients.map((ing) => (
-                <tr key={ing.id_ingredient}>
-                  <td
-                    className="texte-gras"
-                    style={{ textTransform: "capitalize" }}
-                  >
-                    {ing.name} {/* Utilisation de .name de la V2 */}
-                  </td>
-                  <td>{ing.categorie || "Général"}</td>
+                <tr key={ing.ingredient_id}>
+                  <td className="texte-gras">{ing.name}</td>
+                  <td>{ing.category || "Général"}</td>
                   <td>
                     <span className="badge-role bg-user">
-                      {libelles_unites[ing.unit] || ing.unit}{" "}
-                      {/* Utilisation de .unit de la V2 */}
+                      {ing.unit}
                     </span>
                   </td>
                   <td className="cellule-actions">
