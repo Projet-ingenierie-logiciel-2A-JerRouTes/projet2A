@@ -1,23 +1,25 @@
 import React, { useState } from "react";
 import "./App.css";
 
-// Composants de base
+// --- COMPOSANTS DE BASE ---
 import Home from "./components/Home";
 import Auth from "./components/Auth";
 import Register from "./components/Register";
 
-// Composants Admin
+// --- COMPOSANTS ADMIN ---
 import InterfaceAdmin from "./components/InterfaceAdmin";
 import GestionUtilisateurs from "./components/GestionUtilisateurs";
 import GestionIngredients from "./components/GestionIngredients";
 import GestionStocks from "./components/GestionStocks";
 import GestionRecettes from "./components/GestionRecettes";
 
-// Composants Utilisateur
+// --- COMPOSANTS UTILISATEUR ---
 import Stock from "./components/Stock";
 import AffichageRecettes from "./components/AfficherRecettes";
-import AddIngredientForm from "./components/AddIngredientForm"; // Assure-toi que l'import est là
-import {useTrouverRecetteInvite} from "./hooks/useTrouverRecetteInvite";
+import AddIngredientForm from "./components/AddIngredientForm";
+
+// --- HOOKS ---
+import { useTrouverRecetteInvite } from "./hooks/useTrouverRecetteInvite";
 
 function App() {
   // --- ÉTATS ---
@@ -31,16 +33,16 @@ function App() {
   const [ajout_ingredient, set_ajout_ingredient] = useState(false);
   const [chercher_recette, set_chercher_recette] = useState(false);
   const [catalogue, set_catalogue] = useState([]);
+  const [vue_active_admin, set_vue_active_admin] = useState(null);
 
-  const [vue_active_admin, set_vue_active_admin] = useState(null); 
-
+  // --- LOGIQUE DU HOOK (Tableau de recettes) ---
   const { 
-    recette: recette_invite, 
+    recettes: recettes_invite, // Correction : Pluriel pour correspondre au tableau
     chargement: en_cours_invite, 
     reset_recherche_invite 
   } = useTrouverRecetteInvite(action === "invite" || chercher_recette);
 
-  // --- LOGIQUE ---
+  // --- LOGIQUE NAVIGATION ---
   const gerer_connexion_reussie = (donnees_utilisateur, est_admin = false) => {
     set_user(donnees_utilisateur);
     set_admin_connecte(est_admin);
@@ -57,41 +59,31 @@ function App() {
     set_chercher_recette(false);
   };
 
-  // --- FONCTION DE RENDU INTERNE ---
+  const gerer_retour_accueil = () => {
+    set_action("accueil");
+    set_chercher_recette(false);
+    if (reset_recherche_invite) reset_recherche_invite();
+  };
+
+  // --- FONCTION DE RENDU ---
   const rendu_contenu = () => {
     
     if (!est_connecte) {
       if (action === "connexion") 
-        return <Auth on_login={(d) => gerer_connexion_reussie(d, false)} on_back={() => set_action("accueil")} />;
+        return <Auth on_login={(d) => gerer_connexion_reussie(d, false)} on_back={gerer_retour_accueil} />;
       
       if (action === "admin") 
-        return <Auth est_admin={true} on_login={(d) => gerer_connexion_reussie(d, true)} on_back={() => set_action("accueil")} />;
+        return <Auth est_admin={true} on_login={(d) => gerer_connexion_reussie(d, true)} on_back={gerer_retour_accueil} />;
       
       if (action === "inscription") 
-        return <Register on_register_success={() => set_action("connexion")} on_back={() => set_action("accueil")} />;
+        return <Register on_register_success={() => set_action("connexion")} on_back={gerer_retour_accueil} />;
 
-      /*if (action === "invite") {
-        return (
-          <AffichageRecettes 
-            // Cette fonction sera appelée quand on clique sur "Retour"
-            gerer_retour={() => {
-              set_action("accueil"); // Change la vue pour revenir au menu
-              set_chercher_recette(false); // Réinitialise l'état de recherche
-            }} 
-            donnees_recette={recette_invite} 
-            chargement={en_cours_invite}    
-          />
-        );}*/
-
+      // MODE INVITÉ (Correction de la variable ici)
       if (action === "invite") {
         return (
           <AffichageRecettes 
-            gerer_retour={() => {
-              set_action("accueil"); 
-              set_chercher_recette(false); 
-              if (reset_recherche_invite) reset_recherche_invite(); // Nettoie la recette précédente
-            }} 
-            donnees_recette={recette_invite} 
+            gerer_retour={gerer_retour_accueil} 
+            recettes={recettes_invite} // On passe le tableau de 6
             chargement={en_cours_invite}    
           />
         );
@@ -101,17 +93,10 @@ function App() {
     }
 
     if (admin_connecte) {
-      if (vue_active_admin === "utilisateurs") 
-        return <GestionUtilisateurs on_back={() => set_vue_active_admin(null)} 
-        />;
-      if (vue_active_admin === "ingredients") 
-        return <GestionIngredients on_back={() => set_vue_active_admin(null)} 
-        />;
-      if (vue_active_admin === "stocks") 
-        return <GestionStocks on_back={() => set_vue_active_admin(null)} 
-        />;
-      if (vue_active_admin === "recettes") 
-        return <GestionRecettes on_back={() => set_vue_active_admin(null)} />;
+      if (vue_active_admin === "utilisateurs") return <GestionUtilisateurs on_back={() => set_vue_active_admin(null)} />;
+      if (vue_active_admin === "ingredients") return <GestionIngredients on_back={() => set_vue_active_admin(null)} />;
+      if (vue_active_admin === "stocks") return <GestionStocks on_back={() => set_vue_active_admin(null)} />;
+      if (vue_active_admin === "recettes") return <GestionRecettes on_back={() => set_vue_active_admin(null)} />;
       
       return (
         <InterfaceAdmin 
@@ -131,32 +116,20 @@ function App() {
           catalogue={catalogue} 
           liste_stocks={list_nom_stock}
           initial_stock_id={id_stock} 
-          onAdd={(data) => { console.log(data); set_ajout_ingredient(false); }}
+          onAdd={(data) => { set_ajout_ingredient(false); }}
           onCancel={() => set_ajout_ingredient(false)} 
         />
       );
     }
 
-    /*if (chercher_recette) {
-      return (
-        <AffichageRecettes 
-          set_chercher_recette={set_chercher_recette} 
-          est_connecte={est_connecte}
-        />
-      );
-    }*/
-
+    // MODE CONNECTÉ - RECHERCHE RECETTE
     if (chercher_recette) {
       return (
         <AffichageRecettes 
-          // On utilise la même logique que pour le mode invité
-          gerer_retour={() => {
-            set_chercher_recette(false);
-            if (reset_recherche_invite) reset_recherche_invite();
-          }} 
+          gerer_retour={() => set_chercher_recette(false)}
+          recettes={recettes_invite} // Utilise aussi la grille de 6
+          chargement={en_cours_invite}
           est_connecte={est_connecte}
-          donnees_recette={recette_invite} // Ajout indispensable
-          chargement={en_cours_invite}    // Ajout indispensable
         />
       );
     }
@@ -174,9 +147,8 @@ function App() {
         set_catalogue={set_catalogue}
       />
     );
-  }; // FIN de rendu_contenu
+  };
 
-  // --- LE RETURN FINAL DE APP (Indispensable pour l'affichage) ---
   return (
     <div className="ecran-connexion">
       <div className="fond-image"></div>

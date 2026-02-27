@@ -1,98 +1,124 @@
-/* AffichageRecettes.css */
-
-.recette-container {
-  max-width: 550px;
+.recettes-globale-container {
+  max-width: 1000px; /* Plus large pour accueillir 3 colonnes */
   margin: 20px auto;
-  border-radius: 40px;
-  padding: 40px;
-  background-color: #ffffff;
-  text-align: center;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 30px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 }
 
-.recette-titre-page {
+.titre-principal-pluriel {
   color: #1e293b;
+  text-align: center;
   font-size: 2.2rem;
+  margin-bottom: 30px;
   font-weight: 800;
+}
+
+/* CONFIGURATION DU TABLEAU 3x2 */
+.grille-recettes-3x2 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 colonnes égales */
+  grid-template-rows: repeat(2, auto);    /* 2 lignes */
+  gap: 20px;                             /* Espace entre les cases */
+  margin-bottom: 40px;
+}
+
+/* STYLE DE CHAQUE CASE (TUILE) */
+.tuile-recette-unitaire {
+  background: white;
+  padding: 15px;
+  border-radius: 20px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.tuile-recette-unitaire:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+}
+
+.tuile-nom {
+  color: #10b981;
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.tuile-image-box {
+  width: 100%;
+  height: 120px;
+  border-radius: 12px;
+  overflow: hidden;
   margin-bottom: 10px;
 }
 
-.recette-nom {
-  color: #10b981;
-  font-size: 1.8rem;
-  font-weight: 800;
-  margin-bottom: 25px;
-}
-
-.recette-image-box {
-  width: 100%;
-  height: 280px;
-  border-radius: 25px;
-  overflow: hidden;
-  margin-bottom: 25px;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-  background-color: #f1f5f9; /* Fond en cas de chargement ou erreur */
-}
-
-.recette-image {
+.tuile-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.recette-infos-barre {
+.tuile-infos {
   display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-bottom: 20px;
+  justify-content: space-around;
+  font-size: 0.8rem;
   color: #64748b;
-  font-size: 0.9rem;
-  font-weight: 600;
+  margin-bottom: 10px;
 }
 
-.recette-description-box {
-  background-color: #f8fafc;
-  padding: 15px 25px;
-  border-radius: 15px;
-  margin-bottom: 20px;
-  width: 100%;
+.tuile-tag-badge {
+  background: #f0fdf4;
+  color: #16a34a;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-right: 5px;
 }
 
-.recette-description-texte {
-  color: #475569;
-  font-style: italic;
-  margin: 0;
-}
-
-.recette-actions {
+.actions-bas-page {
   display: flex;
-  gap: 15px;
-  width: 100%;
   justify-content: center;
 }
 
-.btn-recette {
-  padding: 12px 25px;
-  border-radius: 15px;
+.btn-retour-final {
+  background: #ef4444;
+  color: white;
   border: none;
+  padding: 12px 40px;
+  border-radius: 15px;
   font-weight: bold;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  transition: transform 0.2s, background-color 0.2s;
+  gap: 10px;
 }
 
-.btn-recette:hover {
-  transform: translateY(-2px);
+/* Conteneur de l'image */
+.bullet-image-box {
+  width: 100%;
+  height: 140px; /* Diminué de 280px à 140px pour plus de finesse */
+  background: #f8fafc;
+  overflow: hidden; /* Pour garder les coins arrondis propres */
 }
 
-.btn-retour {
-  background-color: #ef4444;
-  color: white;
+/* Image elle-même */
+.bullet-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Garde les proportions sans déformer */
+  transition: transform 0.3s ease;
 }
 
-.btn-afficher {
-  background-color: #10b981;
-  color: white;
+/* Optionnel : zoom au survol pour l'effet interactif */
+.bullet-recette-card:hover .bullet-img {
+  transform: scale(1.05);
+}
+
+/* Ajustement du contenu textuel pour qu'il ne soit pas collé */
+.bullet-content {
+  padding: 12px;
+  text-align: left;
 }
