@@ -41,11 +41,11 @@ def create_ingredient(
     payload: IngredientCreateIn,
     cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
 ):
-    if cu.status != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Seul un admin peut créer un ingrédient.",
-        )
+    #if cu.status != "admin":
+    #    raise HTTPException(
+    #        status_code=status.HTTP_403_FORBIDDEN,
+    #        detail="Seul un admin peut créer un ingrédient.",
+    #    )
 
     dao = IngredientDAO()
     ing = dao.create_ingredient(

@@ -16,7 +16,8 @@ export default defineConfig({
     proxy: {
       '/api': {
         // Compatible avec backend Docker (service "backend")
-        target: 'http://backend:8000',
+        target: 'http://localhost:8000',
+        //target: 'http://backend:8000',
         changeOrigin: true,
         secure: false,
       },

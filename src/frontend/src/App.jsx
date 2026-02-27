@@ -54,18 +54,32 @@ function App() {
 
   // --- FONCTION DE RENDU INTERNE ---
   const rendu_contenu = () => {
+    
     if (!est_connecte) {
-      if (action === "connexion") return <Auth on_login={(d) => gerer_connexion_reussie(d, false)} on_back={() => set_action("accueil")} />;
-      if (action === "admin") return <Auth est_admin={true} on_login={(d) => gerer_connexion_reussie(d, true)} on_back={() => set_action("accueil")} />;
-      if (action === "inscription") return <Register on_register_success={() => set_action("connexion")} on_back={() => set_action("accueil")} />;
+      if (action === "connexion") 
+        return <Auth on_login={(d) => gerer_connexion_reussie(d, false)} on_back={() => set_action("accueil")} 
+        />;
+      if (action === "admin") 
+        return <Auth est_admin={true} on_login={(d) => gerer_connexion_reussie(d, true)} on_back={() => set_action("accueil")} 
+        />;
+      if (action === "inscription") 
+        return <Register on_register_success={() => set_action("connexion")} on_back={() => set_action("accueil")} 
+        />;
       return <Home on_clic_bouton={set_action} />;
     }
 
     if (admin_connecte) {
-      if (vue_active_admin === "utilisateurs") return <GestionUtilisateurs on_back={() => set_vue_active_admin(null)} />;
-      if (vue_active_admin === "ingredients") return <GestionIngredients on_back={() => set_vue_active_admin(null)} />;
-      if (vue_active_admin === "stocks") return <GestionStocks on_back={() => set_vue_active_admin(null)} />;
-      if (vue_active_admin === "recettes") return <GestionRecettes on_back={() => set_vue_active_admin(null)} />;
+      if (vue_active_admin === "utilisateurs") 
+        return <GestionUtilisateurs on_back={() => set_vue_active_admin(null)} 
+        />;
+      if (vue_active_admin === "ingredients") 
+        return <GestionIngredients on_back={() => set_vue_active_admin(null)} 
+        />;
+      if (vue_active_admin === "stocks") 
+        return <GestionStocks on_back={() => set_vue_active_admin(null)} 
+        />;
+      if (vue_active_admin === "recettes") 
+        return <GestionRecettes on_back={() => set_vue_active_admin(null)} />;
       
       return (
         <InterfaceAdmin 
