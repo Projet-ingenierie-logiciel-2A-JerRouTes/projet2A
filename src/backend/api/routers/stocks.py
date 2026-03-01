@@ -157,3 +157,29 @@ def consume_fefo(
         }
     except Exception as exc:  # noqa: BLE001
         raise _map_service_errors(exc) from exc
+
+
+@router.delete("/{stock_id}", response_model=dict)
+def delete_stock(
+    stock_id: int,
+    cu: CurrentUser = Depends(get_current_user_checked_exists),
+    service: StockService = Depends(get_stock_service),
+):
+    try:
+        deleted = service.delete_stock(user_id=cu.user_id, stock_id=stock_id)
+        return {"deleted": deleted}
+    except Exception as exc:
+        raise _map_service_errors(exc) from exc
+
+
+@router.delete("/{stock_id}/lots", response_model=dict)
+def empty_stock(
+    stock_id: int,
+    cu: CurrentUser = Depends(get_current_user_checked_exists),
+    service: StockService = Depends(get_stock_service),
+):
+    try:
+        deleted_count = service.empty_stock(user_id=cu.user_id, stock_id=stock_id)
+        return {"deleted_lots": deleted_count}
+    except Exception as exc:
+        raise _map_service_errors(exc) from exc

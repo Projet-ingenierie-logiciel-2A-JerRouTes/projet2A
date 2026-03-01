@@ -392,3 +392,84 @@ def mocker_lot(stock_item_id: int, fk_stock_id: int):
             self.fk_stock_id = fk_stock_id
 
     return Lot()
+
+
+# ---------------------------------------------------------------------
+# Tests: delete_stock / empty_stock
+# ---------------------------------------------------------------------
+
+
+def test_delete_stock_stock_not_found_raises(service, mocked_daos):
+    stock_dao, stock_item_dao, _ = mocked_daos
+    stock_dao.get_stock_by_id.return_value = None
+
+    with pytest.raises(NotFoundError):
+        service.delete_stock(user_id=42, stock_id=99)
+
+    stock_dao.get_stock_by_id.assert_called_once_with(99, with_items=False)
+    stock_dao.delete_stock.assert_not_called()
+    stock_item_dao.delete_stock_items_by_stock.assert_not_called()
+
+
+def test_delete_stock_forbidden_if_not_owner(service, mocked_daos, mock_db_ownership):
+    stock_dao, _, _ = mocked_daos
+    _, cur = mock_db_ownership
+
+    stock_dao.get_stock_by_id.return_value = FakeStock(id_stock=1, nom="Cuisine")
+    cur.fetchone.return_value = None  # pas owner
+
+    with pytest.raises(ForbiddenError):
+        service.delete_stock(user_id=42, stock_id=1)
+
+    stock_dao.delete_stock.assert_not_called()
+
+
+def test_delete_stock_success(service, mocked_daos, mock_db_ownership):
+    stock_dao, _, _ = mocked_daos
+    _, cur = mock_db_ownership
+
+    stock_dao.get_stock_by_id.return_value = FakeStock(id_stock=1, nom="Cuisine")
+    cur.fetchone.return_value = {"ok": 1}  # owner
+    stock_dao.delete_stock.return_value = True
+
+    ok = service.delete_stock(user_id=42, stock_id=1)
+
+    assert ok is True
+    stock_dao.delete_stock.assert_called_once_with(1)
+
+
+def test_empty_stock_stock_not_found_raises(service, mocked_daos):
+    stock_dao, stock_item_dao, _ = mocked_daos
+    stock_dao.get_stock_by_id.return_value = None
+
+    with pytest.raises(NotFoundError):
+        service.empty_stock(user_id=42, stock_id=99)
+
+    stock_item_dao.delete_stock_items_by_stock.assert_not_called()
+
+
+def test_empty_stock_forbidden_if_not_owner(service, mocked_daos, mock_db_ownership):
+    stock_dao, stock_item_dao, _ = mocked_daos
+    _, cur = mock_db_ownership
+
+    stock_dao.get_stock_by_id.return_value = FakeStock(id_stock=1, nom="Cuisine")
+    cur.fetchone.return_value = None  # pas owner
+
+    with pytest.raises(ForbiddenError):
+        service.empty_stock(user_id=42, stock_id=1)
+
+    stock_item_dao.delete_stock_items_by_stock.assert_not_called()
+
+
+def test_empty_stock_success(service, mocked_daos, mock_db_ownership):
+    stock_dao, stock_item_dao, _ = mocked_daos
+    _, cur = mock_db_ownership
+
+    stock_dao.get_stock_by_id.return_value = FakeStock(id_stock=1, nom="Cuisine")
+    cur.fetchone.return_value = {"ok": 1}  # owner
+    stock_item_dao.delete_stock_items_by_stock.return_value = 3
+
+    deleted_count = service.empty_stock(user_id=42, stock_id=1)
+
+    assert deleted_count == 3
+    stock_item_dao.delete_stock_items_by_stock.assert_called_once_with(stock_id=1)
