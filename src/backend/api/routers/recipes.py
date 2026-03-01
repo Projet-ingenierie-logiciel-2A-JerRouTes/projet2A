@@ -57,7 +57,7 @@ def get_recipe(
 @router.post("/search", response_model=list[RecipeOut])
 def search_recipes(
     payload: RecipeSearchIn,
-    _cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+    #_cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
     finder: FindRecipe = Depends(get_recipe_finder),  # noqa: B008
 ):
     query = IngredientSearchQuery(

@@ -19,6 +19,9 @@ import AffichageRecettes from "./components/AfficherRecettes"; // La grille 3x2
 import AfficherRecetteDetail from "./components/AfficherRecetteDetail"; // La fiche détail
 import AddIngredientForm from "./components/AddIngredientForm";
 
+// --- COMPOSANTS INVITE ---
+import SaisieIngredientsInvite from "./components/SaisieIngredientsInvite";
+
 // --- HOOKS ---
 import { useTrouverRecetteInvite } from "./hooks/useTrouverRecetteInvite";
 
@@ -36,6 +39,7 @@ function App() {
   const [chercher_recette, set_chercher_recette] = useState(false);
   const [catalogue, set_catalogue] = useState([]);
   const [vue_active_admin, set_vue_active_admin] = useState(null);
+  const [mode_saisie_invite, set_mode_saisie_invite] = useState(false);
 
   // --- ÉTAT POUR LA RECETTE SÉLECTIONNÉE (Chef d'orchestre) ---
   const [recette_selectionnee, set_recette_selectionnee] = useState(null);
@@ -84,6 +88,40 @@ function App() {
         return <Register on_register_success={() => set_action("connexion")} on_back={gerer_retour_accueil} />;
 
       // MODE INVITÉ AVEC SYSTÈME GRILLE/DÉTAIL
+
+      if (action === "invite") {
+        // Page de saisie des ingrédients
+        if (mode_saisie_invite) {
+          return (
+            <SaisieIngredientsInvite 
+              catalogue={catalogue}
+              on_back={() => set_mode_saisie_invite(false)}
+              on_rechercher={(liste) => {
+                console.log("Recherche pour :", liste);
+                set_mode_saisie_invite(false);
+                // Ici tu appelleras ta logique de filtrage
+              }}
+            />
+          );
+        }
+
+        // Page de détail
+        if (recette_selectionnee) {
+          return <AfficherRecetteDetail recette={recette_selectionnee} onBack={() => set_recette_selectionnee(null)} />;
+        }
+
+        // Grille principale
+        return (
+          <AffichageRecettes 
+            gerer_retour={gerer_retour_accueil} 
+            recettes={recettes_invite} 
+            chargement={en_cours_invite}
+            on_select_recette={(r) => set_recette_selectionnee(r)}
+            on_clic_saisir={() => set_mode_saisie_invite(true)} // Ouvre la nouvelle page
+          />
+        );
+      }
+      /*
       if (action === "invite") {
         // Si l'utilisateur a cliqué sur un bullet
         if (recette_selectionnee) {
@@ -103,7 +141,7 @@ function App() {
             on_select_recette={(r) => set_recette_selectionnee(r)} // Définit la recette à afficher
           />
         );
-      }
+      }*/
 
       return <Home on_clic_bouton={set_action} />;
     }

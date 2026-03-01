@@ -1,0 +1,61 @@
+.container-saisie-invite {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 600px;
+  margin: auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.zone-saisie {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.zone-saisie input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.tableau-ingredients-container {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.tableau-ingredients {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableau-ingredients th, .tableau-ingredients td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.bouton-trouver-recettes {
+  background-color: #27ae60; /* Vert */
+  color: white;
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.bouton-trouver-recettes:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}

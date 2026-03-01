@@ -1,9 +1,15 @@
 import React from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, PlusCircle } from "lucide-react";
 import AfficherRecette from "./AfficherRecette";
 import "../styles/AfficherRecettes.css";
 
-const AffichageRecettes = ({ gerer_retour, recettes, chargement, on_select_recette }) => {
+const AffichageRecettes = ({ 
+  gerer_retour, 
+  recettes, 
+  chargement, 
+  on_select_recette, 
+  on_clic_saisir 
+}) => {
   
   return (
     <div className="recettes-globale-container">
@@ -15,17 +21,27 @@ const AffichageRecettes = ({ gerer_retour, recettes, chargement, on_select_recet
         <>
           <div className="grille-recettes-3x2">
             {recettes.map((r, index) => (
-              /* On passe la fonction de sélection à chaque bullet */
-              <div key={index} onClick={() => on_select_recette(r)}>
+              <div 
+                key={index} 
+                onClick={() => on_select_recette(r)} 
+                className="wrapper-recette-cliquable"
+              >
                 <AfficherRecette recette={r} />
               </div>
             ))}
           </div>
-
-          <div className="actions-bas-page">
-            <button onClick={gerer_retour} className="btn-retour-final">
-              <ArrowLeft size={18}/> Retour
+          
+          {/* Section des boutons avec les nouvelles classes CSS */}
+          <div className="conteneur-actions-bas">
+            
+            <button className="bouton-retour" onClick={gerer_retour}>
+              <ArrowLeft size={18} /> Retour
             </button>
+
+            <button className="bouton-saisir-ingredient" onClick={on_clic_saisir}>
+              <PlusCircle size={18} /> Saisir ingrédients
+            </button>
+
           </div>
         </>
       ) : (

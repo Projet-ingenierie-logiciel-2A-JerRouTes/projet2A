@@ -265,3 +265,48 @@
   from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+
+
+/* Conteneur des boutons en bas */
+.conteneur-actions-bas {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 30px;
+  padding-bottom: 20px;
+  width: 100%;
+}
+
+/* Style commun pour les boutons de cette section */
+.conteneur-actions-bas button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: auto; /* Important : empêche le bouton de s'étirer */
+  padding: 10px 25px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+/* Bouton Saisir spécifique (Bleu) */
+.bouton-saisir-ingredient {
+  background-color: #4A90E2;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bouton-saisir-ingredient:hover {
+  background-color: #357ABD;
+  transform: translateY(-1px);
+}
+
+/* Ajustement pour le bouton retour s'il n'est pas déjà défini */
+.bouton-retour {
+  /* On garde tes styles existants, mais on s'assure qu'il ne prend pas 100% */
+  width: auto !important;
+}
