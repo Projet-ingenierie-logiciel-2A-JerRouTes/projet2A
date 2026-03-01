@@ -8,6 +8,7 @@ from dataclasses import dataclass
 import logging
 
 from business_objects.recipe import Recipe
+from clients.spoonacular_client import SpoonacularRateLimitError
 from services.find_recipe import FindRecipe, IngredientSearchQuery
 
 
@@ -110,7 +111,14 @@ class FindRecipeFactory(FindRecipe):
             ignore_pantry=query.ignore_pantry,
         )
         logger.info("FindRecipeFactory: calling API for remaining=%s", remaining)
-        from_api = self.api.search_by_ingredients(api_query)
+        try:
+            from_api = self.api.search_by_ingredients(api_query)
+        except SpoonacularRateLimitError as e:
+            logger.warning(
+                "External recipe API quota exceeded - using DB results only: %s",
+                e,
+            )
+            from_api = []
 
         seen: set[int] = set()
         merged: list[Recipe] = []

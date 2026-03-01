@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import logging
 from typing import Protocol
 
 from business_objects.recipe import Recipe
 from business_objects.user import GenericUser
 from clients.spoonacular_client import (
+    SpoonacularRateLimitError,
     fetch_detailed_recipes_by_ingredients,
 )
 from services.find_recipe import FindRecipe, IngredientSearchQuery
@@ -50,19 +52,25 @@ class ApiFindRecipe(FindRecipe):
         if not ingredients:
             return []
 
-        detailed = fetch_detailed_recipes_by_ingredients(
-            api_key=self._api_key,
-            ingredients=ingredients,
-            n=query.limit,
-            dish_type=query.dish_type,
-            strict_only=query.strict_only,
-            max_missing_ingredients=query.max_missing,
-            sort="min-missing-ingredients"
-            if query.max_missing > 0
-            else "max-used-ingredients",
-            ignore_pantry=query.ignore_pantry,
-            instructions_required=True,
-        )
+        try:
+            detailed = fetch_detailed_recipes_by_ingredients(
+                api_key=self._api_key,
+                ingredients=ingredients,
+                n=query.limit,
+                dish_type=query.dish_type,
+                strict_only=query.strict_only,
+                max_missing_ingredients=query.max_missing,
+                sort="min-missing-ingredients"
+                if query.max_missing > 0
+                else "max-used-ingredients",
+                ignore_pantry=query.ignore_pantry,
+                instructions_required=True,
+            )
+        except SpoonacularRateLimitError as e:
+            logging.getLogger(__name__).warning(
+                "Spoonacular quota exceeded - returning empty results: %s", e
+            )
+            return []
 
         if self._dao is None:
             return [self._detailed_to_bo(r) for r in detailed]
