@@ -313,3 +313,27 @@ class StockItemDAO:
         except Exception:
             conn.rollback()
             raise
+
+    @log
+    def delete_stock_items_by_stock(self, *, stock_id: int) -> int:
+        """Supprime tous les lots d'un stock.
+
+        Args:
+            stock_id: Identifiant du stock.
+
+        Returns:
+            int: Nombre de lots supprimés.
+        """
+        conn = DBConnection().connection
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "DELETE FROM stock_item WHERE fk_stock_id = %s",
+                    (stock_id,),
+                )
+                deleted_count = int(cur.rowcount)
+            conn.commit()
+            return deleted_count
+        except Exception:
+            conn.rollback()
+            raise

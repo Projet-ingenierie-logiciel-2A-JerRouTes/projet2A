@@ -291,3 +291,15 @@ class StockService:
             ingredient_id=ingredient_id,
             consumed_quantity=float(quantity),
         )
+
+    @log
+    def delete_stock(self, *, user_id: int, stock_id: int) -> bool:
+        self._require_stock_exists(stock_id)
+        self._require_stock_ownership(user_id=user_id, stock_id=stock_id)
+        return self._stock_dao.delete_stock(stock_id)
+
+    @log
+    def empty_stock(self, *, user_id: int, stock_id: int) -> int:
+        self._require_stock_exists(stock_id)
+        self._require_stock_ownership(user_id=user_id, stock_id=stock_id)
+        return self._stock_item_dao.delete_stock_items_by_stock(stock_id=stock_id)
