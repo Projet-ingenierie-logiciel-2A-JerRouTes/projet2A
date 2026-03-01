@@ -183,3 +183,36 @@ def empty_stock(
         return {"deleted_lots": deleted_count}
     except Exception as exc:
         raise _map_service_errors(exc) from exc
+
+
+@router.get("/all", response_model=list[StockOut])
+def list_all_stocks(
+    limit: int = 50,
+    offset: int = 0,
+    name: str | None = None,
+    cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+):
+    """Liste tous les stocks (admin uniquement)."""
+
+    if cu.status != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès réservé aux administrateurs.",
+        )
+
+    from dao.stock_dao import StockDAO
+
+    dao = StockDAO()
+    stocks = dao.list_stocks(
+        name_ilike=name,
+        limit=limit,
+        offset=offset,
+    )
+
+    return [
+        StockOut(
+            stock_id=s.id_stock,
+            name=s.nom,
+        )
+        for s in stocks
+    ]
