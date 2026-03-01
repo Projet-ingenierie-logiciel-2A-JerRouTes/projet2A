@@ -1,17 +1,30 @@
 from collections.abc import Iterable
 import csv
+import os
 from pathlib import Path
 
 
 def _candidate_csv_paths() -> Iterable[Path]:
-    backend_dir = Path(__file__).resolve().parents[1]
-    repo_dir = backend_dir.parents[2]
+    here = Path(__file__).resolve()
 
-    # Priorité future : data côté backend
+    # (Optionnel mais super pratique) Permet de forcer le chemin via env var
+    env_path = os.getenv("INGREDIENTS_CSV_PATH")
+    if env_path:
+        yield Path(env_path)
+
+    # Dossier "backend" supposé (si utils/ est dans backend/)
+    backend_dir = here.parents[1]  # ex: .../backend ou /app
+
+    # Priorité : data côté backend
     yield backend_dir / "data" / "ingredients.csv"
 
-    # Emplacement actuel (racine projet)
-    yield repo_dir / "data" / "ingredients.csv"
+    # Cas Docker de ton compose : tu montes ./src sur /app/src
+    yield backend_dir / "src" / "backend" / "data" / "ingredients.csv"
+
+    # Cas "repo racine/data" si tu as data/ à la racine du projet
+    # On remonte tous les parents sans jamais indexer parents[2]
+    for parent in backend_dir.parents:
+        yield parent / "data" / "ingredients.csv"
 
 
 def find_ingredients_csv_path() -> Path | None:
@@ -35,7 +48,6 @@ def load_ingredients_from_csv(cursor, csv_path: Path | None = None) -> int:
     with csv_path.open(newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f, delimiter=",")
 
-        # Ton fichier: nom,categorie (ou name,categorie)
         for r in reader:
             name = (r.get("nom") or r.get("name") or "").strip()
             if not name:

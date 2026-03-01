@@ -8,10 +8,10 @@ services:
     # Utilisation d'une version stable de PostgreSQL
     image: postgres:16
     container_name: projet2a_postgres
-    
+
     # Redémarre automatiquement le conteneur si le PC redémarre ou si le service crash
     restart: always
-    
+
     # ============================================================================
     # CONFIGURATION DES IDENTIFIANTS (via le .env du backend)
     # ----------------------------------------------------------------------------
@@ -26,7 +26,7 @@ services:
     # Expose le port de la base pour pouvoir y accéder depuis un outil comme DBeaver
     ports:
       - "5432:5432"
-    
+
     volumes:
       # ============================================================================
       # PERSISTANCE
@@ -35,16 +35,20 @@ services:
       # Même après un 'docker compose down', les données restent sauvegardées.
       # ============================================================================
       - projet2a_pgdata:/var/lib/postgresql/data
-      
+
       # ============================================================================
-      # INITIALISATION AUTOMATIQUE
+      # INITIALISATION AUTOMATIQUE (SQL UNIQUEMENT)
       # ----------------------------------------------------------------------------
-      # Chaque fichier .sql dans ./data est exécuté UNIQUEMENT au premier lancement
-      # (quand le volume est vide).
-      # Indispensable pour créer vos tables et insérer les données de test.
+      # Chaque fichier .sql dans ./src/backend/data est exécuté UNIQUEMENT au
+      # premier lancement (quand le volume est vide).
+      # Indispensable pour créer les tables (init_db.sql).
+      #
+      # ⚠️ IMPORTANT :
+      # Les imports Python (CSV/ODS pour ingrédients) NE PEUVENT PAS être faits ici,
+      # car Postgres n'exécute pas du Python. C'est le rôle du service db_init.
       # ============================================================================
       - ./src/backend/data:/docker-entrypoint-initdb.d/
-    
+
     # ============================================================================
     # ISOLATION & SÉCURITÉ
     # ----------------------------------------------------------------------------
@@ -54,10 +58,52 @@ services:
     # variables trop tôt.
     # ============================================================================
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DATABASE"]
-      interval: 5s   # Teste toutes les 5 secondes
-      timeout: 5s    # Attend 5 secondes max pour une réponse
-      retries: 10    # Réessaie 10 fois avant de déclarer le service "unhealthy"
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # ============================================================================
+  # SERVICE : INITIALISATION DES DONNÉES (Python)
+  # ----------------------------------------------------------------------------
+  # Objectif :
+  #  - Lancer le script Python de reset/initialisation après que Postgres soit healthy
+  #  - Importer les ingrédients depuis CSV + les tags depuis ODS
+  #
+  # Pourquoi c'est nécessaire ?
+  #  - /docker-entrypoint-initdb.d ne gère que du SQL
+  #  - Or tes ingrédients/tags sont importés via Python (pandas + odf)
+  #
+  # IMPORTANT :
+  #  - Ce service tourne "one-shot" (restart: "no")
+  #  - Il doit finir avec succès avant que le backend démarre
+  # ============================================================================
+  db_init:
+    build: ./src/backend
+    container_name: projet2a_db_init
+    restart: "no"
+
+    # On reprend les mêmes variables que le backend
+    env_file:
+      - ./src/backend/.env
+
+    environment:
+      # Dans Docker, la DB se joint via le nom du service Docker "db"
+      - POSTGRES_HOST=db
+      # On force le schéma "réel"
+      - POSTGRES_SCHEMA=projet_dao
+
+    volumes:
+      # On monte le backend à /app pour que les chemins /app/data/*.csv et /app/data/*.ods existent
+      - ./src/backend:/app
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    # Lance ton reset Python (qui fait structure + imports CSV/ODS)
+    command: >
+      sh -lc "uv run python utils/reset_database.py"
 
   # ============================================================================
   # SERVICE : BACKEND (L'intelligence en Python FastAPI)
@@ -67,9 +113,9 @@ services:
     build: ./src/backend
     container_name: projet2a_backend
     restart: always
-    
+
     env_file:
-    - ./src/backend/.env
+      - ./src/backend/.env
 
     volumes:
       # MODE DÉVELOPPEMENT : Lie votre code source au dossier /app du conteneur.
@@ -77,14 +123,11 @@ services:
       #- ./src/backend:/app
       - ./src:/app/src
 
-    
     ports:
       - "8000:8000"
-    
+
     environment:
       # On utilise le nom du service 'db' comme nom d'hôte (Network Docker).
-      #DATABASE_URL: postgresql://projet_user:projet_pwd@db:5432/projet2a
-      #PYTHONPATH: /app
       # Docker pioche ces valeurs directement dans ton .env
       - POSTGRES_HOST
       - POSTGRES_PORT
@@ -93,11 +136,19 @@ services:
       - POSTGRES_PASSWORD
       - POSTGRES_SCHEMA
       - PYTHONPATH=/app
-    
-    # ORCHESTRATION : Le backend ne démarre QUE quand la DB est déclarée "healthy".
+
+    # ============================================================================
+    # ORCHESTRATION
+    # ----------------------------------------------------------------------------
+    # Le backend ne démarre QUE quand :
+    #  1) Postgres est "healthy"
+    #  2) db_init a fini avec succès (ingrédients/tags importés)
+    # ============================================================================
     depends_on:
       db:
         condition: service_healthy
+      db_init:
+        condition: service_completed_successfully
 
   # ============================================================================
   # SERVICE : FRONTEND (L'interface en React + Vite)
@@ -106,16 +157,16 @@ services:
     build: ./src/frontend
     container_name: projet2a_frontend
     restart: always
-    
+
     volumes:
       # Synchronisation du code pour le Hot Reload de Vite
       - ./src/frontend:/app
       # Évite que le volume n'écrase les node_modules installés lors du build
       - /app/node_modules
-    
+
     ports:
       - "5173:5173"
-    
+
     # Le front dépend du backend pour fonctionner correctement
     depends_on:
       - backend

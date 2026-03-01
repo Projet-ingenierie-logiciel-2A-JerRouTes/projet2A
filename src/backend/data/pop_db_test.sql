@@ -1,4 +1,4 @@
-SET search_path TO projet_test_dao, public;
+SET search_path TO projet_dao, public;
 
 -----------------------------------------------------
 -- INSERT : Users (Généré avec le script dans les tests)

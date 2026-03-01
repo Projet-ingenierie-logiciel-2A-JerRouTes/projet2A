@@ -5,6 +5,7 @@ description = "Backend FastAPI - Recipe application"
 requires-python = ">=3.11"
 
 dependencies = [
+    "python-dotenv",
     # --- Serveur API ---
     "fastapi>=0.110",
     "uvicorn[standard]>=0.29",
@@ -51,3 +52,6 @@ dev = [
     "pytest>=9.0.2",
     "pytest-mock>=3.15.1",
 ]
+
+[tool.uv.scripts]
+reset-db = "utils.reset_database:main"
