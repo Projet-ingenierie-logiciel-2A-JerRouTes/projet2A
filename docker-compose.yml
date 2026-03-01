@@ -68,6 +68,9 @@ services:
     container_name: projet2a_backend
     restart: always
     
+    env_file:
+    - ./src/backend/.env
+
     volumes:
       # MODE DÉVELOPPEMENT : Lie votre code source au dossier /app du conteneur.
       # Permet de voir vos modifs de code en temps réel sans tout reconstruire.
