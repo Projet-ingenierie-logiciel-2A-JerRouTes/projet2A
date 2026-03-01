@@ -112,6 +112,10 @@ class User(ABC):
         """Retourne le rôle de l'utilisateur."""
         pass
 
+    def is_admin(self) -> bool:
+        """Retourne True si l'utilisateur est administrateur."""
+        return self.display_role().lower() == "admin"
+
 
 class GenericUser(User):
     """

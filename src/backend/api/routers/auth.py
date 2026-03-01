@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request, status
+from api.dependencies import CurrentUser, get_current_user_checked_exists
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from api.config import settings
 from api.schemas.auth import (
@@ -218,3 +219,11 @@ def refresh(req: RefreshRequest) -> TokenPairResponse:
         return auth_service.refresh(refresh_token=req.refresh_token)
     except Exception as exc:
         raise _map_service_errors(exc) from exc
+
+
+@router.get("/admin-status", response_model=bool)
+def admin_status(
+    cu: CurrentUser = Depends(get_current_user_checked_exists),
+):
+    """Retourne True si l'utilisateur connecté est admin."""
+    return cu.is_admin()
