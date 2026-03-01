@@ -39,6 +39,17 @@ class StockItemLiteRow:
     expiration_date: date | None
 
 
+@dataclass(frozen=True, slots=True)
+class UserIngredientRow:
+    """Ingrédient possédé par un utilisateur (agrégé sur tous ses stocks)."""
+
+    ingredient_id: int
+    name: str
+    unit: str | None
+    tag_ids: list[int]
+    total_quantity: Any
+
+
 class StockDAO:
     """DAO pour `stock` + `user_stock` + lecture des lots `stock_item`.
 
@@ -372,3 +383,63 @@ class StockDAO:
                 self._fetch_stock_items(cur, stock_row.stock_id) if with_items else []
             )
             return self._row_to_bo(stock_row, item_rows=items)
+
+    @log
+    def list_user_ingredients(self, user_id: int) -> list[UserIngredientRow]:
+        """Liste tous les ingrédients possédés par un utilisateur (tous stocks)."""
+        conn = DBConnection().connection
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    i.ingredient_id,
+                    i.name,
+                    i.unit,
+                    COALESCE(
+                        ARRAY_AGG(DISTINCT it.fk_tag_id)
+                            FILTER (WHERE it.fk_tag_id IS NOT NULL),
+                        '{}'::int[]
+                    ) AS tag_ids,
+                    SUM(si.quantity) AS total_quantity
+                FROM user_stock us
+                JOIN stock_item si ON si.fk_stock_id = us.fk_stock_id
+                JOIN ingredient i ON i.ingredient_id = si.fk_ingredient_id
+                LEFT JOIN ingredient_tag it ON it.fk_ingredient_id = i.ingredient_id
+                WHERE us.fk_user_id = %s
+                GROUP BY i.ingredient_id, i.name, i.unit
+                ORDER BY i.name ASC, i.ingredient_id ASC
+                """,
+                (user_id,),
+            )
+            rows = cur.fetchall()
+
+        return [
+            UserIngredientRow(
+                ingredient_id=int(r["ingredient_id"]),
+                name=str(r["name"]),
+                unit=r.get("unit"),
+                tag_ids=[int(x) for x in (r.get("tag_ids") or [])],
+                total_quantity=r.get("total_quantity"),
+            )
+            for r in rows
+        ]
+
+    @log
+    def list_user_ingredient_names(self, user_id: int):
+        """Retourne les ingrédients uniques possédés par l'utilisateur."""
+        conn = DBConnection().connection
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT DISTINCT
+                    i.ingredient_id,
+                    i.name
+                FROM user_stock us
+                JOIN stock_item si ON si.fk_stock_id = us.fk_stock_id
+                JOIN ingredient i ON i.ingredient_id = si.fk_ingredient_id
+                WHERE us.fk_user_id = %s
+                ORDER BY i.name
+                """,
+                (user_id,),
+            )
+            return cur.fetchall()

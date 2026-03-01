@@ -303,3 +303,11 @@ class StockService:
         self._require_stock_exists(stock_id)
         self._require_stock_ownership(user_id=user_id, stock_id=stock_id)
         return self._stock_item_dao.delete_stock_items_by_stock(stock_id=stock_id)
+
+    @log
+    def list_user_ingredients(self, *, user_id: int):
+        """Retourne les ingrédients possédés par l'utilisateur (tous stocks)."""
+        return self._stock_dao.list_user_ingredients(user_id)
+
+    def list_user_ingredient_names(self, *, user_id: int):
+        return self._stock_dao.list_user_ingredient_names(user_id)

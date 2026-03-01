@@ -7,6 +7,7 @@ from api.deps import (
     get_current_user_checked_exists,
     get_stock_service,
 )
+from api.schemas.ingredients import IngredientOwnedOut
 from api.schemas.stocks import (
     ConsumeIn,
     StockCreateIn,
@@ -215,4 +216,42 @@ def list_all_stocks(
             name=s.nom,
         )
         for s in stocks
+    ]
+
+
+@router.get("/ingredients", response_model=list[IngredientOwnedOut])
+def list_my_ingredients(
+    cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+    service: StockService = Depends(get_stock_service),  # noqa: B008
+):
+    """Retourne tous les ingrédients présents dans les stocks de l'utilisateur."""
+    try:
+        rows = service.list_user_ingredients(user_id=cu.user_id)
+        return [
+            IngredientOwnedOut(
+                ingredient_id=r.ingredient_id,
+                name=r.name,
+                unit=r.unit,
+                tag_ids=r.tag_ids,
+                total_quantity=float(r.total_quantity or 0.0),
+            )
+            for r in rows
+        ]
+    except Exception as exc:  # noqa: BLE001
+        raise _map_service_errors(exc) from exc
+
+
+@router.get("/ingredients/names")
+def list_my_ingredient_names(
+    cu: CurrentUser = Depends(get_current_user_checked_exists),
+    service: StockService = Depends(get_stock_service),
+):
+    rows = service.list_user_ingredient_names(user_id=cu.user_id)
+
+    return [
+        {
+            "ingredient_id": r["ingredient_id"],
+            "name": r["name"],
+        }
+        for r in rows
     ]
