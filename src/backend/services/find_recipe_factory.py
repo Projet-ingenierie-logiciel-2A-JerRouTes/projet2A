@@ -1,10 +1,17 @@
+"""Factory / façade unifiée de recherche de recettes.
+...
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
+import logging
 
 from business_objects.recipe import Recipe
 from services.find_recipe import FindRecipe, IngredientSearchQuery
 
+
+logger = logging.getLogger(__name__)
 
 """Factory / façade unifiée de recherche de recettes.
 
@@ -77,6 +84,16 @@ class FindRecipeFactory(FindRecipe):
         sur la base de l’identifiant de recette.
         """
         from_db = self.db.search_by_ingredients(query)
+        logger.info(
+            "FindRecipeFactory: DB returned %s results (limit=%s)",
+            len(from_db),
+            query.limit,
+        )
+
+        if len(from_db) >= query.limit:
+            return from_db[: query.limit]
+
+        from_db = self.db.search_by_ingredients(query)
         if len(from_db) >= query.limit:
             return from_db[: query.limit]
 
@@ -92,6 +109,7 @@ class FindRecipeFactory(FindRecipe):
             dish_type=query.dish_type,
             ignore_pantry=query.ignore_pantry,
         )
+        logger.info("FindRecipeFactory: calling API for remaining=%s", remaining)
         from_api = self.api.search_by_ingredients(api_query)
 
         seen: set[int] = set()

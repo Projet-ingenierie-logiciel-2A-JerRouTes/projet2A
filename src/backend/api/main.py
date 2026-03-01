@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime
+import logging
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+import httpx
 
 from api.config import settings
 from api.routers.auth import router as auth_router
@@ -15,10 +17,17 @@ from api.routers.stocks import router as stocks_router
 from api.routers.users import router as users_router
 
 
-# from api.routers.recipes import router as recipes_router  # futur
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s | %(name)s | %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 
 app = FastAPI(title=settings.app_name)
+
+logger.info("App starting: app_name=%s", settings.app_name)
+logger.info("Spoonacular key loaded: %s", bool(settings.api_key_spoonacular))
 
 # CORS (frontend)
 app.add_middleware(
@@ -77,3 +86,38 @@ def dashboard():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/health/spoonacular", tags=["Système"])
+def health_spoonacular():
+    """
+    Teste une requête réelle vers Spoonacular.
+    Retourne ok si on obtient une réponse HTTP (même erreur quota),
+    et donne le status_code.
+    """
+    if not settings.api_key_spoonacular:
+        raise HTTPException(
+            status_code=500, detail="Spoonacular API key not configured"
+        )
+
+    url = "https://api.spoonacular.com/recipes/complexSearch"
+    params = {
+        "apiKey": settings.api_key_spoonacular,
+        "number": 1,  # on demande 1 résultat
+        "query": "pasta",  # requête simple
+    }
+
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            resp = client.get(url, params=params)
+        logger.info("Spoonacular test call done: status=%s", resp.status_code)
+        return {
+            "spoonacular_reachable": True,
+            "status_code": resp.status_code,
+        }
+    except Exception as e:
+        logger.exception("Spoonacular test call failed")
+        raise HTTPException(
+            status_code=502,
+            detail=f"Failed to reach Spoonacular: {e}",
+        ) from e
