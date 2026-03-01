@@ -54,3 +54,32 @@ export async function findRecipe(liste_ingredients) {
     return [];
   }
 }
+
+
+/**
+ * Liste les recettes présentes en base de données
+ * Correspond à l'endpoint FastAPI : GET /api/recipes
+ */
+export async function listRecipes(filtres = {}) {
+  try {
+    // On définit les paramètres par défaut basés sur ton code Python
+    const params = {
+      limit: filtres.limit || 1000,
+      offset: filtres.offset || 0,
+      name: filtres.name || null,
+      include_relations: filtres.include_relations ?? true // Utile pour avoir les tags/ingrédients
+    };
+
+    console.log("📤 Requête GET /api/recipes", params);
+
+    // Axios transforme automatiquement l'objet params en ?limit=50&offset=0...
+    const res = await API.get("/api/recipes", { params });
+    
+    return res.data;
+  } catch (erreur) {
+    console.error("❌ Erreur lors de la récupération de la liste des recettes :", erreur);
+    return [];
+  }
+}
+
+

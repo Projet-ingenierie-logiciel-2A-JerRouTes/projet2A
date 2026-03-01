@@ -86,3 +86,34 @@ export async function addStockItem(stock_id, ingredient_id, quantity, expiration
   return res.data;
 }
 
+
+/**
+ * Liste tous les stocks de l'application (Réservé aux admins)
+ * Correspond à l'endpoint FastAPI : GET /api/stocks/all
+ */
+export async function getAllStocksAdmin(filtres = {}) {
+  try {
+    // Préparation des paramètres de requête (Query Params)
+    const params = {
+      limit: filtres.limit || 1000,
+      offset: filtres.offset || 0,
+      name: filtres.name || null
+    };
+
+    console.log("📤 Requête ADMIN : GET /api/stocks/all", params);
+
+    // Appel à l'API avec les paramètres dans l'URL
+    const res = await API.get("/api/stocks/all", { params });
+    
+    // Retourne la liste des objets StockOut { stock_id, name }
+    return res.data;
+  } catch (erreur) {
+    // Gestion des erreurs de permissions (403 Forbidden) ou réseau
+    if (erreur.response?.status === 403) {
+      console.error("❌ Accès refusé : Vous n'avez pas les droits administrateur.");
+    } else {
+      console.error("❌ Erreur lors de la récupération de tous les stocks :", erreur.message);
+    }
+    return [];
+  }
+}

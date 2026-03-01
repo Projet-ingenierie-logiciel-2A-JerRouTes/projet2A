@@ -1,0 +1,62 @@
+import { useState, useEffect, useCallback } from "react";
+import { findRecipeAlea, findRecipe } from "../api/recetteApi";
+
+const PIXABAY_KEY = "54824000-d8df568886d364ec62c29ba9c";
+
+export const useTrouverRecette = (liste_ingredients = []) => {
+  const [recettes, set_recettes] = useState([]);
+  const [chargement, set_chargement] = useState(false);
+  const [mode_aleatoire, set_mode_aleatoire] = useState(false);
+
+  const chercher_image = async (nom, tags) => {
+    try {
+      const query = encodeURIComponent(nom.split(' ').slice(0, 2).join(' '));
+      const url = `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${query}&image_type=photo&category=food&per_page=3`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.hits?.[0]?.webformatURL || "https://images.unsplash.com/photo-1495195129352-aec325a55b65?w=400";
+    } catch { return "https://images.unsplash.com/photo-1495195129352-aec325a55b65?w=400"; }
+  };
+
+  const fetch_data = useCallback(async () => {
+    set_chargement(true);
+    let resultats = [];
+    let est_en_alea = false;
+
+    try {
+      // ÉTAPE 1 : Tentative de recherche si liste non vide
+      if (liste_ingredients.length > 0) {
+        resultats = await findRecipe(liste_ingredients);
+      }
+
+      // ÉTAPE 2 : Si liste vide OU recherche infructueuse -> Mode Aléatoire
+      if (resultats.length === 0) {
+        est_en_alea = true;
+        const ids = Array.from({ length: 10 }, (_, i) => i + 1).sort(() => 0.5 - Math.random()).slice(0, 6);
+        const promesses = ids.map(id => findRecipeAlea(id));
+        resultats = (await Promise.all(promesses)).filter(r => r !== null);
+      }
+
+      // ÉTAPE 3 : Enrichissement images (Max 6)
+      const final_docs = await Promise.all(
+        resultats.slice(0, 6).map(async (r) => ({
+          ...r,
+          image_url: await chercher_image(r.name, r.tags?.map(t => t.name) || [])
+        }))
+      );
+
+      set_recettes(final_docs);
+      set_mode_aleatoire(est_en_alea);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      set_chargement(false);
+    }
+  }, [liste_ingredients]);
+
+  useEffect(() => {
+    fetch_data();
+  }, [fetch_data]);
+
+  return { recettes, chargement, mode_aleatoire };
+};

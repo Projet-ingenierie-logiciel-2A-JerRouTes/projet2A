@@ -1,22 +1,22 @@
 import React, { useState } from "react";
 import { Trash2, Utensils, Plus, Loader2 } from "lucide-react";
-// 1. IMPORTATION DIRECTE DE L'API
-import { findRecipe } from "../api/recetteApi"; 
 import "../styles/SaisieIngredients.css";
 
-const SaisieIngredientsInvite = ({ on_back }) => {
+const SaisieIngredientsInvite = ({ on_back, on_rechercher }) => {
   const [saisie, set_saisie] = useState("");
   const [ingredients_choisis, set_ingredients_choisis] = useState([]);
   const [chargement, set_chargement] = useState(false);
 
+  // Ajoute l'ingrédient saisi à la liste locale (sans forcer le lowercase pour rester flexible)
   const ajouter_ingredient = () => {
     const nom = saisie.trim(); 
     if (nom && !ingredients_choisis.includes(nom)) {
-        set_ingredients_choisis([...ingredients_choisis, nom]);
-        set_saisie(""); 
+      set_ingredients_choisis([...ingredients_choisis, nom]);
+      set_saisie(""); 
     }
   };
 
+  // Permet d'ajouter un ingrédient avec la touche "Entrée"
   const gerer_touche_clavier = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -24,40 +24,32 @@ const SaisieIngredientsInvite = ({ on_back }) => {
     }
   };
 
+  // Supprime un ingrédient de la liste locale
   const supprimer_ingredient = (index) => {
     set_ingredients_choisis(ingredients_choisis.filter((_, i) => i !== index));
   };
 
-  // --- LOGIQUE DE RECHERCHE AUTONOME ---
+  // Vide toute la liste d'un coup
+  const vider_liste = () => {
+    set_ingredients_choisis([]);
+  };
+
+  // --- TRANSMISSION AU PARENT ---
   const gerer_clic_recherche = async () => {
+    if (ingredients_choisis.length === 0) return;
+    
     set_chargement(true);
     
-    // On affiche ce qui va être envoyé (identique à ton Swagger)
-    console.log("🚀 Tentative d'appel DIRECT depuis le composant :");
-    console.log(JSON.stringify({ ingredients: ingredients_choisis }));
-
-    try {
-      // 2. APPEL DIRECT DE LA FONCTION API
-      const reponse = await findRecipe(ingredients_choisis);
-      
-      console.log("✅ RÉPONSE DU SERVEUR REÇUE :");
-      
-      if (reponse && reponse.length > 0) {
-        // Affiche les recettes sous forme de tableau (comme dans ton Swagger)
-        console.table(reponse); 
-      } else {
-        console.warn("⚠️ Le serveur a répondu, mais la liste est vide [].");
-        console.log("Contenu de la réponse :", reponse);
-      }
-    } catch (error) {
-      console.error("❌ Erreur lors de l'appel API :", error);
-    } finally {
-      set_chargement(false);
-    }
+    // On simule un léger délai pour le feedback visuel avant de basculer
+    // Cette fonction mettra à jour 'ingredients_filtres' dans App.jsx
+    await on_rechercher(ingredients_choisis);
+    
+    set_chargement(false);
   };
 
   return (
     <div className="container-saisie-invite">
+      {/* Bouton de retour vers la grille de suggestions */}
       <button className="bouton-retour-simple" onClick={on_back}>
         ← Retour
       </button>
@@ -68,7 +60,7 @@ const SaisieIngredientsInvite = ({ on_back }) => {
         <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
           <input 
             type="text" 
-            placeholder="Ex: butter, bread slice..." 
+            placeholder="Ex: butter, bread slice, cheddar..." 
             value={saisie}
             onChange={(e) => set_saisie(e.target.value)}
             onKeyDown={gerer_touche_clavier}
@@ -83,7 +75,14 @@ const SaisieIngredientsInvite = ({ on_back }) => {
           <button 
             onClick={ajouter_ingredient}
             className="btn-ajouter-action"
-            style={{ backgroundColor: '#4A90E2', color: 'white', border: 'none', borderRadius: '8px', padding: '0 20px', cursor: 'pointer' }}
+            style={{ 
+              backgroundColor: '#4A90E2', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '8px', 
+              padding: '0 20px', 
+              cursor: 'pointer' 
+            }}
           >
             <Plus size={20} />
           </button>
@@ -91,6 +90,17 @@ const SaisieIngredientsInvite = ({ on_back }) => {
       </div>
 
       <div className="tableau-ingredients-container" style={{ marginTop: '20px', minHeight: '200px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <span style={{ fontSize: '14px', color: '#666' }}>
+            {ingredients_choisis.length} ingrédient(s) ajouté(s)
+          </span>
+          {ingredients_choisis.length > 0 && (
+            <button onClick={vider_liste} style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', fontSize: '12px', textDecoration: 'underline' }}>
+              Tout effacer
+            </button>
+          )}
+        </div>
+
         <table className="tableau-ingredients">
           <thead>
             <tr>
@@ -105,6 +115,7 @@ const SaisieIngredientsInvite = ({ on_back }) => {
                 <td style={{ textAlign: 'center' }}>
                   <button 
                     onClick={() => supprimer_ingredient(index)}
+                    className="btn-suppr-table"
                     style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer' }}
                   >
                     <Trash2 size={18} />
@@ -112,10 +123,11 @@ const SaisieIngredientsInvite = ({ on_back }) => {
                 </td>
               </tr>
             ))}
+            {/* Message si le tableau est vide */}
             {ingredients_choisis.length === 0 && (
               <tr>
                 <td colSpan="2" style={{ textAlign: 'center', padding: '40px', color: '#999', fontStyle: 'italic' }}>
-                  Votre liste est vide.
+                  Votre liste est vide. Ajoutez des ingrédients pour cuisiner !
                 </td>
               </tr>
             )}
@@ -123,6 +135,7 @@ const SaisieIngredientsInvite = ({ on_back }) => {
         </table>
       </div>
 
+      {/* BOUTON D'ACTION : Envoie la liste au parent */}
       <button 
         className="bouton-trouver-recettes" 
         disabled={ingredients_choisis.length === 0 || chargement}
@@ -141,11 +154,12 @@ const SaisieIngredientsInvite = ({ on_back }) => {
           justifyContent: 'center',
           alignItems: 'center',
           gap: '10px',
-          marginTop: '25px'
+          marginTop: '25px',
+          transition: 'all 0.3s ease'
         }}
       >
         {chargement ? (
-          <> <Loader2 className="animate-spin" size={20} /> Recherche... </>
+          <> <Loader2 className="animate-spin" size={20} /> Mise à jour... </>
         ) : (
           <> <Utensils size={20} /> Trouver des recettes </>
         )}

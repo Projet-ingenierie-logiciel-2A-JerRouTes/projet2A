@@ -310,3 +310,36 @@
   /* On garde tes styles existants, mais on s'assure qu'il ne prend pas 100% */
   width: auto !important;
 }
+
+.grille-dynamique {
+  display: grid;
+  gap: 20px;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+/* 6 ou 5 recettes : 2 lignes de 3 colonnes */
+.grille-6 { grid-template-columns: repeat(3, 1fr); }
+
+/* 4 recettes : 2x2 */
+.grille-4 { 
+  grid-template-columns: repeat(2, 400px); 
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 3 recettes : 3 côte à côte */
+.grille-3 { grid-template-columns: repeat(3, 1fr); }
+
+/* 2 recettes : 2 côte à côte */
+.grille-2 { 
+  grid-template-columns: repeat(2, 400px);
+  justify-content: center;
+}
+
+/* 1 recette : centrée */
+.grille-1 { 
+  grid-template-columns: 400px; 
+  justify-content: center;
+}
