@@ -42,7 +42,7 @@ def _bo_to_out(r: Recipe) -> RecipeOut:
 @router.get("/{recipe_id}", response_model=RecipeOut)
 def get_recipe(
     recipe_id: int,
-    #_cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+    # _cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
     finder: FindRecipe = Depends(get_recipe_finder),  # noqa: B008
 ):
     r = finder.get_by_id(int(recipe_id))
@@ -70,3 +70,32 @@ def search_recipes(
     )
     res = finder.search_by_ingredients(query)
     return [_bo_to_out(r) for r in res]
+
+
+@router.get("", response_model=list[RecipeOut])
+def list_recipes(
+    limit: int = 50,
+    offset: int = 0,
+    name: str | None = None,
+    include_relations: bool = False,
+    _cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+):
+    """Liste toutes les recettes (BDD).
+
+    - name : filtre sur le champ recipe.name (ILIKE)
+    - include_relations : si True, recharge ingrédients + tags
+    """
+    from dao.recipe_dao import RecipeDAO
+
+    dao = RecipeDAO()
+    recipes = dao.list_recipes(name_ilike=name, limit=limit, offset=offset)
+
+    if include_relations:
+        full = []
+        for r in recipes:
+            rr = dao.get_recipe_by_id(int(r.recipe_id), with_relations=True)
+            if rr is not None:
+                full.append(rr)
+        recipes = full
+
+    return [_bo_to_out(r) for r in recipes]
