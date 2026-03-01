@@ -300,3 +300,34 @@ def test_consume_quantity_fefo_delete_first_lot_then_update_second(dao, mock_db)
 
     conn.commit.assert_called_once()
     conn.rollback.assert_not_called()
+
+
+# ---------------------------------------------------------------------
+# delete_stock_items_by_stock
+# ---------------------------------------------------------------------
+
+
+def test_delete_stock_items_by_stock_success(dao, mock_db):
+    conn, cur = mock_db
+    cur.rowcount = 3
+
+    deleted_count = dao.delete_stock_items_by_stock(stock_id=10)
+
+    assert deleted_count == 3
+    conn.commit.assert_called_once()
+    conn.rollback.assert_not_called()
+
+    sqls = executed_sql_list(cur)
+    assert any("DELETE FROM stock_item" in s for s in sqls)
+    assert any("fk_stock_id = %s" in s for s in sqls)
+
+
+def test_delete_stock_items_by_stock_rollback_on_error(dao, mock_db):
+    conn, cur = mock_db
+    cur.execute.side_effect = RuntimeError("DB error")
+
+    with pytest.raises(RuntimeError):
+        dao.delete_stock_items_by_stock(stock_id=10)
+
+    conn.rollback.assert_called_once()
+    conn.commit.assert_not_called()

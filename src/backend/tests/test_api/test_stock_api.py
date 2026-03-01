@@ -294,3 +294,51 @@ def mocker_consume_result(stock_id: int, ingredient_id: int, consumed_quantity: 
             self.consumed_quantity = consumed_quantity
 
     return _Res()
+
+
+def test_delete_stock_ok(client, auth_user_override, stock_service_mock):
+    app.dependency_overrides[get_current_user_checked_exists] = auth_user_override
+    app.dependency_overrides[get_stock_service] = lambda: stock_service_mock
+
+    stock_service_mock.delete_stock.return_value = True
+
+    resp = client.delete("api/stocks/1")
+    assert resp.status_code == 200
+    assert resp.json() == {"deleted": True}
+
+    stock_service_mock.delete_stock.assert_called_once_with(user_id=42, stock_id=1)
+
+
+def test_delete_stock_not_found(client, auth_user_override, stock_service_mock):
+    app.dependency_overrides[get_current_user_checked_exists] = auth_user_override
+    app.dependency_overrides[get_stock_service] = lambda: stock_service_mock
+
+    stock_service_mock.delete_stock.side_effect = NotFoundError("missing")
+
+    resp = client.delete("api/stocks/999")
+    assert resp.status_code == 404
+    assert resp.json()["detail"] == "missing"
+
+
+def test_empty_stock_ok(client, auth_user_override, stock_service_mock):
+    app.dependency_overrides[get_current_user_checked_exists] = auth_user_override
+    app.dependency_overrides[get_stock_service] = lambda: stock_service_mock
+
+    stock_service_mock.empty_stock.return_value = 3
+
+    resp = client.delete("api/stocks/1/lots")
+    assert resp.status_code == 200
+    assert resp.json() == {"deleted_lots": 3}
+
+    stock_service_mock.empty_stock.assert_called_once_with(user_id=42, stock_id=1)
+
+
+def test_empty_stock_forbidden(client, auth_user_override, stock_service_mock):
+    app.dependency_overrides[get_current_user_checked_exists] = auth_user_override
+    app.dependency_overrides[get_stock_service] = lambda: stock_service_mock
+
+    stock_service_mock.empty_stock.side_effect = ForbiddenError("nope")
+
+    resp = client.delete("api/stocks/1/lots")
+    assert resp.status_code == 403
+    assert resp.json()["detail"] == "nope"
