@@ -31,8 +31,8 @@ export async function getAllStocks() {
  * Récupère les d'info d'un stock
  * Correspond à @app.get("/stocks/{id_stock}")
  */
-export async function getInfoStock(idStock) {
-  const res = await API.get(`/api/stocks/${idStock}`);
+export async function getInfoStock(id_stock) {
+  const res = await API.get(`/api/stocks/${id_stock}`);
   return res.data;
 }
 
@@ -43,6 +43,26 @@ export async function getInfoStock(idStock) {
 export async function createStock(name) {
   // On envoie un objet { name: name } en deuxième argument d'axios.post
   const res = await API.post("/api/stocks", { name: name });
+  return res.data;
+}
+
+/**
+ * Supprime un stock d'id donné
+ * Correspond à @app.delete("api/stocks/${id_stock}")
+ */
+export async function deleteStock(id_stock) {
+  // On envoie un objet { name: name } en deuxième argument d'axios.post
+  const res = await API.delete(`/api/stocks/${id_stock}`);
+  return res.data;
+}
+
+/**
+ * Vider un stock d'id donne
+ * Correspond à @app.delete("api/stocks/${id_stock}/lots")
+ */
+export async function deleteLotsStock(id_stock) {
+  // On envoie un objet { name: name } en deuxième argument d'axios.post
+  const res = await API.delete(`/api/stocks/${id_stock}/lots`);
   return res.data;
 }
 
@@ -65,3 +85,4 @@ export async function addStockItem(stock_id, ingredient_id, quantity, expiration
   const res = await API.post(`/api/stocks/${stock_id}/lots`, payload);
   return res.data;
 }
+
