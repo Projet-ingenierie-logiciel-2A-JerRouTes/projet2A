@@ -25,6 +25,14 @@ class RegisterRequest(BaseModel):
         title="Mot de passe",
         description="Mot de passe sécurisé, sera haché via bcrypt avant stockage",
     )
+    est_admin: bool = Field(
+        default=False,
+        title="Créer un compte administrateur",
+        description=(
+            "Si true, le compte est créé avec le statut admin. "
+            "Réservé aux administrateurs."
+        ),
+    )
 
 
 class LoginRequest(BaseModel):

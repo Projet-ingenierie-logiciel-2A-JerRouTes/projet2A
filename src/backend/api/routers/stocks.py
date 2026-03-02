@@ -14,6 +14,7 @@ from api.schemas.stocks import (
     StockItemCreateIn,
     StockItemOut,
     StockOut,
+    StockUpdateIn,
 )
 from services.stock_service import (
     ForbiddenError,
@@ -53,14 +54,33 @@ def create_stock(
 
 @router.get("", response_model=list[StockOut])
 def list_my_stocks(
+    user_id: int | None = None,
+    limit: int = 200,
+    offset: int = 0,
+    name: str | None = None,
     cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
 ):
-    # Ici on utilise StockDAO directement (simple)
+    """
+    - Sans user_id : retourne les stocks de l'utilisateur connecté (comme avant)
+    - Avec user_id : admin uniquement (si user_id != cu.user_id)
+    """
     from dao.stock_dao import StockDAO
+
+    target_user_id = cu.user_id if user_id is None else int(user_id)
+
+    # Si on demande les stocks d'un autre user => admin only
+    if target_user_id != cu.user_id and cu.status != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès réservé aux administrateurs.",
+        )
 
     dao = StockDAO()
     stocks = dao.list_user_stocks(
-        user_id=cu.user_id, name_ilike=None, limit=200, offset=0
+        user_id=target_user_id,
+        name_ilike=name,
+        limit=limit,
+        offset=offset,
     )
     return [StockOut(stock_id=s.id_stock, name=s.nom) for s in stocks]
 
@@ -255,3 +275,25 @@ def list_my_ingredient_names(
         }
         for r in rows
     ]
+
+
+@router.patch("/{stock_id}", response_model=dict)
+def update_stock_name(
+    stock_id: int,
+    payload: StockUpdateIn,
+    cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+    service: StockService = Depends(get_stock_service),  # noqa: B008
+):
+    """Modifie le nom d'un stock (admin uniquement)."""
+
+    if not cu.is_admin():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès réservé aux administrateurs.",
+        )
+
+    try:
+        service.update_stock_name(stock_id=stock_id, name=payload.name)
+        return {"updated": True}
+    except Exception as exc:  # noqa: BLE001
+        raise _map_service_errors(exc) from exc

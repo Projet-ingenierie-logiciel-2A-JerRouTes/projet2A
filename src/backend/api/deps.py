@@ -120,6 +120,54 @@ def get_stock_service() -> StockService:
     return StockService()
 
 
+def is_admin(self) -> bool:
+    """Retourne True si l'utilisateur courant est administrateur."""
+    return self.status == "admin"
+
+
+def get_current_user_optional(
+    creds: HTTPAuthorizationCredentials | None = Depends(bearer),  # noqa: B008
+) -> CurrentUser | None:
+    """Même logique que get_current_user, mais retourne None si aucun token n'est fourni."""
+
+    if creds is None or not creds.credentials:
+        return None
+
+    token = creds.credentials
+
+    try:
+        payload = decode_jwt(
+            token,
+            secret=settings.jwt_secret,
+            issuer=settings.jwt_issuer,
+        )
+    except (JWTExpiredError, JWTInvalidTokenError, JWTIssuerError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+        ) from exc
+
+    uid = payload.get("uid")
+    sid = payload.get("sid")
+    status_ = payload.get("status")
+
+    if (
+        not isinstance(uid, int)
+        or not isinstance(sid, int)
+        or not isinstance(status_, str)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload.",
+        )
+
+    return CurrentUser(
+        user_id=uid,
+        session_id=sid,
+        status=status_,
+    )
+
+
 # ---------------------------------------------------------------------
 # Recettes (FindRecipeFactory = DB + API)
 # ---------------------------------------------------------------------
