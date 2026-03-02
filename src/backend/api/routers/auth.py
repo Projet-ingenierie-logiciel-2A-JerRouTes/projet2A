@@ -1,9 +1,13 @@
 from __future__ import annotations
 
-from api.deps import CurrentUser, get_current_user_checked_exists
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from api.config import settings
+from api.deps import (
+    CurrentUser,
+    get_current_user_checked_exists,
+    get_current_user_optional,
+)
 from api.schemas.auth import (
     LoginRequest,
     RefreshRequest,
@@ -134,22 +138,44 @@ def _auth_service() -> AuthService:
         500: {"description": "Erreur interne du serveur."},
     },
 )
-def register(req: RegisterRequest, request: Request) -> TokenPairResponse:
+def register(
+    req: RegisterRequest,
+    request: Request,
+    cu: CurrentUser | None = Depends(get_current_user_optional),  # noqa: B008
+) -> TokenPairResponse:
     """
     Crée un compte utilisateur et génère immédiatement une session.
+
+    Par défaut, le compte est créé avec le statut "user".
+    Si `est_admin` est défini à true, le compte sera créé avec
+    le statut "admin" (réservé aux administrateurs).
 
     - **username**: Pseudo unique choisi par l'utilisateur
     - **email**: Adresse email unique
     - **password**: Mot de passe (sera haché avant stockage)
+    - **est_admin**: Indique si le compte doit être administrateur (false par défaut)
     """
     user_service = UserService()
     auth_service = _auth_service()
+
+    # Par défaut : user
+    status_to_create = "user"
+
+    # Admin uniquement si est_admin=True
+    if req.est_admin:
+        if cu is None or not cu.is_admin():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Accès réservé aux administrateurs.",
+            )
+        status_to_create = "admin"
 
     try:
         user_service.register(
             username=req.username,
             email=req.email,
             password=req.password,
+            status=status_to_create,
         )
 
         return auth_service.login(
