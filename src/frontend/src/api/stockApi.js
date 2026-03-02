@@ -117,3 +117,21 @@ export async function getAllStocksAdmin(filtres = {}) {
     return [];
   }
 }
+
+/**
+ * Récupère la liste simplifiée (ID + Nom) des ingrédients du stock de l'utilisateur
+ * Correspond à l'endpoint FastAPI : GET /api/stocks/ingredients/names
+ */
+export async function getMyIngredientNames() {
+  try {
+    console.log("📤 Requête : GET /api/stocks/ingredients/names");
+    
+    const res = await API.get("/api/stocks/ingredients/names");
+    
+    // La réponse est une liste d'objets : [{ ingredient_id, name }, ...]
+    return res.data;
+  } catch (erreur) {
+    console.error("❌ Erreur lors de la récupération des noms d'ingrédients :", erreur.message);
+    return [];
+  }
+}

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from api.dependencies import CurrentUser, get_current_user_checked_exists
+from api.deps import CurrentUser, get_current_user_checked_exists
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from api.config import settings

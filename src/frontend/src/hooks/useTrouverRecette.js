@@ -15,7 +15,9 @@ export const useTrouverRecette = (liste_ingredients = []) => {
       const res = await fetch(url);
       const data = await res.json();
       return data.hits?.[0]?.webformatURL || "https://images.unsplash.com/photo-1495195129352-aec325a55b65?w=400";
-    } catch { return "https://images.unsplash.com/photo-1495195129352-aec325a55b65?w=400"; }
+    } catch { 
+      return "https://images.unsplash.com/photo-1495195129352-aec325a55b65?w=400"; 
+    }
   };
 
   const fetch_data = useCallback(async () => {
@@ -24,22 +26,31 @@ export const useTrouverRecette = (liste_ingredients = []) => {
     let est_en_alea = false;
 
     try {
-      // ÉTAPE 1 : Tentative de recherche si liste non vide
+      // ÉTAPE 1 : Recherche par ingrédients
       if (liste_ingredients.length > 0) {
         resultats = await findRecipe(liste_ingredients);
       }
 
-      // ÉTAPE 2 : Si liste vide OU recherche infructueuse -> Mode Aléatoire
+      // ÉTAPE 2 : Mode Aléatoire si aucun résultat
       if (resultats.length === 0) {
         est_en_alea = true;
-        const ids = Array.from({ length: 10 }, (_, i) => i + 1).sort(() => 0.5 - Math.random()).slice(0, 6);
+        const ids = Array.from({ length: 10 }, (_, i) => i + 1)
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 6);
         const promesses = ids.map(id => findRecipeAlea(id));
         resultats = (await Promise.all(promesses)).filter(r => r !== null);
       }
 
-      // ÉTAPE 3 : Enrichissement images (Max 6)
+      // --- FILTRE ANTI-DOUBLONS (Correction PB2) ---
+      // On crée une Map où la clé est le recipe_id. 
+      // Si un ID existe déjà, il est écrasé, garantissant l'unicité.
+      const resultats_uniques = [
+        ...new Map(resultats.map((item) => [item.recipe_id, item])).values(),
+      ];
+
+      // ÉTAPE 3 : Enrichissement images sur la liste UNIQUE (Max 6)
       const final_docs = await Promise.all(
-        resultats.slice(0, 6).map(async (r) => ({
+        resultats_uniques.slice(0, 6).map(async (r) => ({
           ...r,
           image_url: await chercher_image(r.name, r.tags?.map(t => t.name) || [])
         }))
@@ -48,7 +59,7 @@ export const useTrouverRecette = (liste_ingredients = []) => {
       set_recettes(final_docs);
       set_mode_aleatoire(est_en_alea);
     } catch (err) {
-      console.error(err);
+      console.error("Erreur hook useTrouverRecette:", err);
     } finally {
       set_chargement(false);
     }

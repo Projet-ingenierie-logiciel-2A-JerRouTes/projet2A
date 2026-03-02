@@ -1,18 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { Package, PlusCircle, LogOut, SquarePen, Trash2, Eraser, Search } from "lucide-react";
+import { 
+  Package, 
+  PlusCircle, 
+  LogOut, 
+  SquarePen, 
+  Trash2, 
+  Eraser, 
+  Search,
+  Loader2
+} from "lucide-react";
 import { 
   getAllStocks, 
   createStock, 
   getAllIngredients, 
   deleteLotsStock, 
-  deleteStock 
+  deleteStock,
+  getMyIngredientNames // Import de la fonction d'extraction
 } from "../api/stockApi";
 import { userStockTable } from "../hooks/userStockTable";
 import SelecteurStock from "./SelecteurStock";
 import BarreSaisieStock from "./BarreSaisieStock";
-import Confirmation from "./Confirmation"; // Ton nouveau composant
+import Confirmation from "./Confirmation";
 import "../styles/Gestion.css";
-import "../styles/Confirmation.css"; // Ton nouveau CSS
+import "../styles/Confirmation.css";
 
 const Stock = ({ 
   user, 
@@ -23,24 +33,53 @@ const Stock = ({
   set_chercher_recette, 
   set_list_nom_stock, 
   list_nom_stock, 
-  set_catalogue 
+  set_catalogue,
+  set_ingredients_filtres // Reçu depuis App.jsx
 }) => {
   // --- ÉTATS ---
   const [chargement_initial, set_chargement_initial] = useState(true);
   const [affichage_barre, set_affichage_barre] = useState(false);
+  const [chargement_recettes, set_chargement_recettes] = useState(false);
   
-  // État pour gérer la modale de confirmation
   const [etat_confirmation, set_etat_confirmation] = useState({
     ouvert: false,
-    action: null, // "vider" ou "supprimer"
+    action: null,
     nom_cible: ""
   });
 
   // --- HOOK MÉTIER ---
   const { formatted_stock, refresh_stock } = userStockTable(id_stock);
 
-  // --- LOGIQUE DE GESTION DES STOCKS ---
+  // --- LOGIQUE DE RECHERCHE DE RECETTES (AVEC EXTRACTION) ---
+  const gerer_recherche_recettes = async () => {
+    try {
+      set_chargement_recettes(true);
+      
+      // 1. Appel API pour récupérer les objets {ingredient_id, name}
+      const ingredients_complets = await getMyIngredientNames();
+      
+      // 2. Extraction des noms uniquement pour le moteur de recherche
+      const noms_seulement = ingredients_complets.map(item => item.name);
+      
+      // 3. Affichage console pour vérification (Format image_a44a3a.png)
+      console.log("Recherche pour :", noms_seulement);
 
+      // 4. Mise à jour de l'état global dans App.jsx
+      if (set_ingredients_filtres) {
+        set_ingredients_filtres(noms_seulement);
+      }
+
+      // 5. Basculement vers la vue AffichageRecettes
+      set_chercher_recette(true);
+      
+    } catch (error) {
+      console.error("❌ Erreur lors de la récupération des ingrédients pour recettes:", error);
+    } finally {
+      set_chargement_recettes(false);
+    }
+  };
+
+  // --- AUTRES HANDLERS (Stocks) ---
   const gerer_creation_stock = async (nom) => {
     try {
       const data = await createStock(nom);
@@ -53,20 +92,6 @@ const Stock = ({
     }
   };
 
-  // Fonctions pour ouvrir la modale
-  const preparer_vidage = () => {
-    set_etat_confirmation({ ouvert: true, action: "vider", nom_cible: nom_stock_actuel });
-  };
-
-  const preparer_suppression = () => {
-    set_etat_confirmation({ ouvert: true, action: "supprimer", nom_cible: nom_stock_actuel });
-  };
-
-  const fermer_confirmation = () => {
-    set_etat_confirmation({ ouvert: false, action: null, nom_cible: "" });
-  };
-
-  // Exécution réelle après confirmation dans la modale
   const confirmer_action = async () => {
     try {
       if (etat_confirmation.action === "vider") {
@@ -80,13 +105,13 @@ const Stock = ({
         set_id_stock(nouvelle_liste.length > 0 ? nouvelle_liste[0].stock_id : null);
       }
     } catch (error) {
-      console.error(`❌ Erreur lors de l'action ${etat_confirmation.action}:`, error);
+      console.error(`❌ Erreur ${etat_confirmation.action}:`, error);
     } finally {
-      fermer_confirmation(); // Ferme la modale et supprime le deuxième affichage (pas d'alert)
+      set_etat_confirmation({ ouvert: false, action: null, nom_cible: "" });
     }
   };
 
-  // --- CHARGEMENT INITIAL ---
+  // --- INITIALISATION ---
   useEffect(() => {
     const initialiser_page = async () => {
       try {
@@ -113,7 +138,6 @@ const Stock = ({
 
   return (
     <div className="carte-centrale gestion-panel">
-      {/* ENTÊTE */}
       <div className="entete-gestion">
         <div className="titre-groupe">
           <Package size={32} color="#3b82f6" />
@@ -121,7 +145,7 @@ const Stock = ({
         </div>
         <div className="barre-outils">
           <button className="bouton-action btn-ingredient-style" onClick={() => set_ajout_ingredient(true)}>
-            <PlusCircle size={18} /> Ajouter un ingrédient dans {nom_stock_actuel}
+            <PlusCircle size={18} /> Ajouter dans {nom_stock_actuel}
           </button>
         </div>
       </div>
@@ -135,7 +159,6 @@ const Stock = ({
         <SelecteurStock list_id_stock={list_nom_stock} on_change_stock={(id) => set_id_stock(id)} />
       </div>
 
-      {/* TABLEAU */}
       <div className="conteneur-tableau">
         <table className="tableau-gestion">
           <thead>
@@ -172,32 +195,31 @@ const Stock = ({
         </table>
       </div>
 
-      {/* BOUTONS ACTIONS STOCKS */}
       <div style={{ marginTop: "20px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
         <button className="bouton-action btn-ajout-user" onClick={() => set_affichage_barre(true)}>
           <PlusCircle size={18} /> Ajouter un stock
         </button>
-
         {id_stock && (
           <>
-            <button className="bouton-action" onClick={preparer_vidage} style={{ backgroundColor: "#f59e0b" }}>
+            <button className="bouton-action" onClick={() => set_etat_confirmation({ ouvert: true, action: "vider", nom_cible: nom_stock_actuel })} style={{ backgroundColor: "#f59e0b" }}>
               <Eraser size={18} /> Vider {nom_stock_actuel}
             </button>
-            <button className="bouton-action" onClick={preparer_suppression} style={{ backgroundColor: "#ef4444" }}>
+            <button className="bouton-action" onClick={() => set_etat_confirmation({ ouvert: true, action: "supprimer", nom_cible: nom_stock_actuel })} style={{ backgroundColor: "#ef4444" }}>
               <Trash2 size={18} /> Supprimer {nom_stock_actuel}
             </button>
           </>
         )}
       </div>
 
-      {/* BOUTON RECETTES */}
       <div style={{ marginTop: "15px" }}>
         <button 
           className="bouton-action btn-ingredient-style"
-          onClick={() => set_chercher_recette(true)}
+          onClick={gerer_recherche_recettes}
+          disabled={chargement_recettes}
           style={{ width: "100%", justifyContent: "center" }}
         >
-          <Search size={18} /> Trouver des recettes
+          {chargement_recettes ? <Loader2 className="animate-spin" size={18} /> : <Search size={18} />}
+          Trouver des recettes avec mon stock
         </button>
       </div>
 
@@ -205,14 +227,13 @@ const Stock = ({
         <LogOut size={18} /> Déconnexion
       </button>
 
-      {/* COMPOSANT DE CONFIRMATION UNIQUE */}
       <Confirmation
         ouvert={etat_confirmation.ouvert}
-        on_annuler={fermer_confirmation}
+        on_annuler={() => set_etat_confirmation({ ...etat_confirmation, ouvert: false })}
         on_confirmer={confirmer_action}
         titre={etat_confirmation.action === "vider" ? "Vider l'inventaire" : "Supprimer l'inventaire"}
-        message={`Vous êtes sur le point de ${etat_confirmation.action} "${etat_confirmation.nom_cible}". Voulez-vous confirmer ?`}
-        texte_confirmer={etat_confirmation.action === "vider" ? `Vider ${etat_confirmation.nom_cible}` : `Supprimer ${etat_confirmation.nom_cible}`}
+        message={`Voulez-vous ${etat_confirmation.action} "${etat_confirmation.nom_cible}" ?`}
+        texte_confirmer="Confirmer"
         couleur_bouton="rouge"
       />
     </div>
