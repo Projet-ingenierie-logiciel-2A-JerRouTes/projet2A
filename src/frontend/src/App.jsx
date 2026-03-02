@@ -87,8 +87,15 @@ function App() {
         case "utilisateurs": return <GestionUtilisateurs on_back={() => set_vue_active_admin(null)} />;
         case "ingredients": return <GestionIngredients on_back={() => set_vue_active_admin(null)} />;
         case "stocks":      return <GestionStocks on_back={() => set_vue_active_admin(null)} />;
-        case "recettes":    return <GestionRecettes on_back={() => set_vue_active_admin(null)} />;
-        default:
+        case "recettes":    
+                return (
+                  <GestionRecettes 
+                    on_back={() => set_vue_active_admin(null)} 
+                    est_admin={admin_connecte} 
+                  />
+                ); // Ajoute bien les parenthèses si tu écris sur plusieurs lignes
+              default:
+        
           return (
             <InterfaceAdmin 
               user={user?.user || user} 

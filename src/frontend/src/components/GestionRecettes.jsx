@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { BookOpen, Undo2, Loader2, RefreshCw } from "lucide-react";
-import { listRecipes } from "../api/recetteApi"; // Import de ton API
+import { BookOpen, Undo2, Loader2, RefreshCw, Eye } from "lucide-react";
+import { listRecipes } from "../api/recetteApi";
+import AfficherRecetteDetail from "./AfficherRecetteDetail"; // Import de la fiche détail
 import "../styles/Gestion.css";
 
-const GestionRecettes = ({ on_back }) => {
+const GestionRecettes = ({ on_back, est_admin }) => {
   const [recettes, set_recettes] = useState([]);
   const [est_en_chargement, set_est_en_chargement] = useState(true);
+  
+  // NOUVEAU : État pour la recette sélectionnée
+  const [recette_selectionnee, set_recette_selectionnee] = useState(null);
 
-  // Fonction pour charger les recettes depuis la BDD (GET /api/recipes)
   const charger_recettes = async () => {
     set_est_en_chargement(true);
     try {
-      // On récupère les recettes via le DAO du backend
       const data = await listRecipes({ limit: 100 }); 
       set_recettes(data);
     } catch (err) {
@@ -24,6 +26,17 @@ const GestionRecettes = ({ on_back }) => {
   useEffect(() => {
     charger_recettes();
   }, []);
+
+  // CONDITION DE RENDU : Si une recette est sélectionnée, on affiche son détail
+  if (recette_selectionnee) {
+    return (
+      <AfficherRecetteDetail 
+        recette={recette_selectionnee} 
+        onBack={() => set_recette_selectionnee(null)} 
+        est_admin={est_admin}
+      />
+    );
+  }
 
   return (
     <div className="carte-centrale gestion-panel">
@@ -56,12 +69,20 @@ const GestionRecettes = ({ on_back }) => {
                 <th>Nom de la recette</th>
                 <th>Temps de préparation</th>
                 <th>Proportion</th>
+                <th style={{ textAlign: 'center' }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {recettes.map((recette) => (
                 <tr key={recette.recipe_id}>
-                  <td className="texte-gras">{recette.name}</td>
+                  {/* Rendre le nom cliquable également */}
+                  <td 
+                    className="texte-gras cellule-cliquable" 
+                    onClick={() => set_recette_selectionnee(recette)}
+                    style={{ cursor: 'pointer', color: '#5b21b6' }}
+                  >
+                    {recette.name}
+                  </td>
                   <td>
                     <span className="badge-role" style={{ backgroundColor: "#f3f4f6", color: "#374151" }}>
                       {recette.prep_time} min
@@ -70,11 +91,20 @@ const GestionRecettes = ({ on_back }) => {
                   <td>
                     {recette.portions} {recette.portions > 1 ? "personnes" : "personne"}
                   </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <button 
+                      className="btn-icone" 
+                      title="Voir le détail"
+                      onClick={() => set_recette_selectionnee(recette)}
+                    >
+                      <Eye size={18} color="#8b5cf6" />
+                    </button>
+                  </td>
                 </tr>
               ))}
               {recettes.length === 0 && (
                 <tr>
-                  <td colSpan="3" style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
                     Aucune recette trouvée en base de données.
                   </td>
                 </tr>

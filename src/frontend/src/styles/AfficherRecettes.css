@@ -343,3 +343,59 @@
   grid-template-columns: 400px; 
   justify-content: center;
 }
+
+/* Barre contenant les boutons */
+.admin-actions-bar {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: rgba(241, 245, 249, 0.5); /* Gris très léger */
+  border-radius: 10px;
+  border: 1px dashed #cbd5e1;
+}
+
+/* Bouton Modifier - Orange */
+.btn-admin-edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f59e0b; /* Orange vif */
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-admin-edit:hover {
+  background-color: #d97706; /* Orange plus foncé au survol */
+  transform: translateY(-1px);
+}
+
+/* Bouton Supprimer - Rouge */
+.btn-admin-delete {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ef4444; /* Rouge vif */
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-admin-delete:hover {
+  background-color: #dc2626; /* Rouge plus foncé au survol */
+  transform: translateY(-1px);
+}
+
+.btn-admin-edit:active, .btn-admin-delete:active {
+  transform: translateY(0);
+}
