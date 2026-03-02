@@ -143,7 +143,7 @@ def update_user_as_admin(
     - **username**: Nouveau pseudo (optionnel)
     - **email**: Nouvel email (optionnel)
     """
-    if not cu.is_admin:
+    if not cu.is_admin():
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Accès réservé aux administrateurs.",

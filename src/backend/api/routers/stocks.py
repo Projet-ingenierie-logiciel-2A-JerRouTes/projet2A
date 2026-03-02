@@ -286,7 +286,7 @@ def update_stock_name(
 ):
     """Modifie le nom d'un stock (admin uniquement)."""
 
-    if not cu.is_admin:
+    if not cu.is_admin():
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Accès réservé aux administrateurs.",
