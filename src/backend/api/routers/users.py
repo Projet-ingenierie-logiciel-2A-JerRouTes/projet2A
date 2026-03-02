@@ -128,3 +128,45 @@ def get_all_users() -> list[UserPublic]:
         )
         for u in users
     ]
+
+
+@router.patch("/{user_id}", response_model=MeResponse)
+def update_user_as_admin(
+    user_id: int,
+    req: UpdateMeRequest,
+    cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+) -> MeResponse:
+    """
+    Modifie le profil d'un utilisateur (admin uniquement).
+
+    - **user_id**: Identifiant de l'utilisateur à modifier
+    - **username**: Nouveau pseudo (optionnel)
+    - **email**: Nouvel email (optionnel)
+    """
+    if not cu.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès réservé aux administrateurs.",
+        )
+
+    user_service = UserService()
+
+    try:
+        user = user_service.update_profile(
+            user_id,
+            username=req.username,
+            email=req.email,
+        )
+    except UserAlreadyExistsError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except UserNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return MeResponse(
+        user=UserPublic(
+            user_id=user.user_id,
+            username=user.username,
+            email=user.email,
+            status=user.status,
+        )
+    )

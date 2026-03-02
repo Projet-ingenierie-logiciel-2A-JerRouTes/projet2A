@@ -209,3 +209,71 @@ class UserService:
         ok = self._user_dao.delete_user(user_id)
         if not ok:
             raise UserNotFoundError(f"Utilisateur {user_id} introuvable.")
+
+    @log
+    def update_user_admin_or_self(
+        self,
+        *,
+        requester_id: int,
+        requester_is_admin: bool,
+        user_id: int,
+        username: str | None = None,
+        email: str | None = None,
+        old_password: str | None = None,
+        new_password: str | None = None,
+    ) -> User:
+        """
+        Met à jour un ou plusieurs attributs d'un utilisateur.
+
+        - Admin: peut modifier n'importe quel utilisateur.
+        - User: peut modifier uniquement ses propres informations.
+        - Changement de mot de passe:
+            - Admin: peut changer sans old_password (reset)
+            - User: doit fournir old_password
+        """
+        # Droits
+        if not requester_is_admin and requester_id != user_id:
+            raise InvalidCredentialsError(
+                "Vous ne pouvez modifier que votre propre compte."
+            )
+
+        # Récupération row DB pour validations + password
+        row = self._user_dao.get_user_row_by_id(user_id)
+        if row is None:
+            raise UserNotFoundError(f"Utilisateur {user_id} introuvable.")
+
+        # Validation unicité (on réutilise ton update_profile mais ici on gère aussi le mdp)
+        if email is not None:
+            existing = self._user_dao.get_user_row_by_email(email)
+            if existing is not None and existing.user_id != user_id:
+                raise UserEmailAlreadyExistsError("Email déjà utilisé.")
+
+        if username is not None:
+            existing = self._user_dao.get_user_row_by_username(username)
+            if existing is not None and existing.user_id != user_id:
+                raise UserAlreadyExistsError("Nom d’utilisateur déjà utilisé.")
+
+        # Gestion mot de passe (optionnelle)
+        password_hash: str | None = None
+        if new_password is not None:
+            # Si pas admin, old_password obligatoire
+            if not requester_is_admin and (
+                old_password is None
+                or not check_password(old_password, row.password_hash)
+            ):
+                raise InvalidCredentialsError("Ancien mot de passe incorrect.")
+
+            password_hash = hash_password(new_password)
+
+        updated = self._user_dao.update_user(
+            user_id,
+            username=username,
+            email=email,
+            password_hash=password_hash,
+            # on ne touche PAS au status ici (pas demandé + sécurité)
+            status=None,
+        )
+
+        if updated is None:
+            raise UserNotFoundError(f"Utilisateur {user_id} introuvable.")
+        return updated
