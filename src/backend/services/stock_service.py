@@ -309,5 +309,20 @@ class StockService:
         """Retourne les ingrédients possédés par l'utilisateur (tous stocks)."""
         return self._stock_dao.list_user_ingredients(user_id)
 
+    @log
     def list_user_ingredient_names(self, *, user_id: int):
         return self._stock_dao.list_user_ingredient_names(user_id)
+
+    def update_stock_name(self, *, stock_id: int, name: str):
+        name = (name or "").strip()
+        if not name:
+            raise ValidationError("Le nom du stock ne peut pas être vide.")
+
+        from dao.stock_dao import StockDAO
+
+        dao = StockDAO()
+        updated = dao.update_stock(stock_id, name=name)
+        if updated is None:
+            raise NotFoundError("Stock introuvable.")
+
+        return updated

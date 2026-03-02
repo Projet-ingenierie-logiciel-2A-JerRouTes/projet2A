@@ -14,6 +14,7 @@ from api.schemas.stocks import (
     StockItemCreateIn,
     StockItemOut,
     StockOut,
+    StockUpdateIn,
 )
 from services.stock_service import (
     ForbiddenError,
@@ -274,3 +275,25 @@ def list_my_ingredient_names(
         }
         for r in rows
     ]
+
+
+@router.patch("/{stock_id}", response_model=dict)
+def update_stock_name(
+    stock_id: int,
+    payload: StockUpdateIn,
+    cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+    service: StockService = Depends(get_stock_service),  # noqa: B008
+):
+    """Modifie le nom d'un stock (admin uniquement)."""
+
+    if not cu.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès réservé aux administrateurs.",
+        )
+
+    try:
+        service.update_stock_name(stock_id=stock_id, name=payload.name)
+        return {"updated": True}
+    except Exception as exc:  # noqa: BLE001
+        raise _map_service_errors(exc) from exc

@@ -31,3 +31,7 @@ class StockItemOut(BaseModel):
 class ConsumeIn(BaseModel):
     ingredient_id: int
     quantity: float
+
+
+class StockUpdateIn(BaseModel):
+    name: str
