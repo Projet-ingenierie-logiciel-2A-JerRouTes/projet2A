@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from api.deps import CurrentUser, get_current_user_checked_exists, get_recipe_finder
-from api.schemas.recipes import RecipeOut, RecipeSearchIn
+from api.schemas.recipes import RecipeOut, RecipeSearchIn, RecipeUpdateIn
 from business_objects.recipe import Recipe
 from services.find_recipe import FindRecipe, IngredientSearchQuery
 
@@ -57,7 +57,7 @@ def get_recipe(
 @router.post("/search", response_model=list[RecipeOut])
 def search_recipes(
     payload: RecipeSearchIn,
-    #_cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+    # _cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
     finder: FindRecipe = Depends(get_recipe_finder),  # noqa: B008
 ):
     query = IngredientSearchQuery(
@@ -99,3 +99,38 @@ def list_recipes(
         recipes = full
 
     return [_bo_to_out(r) for r in recipes]
+
+
+@router.patch("/{recipe_id}", response_model=RecipeOut)
+def update_recipe(
+    recipe_id: int,
+    payload: RecipeUpdateIn,
+    cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+):
+    """Modification recette (admin uniquement)."""
+
+    if cu.status != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès réservé aux administrateurs.",
+        )
+
+    from dao.recipe_dao import RecipeDAO
+
+    dao = RecipeDAO()
+    updated = dao.update_recipe(
+        int(recipe_id),
+        name=payload.name,
+        description=payload.description,
+        prep_time=payload.prep_time,
+        portion=payload.portions,
+        status=payload.status,
+    )
+
+    if updated is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Recette introuvable.",
+        )
+
+    return _bo_to_out(updated)

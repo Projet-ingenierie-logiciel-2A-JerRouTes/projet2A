@@ -36,3 +36,11 @@ class RecipeSearchIn(BaseModel):
     strict_only: bool = False
     dish_type: str | None = None
     ignore_pantry: bool = True
+
+
+class RecipeUpdateIn(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    prep_time: int | None = None
+    portions: int | None = None
+    status: str | None = None
