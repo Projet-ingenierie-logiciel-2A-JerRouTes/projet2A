@@ -24,21 +24,57 @@ ______________________________________________________________________
 
 ## 🧩 Fonctionnalités
 
-### Fonctionnalités de base (Niveau 1)
+### En tant que administateur (après connection)
+- Informations sur les utilisateurs
+  - Voir tous les utilisateurs
+  - Ajouter un admin ou un utilisateur 
+  - Voir les informations d'un utilisateur en particulier
+  - *A faire* : compléter les informations utilisateur (stock)
+  - *A faire* : Modifier/supprimer un utilisateur
+  
+- Informations sur les ingredients
+  - Voir tous les ingredients
+  - Ajouter un ingredient
+  - Voir les informations d'un ingredient en particulier
+  - *A faire* : compléter les informations utilisateur (tag)
+  - *A faire* : Modifier/supprimer un ingredient
 
-- Création de comptes utilisateurs et authentification
-- Ajout et gestion des ingrédients
-- Gestion d’un stock personnel par utilisateur
-- Recherche de recettes dont tous les ingrédients sont disponibles
-- Gestion multi-utilisateur
+- Informations sur les stocks
+  - Voir tous les stocks
+  - Ajouter un stock
+  - Voir les informations d'un stock en particulier
+  - *A faire* : compléter les informations du stock (utilisateur, contenu)
+  - *A faire* : Modifier/supprimer un stock
 
-### Fonctionnalités avancées (Niveau 2)
+- Informations sur les recettes
+  - Voir toutes les recettes
+  - Voir les informations d'une recette en particulier*
+  - *A faire* : ajouter une recette
+  - *A faire* : compléter les informations d'une recette étape
+  - *A faire* : Modifier/supprimer une recette (ajouter boutons)
 
-- Recherche de recettes avec :
-  - ajout dynamique d’ingrédients disponibles
-  - restrictions (ingrédients exclus, calories, origine des recettes…)
-- Gestion automatique du stock
-- Ajout d’ingrédients via ticket de caisse
+### En tant qu'utilisateur 
+
+- Etape 1 : connection
+- Etape 2 : visualisation des "stocks" disponibles avec leur contenu (menu déroulant)
+  - Création d'un nouveau stock
+  - Ajouter ingredient à stock (avec auto implémentation)
+  - Vider stock
+  - Supprimer stock
+  - *A faire* : Modifier/Supprimer un lot
+- Etape 3 : Recherche de recettes
+  - Recherche de recette dans BDD plus API externe (spoonacular) si plus de endpoint possible recherche uniquement dans BDD
+  - Affichage des recettes trouvée (entre 1 et 6 avec affichage dinamyque) si pas de recette trouvée (choisit aléatoirement 6 recettes dans BDD),
+  Recette avec nom, photo (API externe Pixabay), temps de préparation et nombre de personne. Chaque vignette de recette est cliquable pour avoir plus de détail.
+  - Affichage d'une recette : affichage avec scrolbar si besoin
+  - Réalisation de recette (pour mise à jour du stock **Création en cours**), affichage de la quantité d'ingrédient nécessaire avec quantité qui s'adapte au nombre de personnes, vérification si présence dans le stock, bouton pour mettre à jour le stock (**non opérationnel**) 
+
+### En tant qu'invité
+
+- Affichage de 6 recettes aléatoires pris dans la base de données (clique sur recette possible pour afficher détail recette)
+- Saisi d'ingrédient (sans quantité)
+- Recherche à partir de la liste d'ingredient
+- Affichage de recette adaptée a liste
 
 ______________________________________________________________________
 

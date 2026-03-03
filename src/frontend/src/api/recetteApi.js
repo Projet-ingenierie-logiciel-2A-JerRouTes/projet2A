@@ -64,10 +64,7 @@ export async function listRecipes(filtres = {}) {
   try {
     // On définit les paramètres par défaut basés sur ton code Python
     const params = {
-      limit: filtres.limit || 1000,
-      offset: filtres.offset || 0,
-      name: filtres.name || null,
-      include_relations: filtres.include_relations ?? true // Utile pour avoir les tags/ingrédients
+      limit: filtres.limit || 10,
     };
 
     console.log("📤 Requête GET /api/recipes", params);
