@@ -1,3 +1,22 @@
+## 📍 Sommaire
+
+* [🎯 Objectifs du projet](#-objectifs-du-projet)
+* [🧩 Fonctionnalités](#-fonctionnalités)
+    * [👤 Administrateur](#en-tant-que-administateur-après-connection)
+    * [👥 Utilisateur](#en-tant-quutilisateur)
+    * [🌐 Invité](#en-tant-quinvité)
+* [🏗️ Architecture générale](#️-architecture-générale)
+    * [🗄️ Base de données](#️-base-de-données)
+    * [🖥️ BackEnd](#️-backend)
+    * [🖥️ FrontEnd](#️-frontend)
+* [⚙️ Lancement du projet](#️-lancement-du-projet)
+    * [🐳 Docker (Conteneurs)](#avec-les-conteneurs)
+    * [🛠️ Installation Manuelle](#manuellement)
+* [🔐 Configuration (.env)](#-configuration-env)
+* [🧪 Qualité et outils](#-qualité-et-outils)
+* [📅 Compte-rendus de réunions](#-compte-rendus-de-réunions)
+______________________________________________________________________
+
 # 📦 Projet : Logiciel de gestion et de recherche de recettes
 
 Ce projet a pour objectif de développer un **logiciel de gestion de stock alimentaire et de recherche de recettes** permettant à des utilisateurs de retrouver des recettes à partir des ingrédients dont ils disposent, tout en gérant un stock personnel et des contraintes alimentaires.
@@ -279,18 +298,6 @@ ______________________________________________________________________
 - Vendredi 23 janvier : [Réunion 1](Documentation/reunion_construction/reunion1_23_01.md)
 - Vendredi 30 janvier : [Réunion 2](Documentation/reunion_construction/reunion2_30_01.md)
 - Vendredi 1 février : lien perdu
-
-______________________________________________________________________
-
-## Backlog
-
-- [Divers](Backlog/BacklogDivers.md)
-- [Résolution de problème](Backlog/BacklogProbleme.md)
-- [API](Backlog/BacklogApi.md)
-- [Architecture & Cohérence des Données](Backlog/BacklogArchi.md)
-- [FrontEnd](Backlog/BacklogFront.md)
-- [BackEnd](Backlog/BacklogBack.md)
-- [DAO](Backlog/BacklogDAO.md)
 
 ______________________________________________________________________
 
