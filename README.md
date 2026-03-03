@@ -1,4 +1,4 @@
-## 📍 Sommaire
+<h2 id="sommaire">📍 Sommaire</h2>
 
 * [🎯 Objectifs du projet](#-objectifs-du-projet)
 * [🧩 Fonctionnalités](#-fonctionnalités)
@@ -29,6 +29,7 @@ Le projet est réalisé dans le cadre du **module de création logicielle** et s
 - qualité et maintenabilité du code,
 - tests automatisés.
 
+[⬆️ Retour au sommaire](#sommaire)
 ______________________________________________________________________
 
 ## 🎯 Objectifs du projet
@@ -39,6 +40,7 @@ ______________________________________________________________________
 - Mettre en place une architecture claire et évolutive
 - Respecter les conventions de développement (PEP 8, bonnes pratiques JavaScript)
 
+[⬆️ Retour au sommaire](#sommaire)
 ______________________________________________________________________
 
 ## 🧩 Fonctionnalités
@@ -95,6 +97,8 @@ ______________________________________________________________________
 - Recherche à partir de la liste d'ingredient
 - Affichage de recette adaptée a liste
 
+[⬆️ Retour au sommaire](#sommaire)
+
 ______________________________________________________________________
 
 ## 🏗️ Architecture générale
@@ -123,6 +127,7 @@ La base de données PostgreSQL gère les entités principales du projet :
 📌 Diagramme de la base de données :\
 ![Diagramme](Documentation/Images/diagramme_bdd.drawio.png)
 
+[⬆️ Retour au sommaire](#sommaire)
 ______________________________________________________________________
 
 ### 🖥️ BackEnd
@@ -142,7 +147,7 @@ Il gère :
 
 Le backend est totalement indépendant du frontend et peut être exécuté séparément.
 
-
+[⬆️ Retour au sommaire](#sommaire)
 ______________________________________________________________________
 
 ### 🖥️ FrontEnd
@@ -157,6 +162,8 @@ Fonctionnalités principales :
 - Inscription et connexion des utilisateurs (JWT)
 - Communication sécurisée avec l’API backend
 - Gestion du stock et affichage des recettes
+
+[⬆️ Retour au sommaire](#sommaire)
 
 ______________________________________________________________________
 
@@ -174,6 +181,8 @@ Elle est conçue pour être :
 - réactive,
 - évolutive.
 
+[⬆️ Retour au sommaire](#sommaire)
+
 ______________________________________________________________________
 
 ### ⚙️ Modèle métier
@@ -190,6 +199,8 @@ Il est implémenté côté backend avec **FastAPI** et suit une séparation clai
 - objets métiers,
 - accès aux données (DAO),
 - logique applicative (services).
+
+[⬆️ Retour au sommaire](#sommaire)
 
 ______________________________________________________________________
 
@@ -250,6 +261,8 @@ npm run dev
 Frontend accessible sur :\
 👉 http://localhost:5173
 
+[⬆️ Retour au sommaire](#sommaire)
+
 ______________________________________________________________________
 
 ## 🔐 Configuration (.env)
@@ -278,6 +291,8 @@ Voir le fichier :
 src/frontend/.env.local.template
 ```
 
+[⬆️ Retour au sommaire](#sommaire)
+
 ______________________________________________________________________
 
 ## 🧪 Qualité et outils
@@ -291,6 +306,8 @@ ______________________________________________________________________
 - [Guide pre-commit](Documentation/Infos_divers/pour_pre_commit.md)
 - [Workflows de tests](Documentation/Infos_divers/worklows.md)
 
+[⬆️ Retour au sommaire](#sommaire)
+
 ______________________________________________________________________
 
 ## 📅 Compte-rendus de réunions
@@ -299,6 +316,7 @@ ______________________________________________________________________
 - Vendredi 30 janvier : [Réunion 2](Documentation/reunion_construction/reunion2_30_01.md)
 - Vendredi 1 février : lien perdu
 
+[⬆️ Retour au sommaire](#sommaire)
 ______________________________________________________________________
 
 📌 _Ce README décrit l’état actuel du projet et pourra évoluer avec l’ajout de nouvelles fonctionnalités._
