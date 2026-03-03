@@ -93,7 +93,7 @@ function App() {
                     on_back={() => set_vue_active_admin(null)} 
                     est_admin={admin_connecte} 
                   />
-                ); // Ajoute bien les parenthèses si tu écris sur plusieurs lignes
+                ); 
               default:
         
           return (

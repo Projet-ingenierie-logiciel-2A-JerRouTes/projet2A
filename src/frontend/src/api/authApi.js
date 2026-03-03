@@ -26,7 +26,7 @@ export async function login(credentials) {
 
 /**
  * Création de compte
- * @param {Object} userData - Contient { pseudo, email, password }
+ * @param {Object} userData - Contient { pseudo, email, password , est_admin}
  */
 
 export async function register(payload) {

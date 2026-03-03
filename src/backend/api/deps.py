@@ -35,6 +35,11 @@ class CurrentUser:
     session_id: int
     status: str
 
+    # L'INDENTATION EST LA CLE ICI :
+    def is_admin(self) -> bool:
+        """Retourne True si l'utilisateur courant est administrateur."""
+        return self.status == "admin"
+
 
 def get_user_service() -> UserService:
     """

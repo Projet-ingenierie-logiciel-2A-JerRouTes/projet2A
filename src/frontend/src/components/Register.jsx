@@ -7,6 +7,7 @@ const Register = ({ on_register_success, on_back, cre_admin = false }) => {
   const [pseudo, set_pseudo] = useState("");
   const [email, set_email] = useState("");
   const [mdp, set_mdp] = useState("");
+  const [est_admin, set_est_admin] = useState(false)
   const [confirmer_mdp, set_confirmer_mdp] = useState("");
   const [voir_mdp, set_voir_mdp] = useState(false);
   const [message_erreur, set_message_erreur] = useState("");
@@ -35,7 +36,8 @@ const Register = ({ on_register_success, on_back, cre_admin = false }) => {
         username: pseudo, 
         email: email, 
         password: mdp,
-        status: cre_admin ? "admin" : "user" 
+        est_admin: cre_admin,
+        //status: cre_admin ? "admin" : "user" 
       };
       
       const response = await register(payload);

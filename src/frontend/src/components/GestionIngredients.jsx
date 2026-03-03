@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { Wheat, PlusCircle, Trash2, Edit, Undo2 } from "lucide-react";
-import { getAllIngredients } from "../api/stockApi"; // Utilise ton API existante
+import { Wheat, PlusCircle, Undo2, Eye } from "lucide-react";
+import { getAllIngredients } from "../api/stockApi"; 
 import CreationIngredientGlobal from "./CreationIngredientGlobal"; 
+import AfficherIngredient from "./AfficherIngredient"; // Import du nouveau composant
 import "../styles/Gestion.css";
 
 const GestionIngredients = ({ on_back }) => {
   const [ingredients, set_ingredients] = useState([]);
   const [est_en_chargement, set_est_en_chargement] = useState(true);
-  const [vue_actuelle, set_vue_actuelle] = useState("liste"); // "liste" ou "ajout"
+  const [vue_actuelle, set_vue_actuelle] = useState("liste"); // "liste", "ajout", "details"
+  const [ingredient_selectionne, set_ingredient_selectionne] = useState(null);
 
-  // Fonction pour charger et rafraîchir la liste
   const rafraichir_liste = async () => {
     set_est_en_chargement(true);
     try {
       const data = await getAllIngredients();
+      
+      // 📝 LOG CONSOLE : Pour voir toutes les infos (tags, calories, etc.)
+      console.log("🌿 Liste complète des ingrédients récupérée :", data);
+      
       set_ingredients(data);
     } catch (err) {
       console.error("Erreur récupération ingrédients", err);
@@ -26,7 +31,7 @@ const GestionIngredients = ({ on_back }) => {
     rafraichir_liste();
   }, []);
 
-  // RENDU DU FORMULAIRE D'AJOUT
+  // VUE AJOUT
   if (vue_actuelle === "ajout") {
     return (
       <CreationIngredientGlobal 
@@ -39,6 +44,21 @@ const GestionIngredients = ({ on_back }) => {
     );
   }
 
+  // VUE DÉTAILS
+  if (vue_actuelle === "details" && ingredient_selectionne) {
+    return (
+      <AfficherIngredient 
+        ingredient={ingredient_selectionne}
+        on_back={() => {
+          set_vue_actuelle("liste");
+          set_ingredient_selectionne(null);
+        }}
+        on_edit={(id) => console.log("Modifier ingrédient ID:", id)}
+        on_delete={(id) => console.log("Supprimer ingrédient ID:", id)}
+      />
+    );
+  }
+
   return (
     <div className="carte-centrale gestion-panel">
       <div className="entete-gestion">
@@ -47,7 +67,6 @@ const GestionIngredients = ({ on_back }) => {
           <h1 className="titre-principal">Gestion des Ingrédients</h1>
         </div>
         <div className="barre-outils">
-          {/* Bouton vert pour correspondre à ton design */}
           <button 
             className="bouton-action btn-ingredient-style" 
             onClick={() => set_vue_actuelle("ajout")}
@@ -64,10 +83,10 @@ const GestionIngredients = ({ on_back }) => {
           <table className="tableau-gestion">
             <thead>
               <tr>
-                <th>Nom de l'ingrédient</th>
+                <th>Nom</th>
                 <th>Catégorie</th>
-                <th>Unité de mesure</th>
-                <th>Actions</th>
+                <th>Unité</th>
+                <th style={{ textAlign: "center" }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -76,16 +95,20 @@ const GestionIngredients = ({ on_back }) => {
                   <td className="texte-gras">{ing.name}</td>
                   <td>{ing.category || "Général"}</td>
                   <td>
-                    <span className="badge-role bg-user">
+                    <span className="badge-role bg-user" style={{ backgroundColor: "#94a3b8" }}>
                       {ing.unit}
                     </span>
                   </td>
-                  <td className="cellule-actions">
-                    <button className="btn-icone" title="Modifier">
-                      <Edit size={16} />
-                    </button>
-                    <button className="btn-icone btn-suppr" title="Supprimer">
-                      <Trash2 size={16} />
+                  <td className="cellule-actions" style={{ justifyContent: "center" }}>
+                    <button 
+                      className="btn-icone" 
+                      title="Voir la fiche"
+                      onClick={() => {
+                        set_ingredient_selectionne(ing);
+                        set_vue_actuelle("details");
+                      }}
+                    >
+                      <Eye size={16} color="#3b82f6" />
                     </button>
                   </td>
                 </tr>
