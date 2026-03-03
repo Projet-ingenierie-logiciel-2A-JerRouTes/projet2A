@@ -13,7 +13,9 @@
   box-sizing: border-box;
 }
 
-/* On force le conteneur à prendre tout l'écran */
+/* --- STRUCTURE PRINCIPALE --- */
+
+/* On force le conteneur à prendre tout l'écran et on centre la carte */
 .ecran-connexion {
   height: 100vh;
   width: 100vw;
@@ -22,7 +24,7 @@
   justify-content: center; /* Centrage horizontal */
   position: relative;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  overflow: hidden;
+  overflow: hidden; /* Empêche le scroll sur toute la page */
 }
 
 /* L'image de fond floutée */
@@ -35,52 +37,85 @@
   background-image: url("https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=2070");
   background-size: cover;
   background-position: center;
-  filter: blur(8px); /* L'effet de flou */
-  transform: scale(1.1); /* Évite les bords blancs dus au flou */
-  /*  z-index: -1; */
-  z-index: -2; /* On le pousse au maximum derrière */
+  filter: blur(8px);
+  transform: scale(1.1);
+  z-index: -2;
   pointer-events: none;
 }
 
-/* Overlay sombre pour faire ressortir la carte */
+/* Overlay sombre pour le contraste */
 .overlay-sombre {
   position: absolute;
   inset: 0;
   background-color: rgb(0 0 0 / 20%);
-  /* z-index: 0; */
-  z-index: -1; /* Derrière le formulaire mais devant l'image */
-  pointer-events: none; /* L'overlay ne doit pas bloquer le clic */
+  z-index: -1;
+  pointer-events: none;
 }
 
-/* La carte centrale blanche */
-.carte-centrale {
+/* --- LES CARTES (CONTENEURS) --- */
+
+/* La carte centrale (Accueil, Détail, Préparation) */
+.carte-centrale, .carte-centrale-detail {
   position: relative;
   z-index: 10;
-  background-color: rgb(255 255 255 / 90%);
-  padding: 3rem 4rem;
+  background-color: rgb(255 255 255 / 95%);
+  padding: 2.5rem;
   border-radius: 30px;
   box-shadow: 0 20px 25px -5px rgb(0 0 0 / 20%);
   text-align: center;
-  max-width: 90%;
+  
+  /* Gestion de la taille et du scroll */
+  width: 700px; /* Largeur confortable */
+  max-width: 95%;
+  max-height: 90vh; /* Ne dépasse jamais 90% de la hauteur écran */
+  
+  /* Structure interne pour le scroll */
+  display: flex;
+  flex-direction: column;
 }
 
+/* ZONE DE SCROLL INTERNE */
+/* Utilisez cette classe dans vos composants pour envelopper le contenu long */
+.scroll-contenu {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-grow: 1; /* Prend l'espace disponible entre le titre et les boutons fixes */
+  padding-right: 10px; /* Espace pour la scrollbar */
+  margin: 15px 0;
+}
+
+/* Personnalisation de la barre de défilement */
+.scroll-contenu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroll-contenu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-contenu::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 10px;
+}
+
+/* --- TYPOGRAPHIE ET BOUTONS --- */
+
 .titre-principal {
-  font-size: 3rem;
+  font-size: 2.5rem;
   color: #1f2937;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
   font-weight: 800;
   line-height: 1.2;
 }
 
-/* Conteneur des boutons */
 .groupe-boutons {
   display: flex;
   gap: 1.5rem;
   justify-content: center;
   flex-wrap: wrap;
+  margin-top: 1rem;
 }
 
-/* Style commun des boutons visibles */
 .bouton-custom {
   padding: 15px 30px;
   border: none;
@@ -99,16 +134,37 @@
   filter: brightness(1.1);
 }
 
-/* Couleurs individuelles */
-.btn-connexion {
-  background-color: var(--bleu-vif);
+/* Couleurs des boutons */
+.btn-connexion { background-color: var(--bleu-vif); }
+.btn-inscription { background-color: var(--vert-vif); }
+.btn-admin { background-color: var(--rouge-vif); }
+.btn-invite { background-color: var(--orange-vif); }
+
+/* Bouton de retour classique (discret) */
+.bouton-retour-gestion {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: color 0.2s;
 }
-.btn-inscription {
-  background-color: var(--vert-vif);
+
+.bouton-retour-gestion:hover {
+  color: #1e293b;
 }
-.btn-admin {
-  background-color: var(--rouge-vif);
+
+/* --- ANIMATIONS --- */
+.animate-fade {
+  animation: fadeIn 0.4s ease-out;
 }
-.btn-invite {
-  background-color: var(--orange-vif);
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

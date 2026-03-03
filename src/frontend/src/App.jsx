@@ -15,6 +15,7 @@ import AffichageRecettes from "./components/AfficherRecettes";
 import AfficherRecetteDetail from "./components/AfficherRecetteDetail"; 
 import AddIngredientForm from "./components/AddIngredientForm";
 import SaisieIngredientsInvite from "./components/SaisieIngredientsInvite";
+import PrepaConsume from "./components/PrepaConsume"; 
 
 function App() {
   // --- ÉTATS ---
@@ -31,6 +32,9 @@ function App() {
   const [mode_saisie_invite, set_mode_saisie_invite] = useState(false);
   const [recette_selectionnee, set_recette_selectionnee] = useState(null);
   const [ingredients_filtres, set_ingredients_filtres] = useState([]);
+  const [stock_formate, set_stock_formate] = useState([]);
+  const [liste_ingredients_complet,set_liste_ingredients_complet] =useState([]);
+  const [mode_preparation, set_mode_preparation] = useState(false);
 
   // --- HANDLERS ---
   const gerer_connexion_reussie = (donnees_utilisateur, est_admin = false) => {
@@ -46,6 +50,7 @@ function App() {
     set_action("accueil");
     set_recette_selectionnee(null);
     set_ingredients_filtres([]);
+    set_liste_ingredients_complet([]);
   };
 
   const gerer_retour_accueil = () => {
@@ -53,13 +58,8 @@ function App() {
     set_chercher_recette(false);
     set_recette_selectionnee(null);
     set_ingredients_filtres([]);
+    set_liste_ingredients_complet([]);
   };
-
-  React.useEffect(() => {
-    if (ingredients_filtres.length > 0) {
-      console.log("📍 État global App.jsx - Ingrédients reçus :", ingredients_filtres);
-    }
-  }, [ingredients_filtres]);
 
   // --- LOGIQUE DE RENDU ---
 
@@ -88,6 +88,16 @@ function App() {
         case "ingredients": return <GestionIngredients on_back={() => set_vue_active_admin(null)} />;
         case "stocks":      return <GestionStocks on_back={() => set_vue_active_admin(null)} />;
         case "recettes":    
+                if (recette_selectionnee) {
+                  return (
+                    <AfficherRecetteDetail 
+                      recette={recette_selectionnee} 
+                      onBack={() => set_recette_selectionnee(null)} 
+                      utilisateur={user} 
+                      est_admin={true} 
+                    />
+                  );
+                }
                 return (
                   <GestionRecettes 
                     on_back={() => set_vue_active_admin(null)} 
@@ -95,7 +105,6 @@ function App() {
                   />
                 ); 
               default:
-        
           return (
             <InterfaceAdmin 
               user={user?.user || user} 
@@ -113,7 +122,6 @@ function App() {
     // 3. PROFIL : UTILISATEUR CONNECTÉ
     // ==========================================
     if (est_connecte && !admin_connecte) {
-      // Vue Ajout Ingrédient
       if (ajout_ingredient) {
         return (
           <AddIngredientForm 
@@ -126,10 +134,31 @@ function App() {
         );
       }
 
-      // Vue Recherche de Recettes
       if (chercher_recette) {
+        if (mode_preparation && recette_selectionnee) {
+          return (
+            <PrepaConsume 
+              recette={recette_selectionnee} 
+              on_back={() => set_mode_preparation(false)} 
+              stock_utilisateur={stock_formate}
+              liste_ingredients_complet={liste_ingredients_complet}
+            />
+          );
+        }
+
+
+
         if (recette_selectionnee) {
-          return <AfficherRecetteDetail recette={recette_selectionnee} onBack={() => set_recette_selectionnee(null)} />;
+          return (
+            <AfficherRecetteDetail 
+              recette={recette_selectionnee} 
+              onBack={() => set_recette_selectionnee(null)} 
+              utilisateur={user}
+              est_admin={false} 
+              stock_utilisateur={stock_formate} 
+              onRealiser={() => set_mode_preparation(true)}
+            />
+          );
         }
         return (
           <AffichageRecettes 
@@ -138,11 +167,12 @@ function App() {
             on_select_recette={(r) => set_recette_selectionnee(r)}
             on_clic_saisir={() => set_mode_saisie_invite(true)}
             peut_saisir={false}
+            utilisateur={user}
+            stock_actuel={stock_formate}
           />
         );
       }
 
-      // Vue par défaut : Gestion du Stock
       return (
         <Stock
           user={user?.user || user}
@@ -155,6 +185,8 @@ function App() {
           set_list_nom_stock={set_list_nom_stock} 
           set_catalogue={set_catalogue}
           set_ingredients_filtres={set_ingredients_filtres}
+          set_stock_formate={set_stock_formate}
+          set_liste_ingredients_complet={set_liste_ingredients_complet}
         />
       );
     }
@@ -163,7 +195,6 @@ function App() {
     // 4. PROFIL : INVITÉ (ou ACCUEIL)
     // ==========================================
     if (action === "invite") {
-      // Saisie manuelle des ingrédients
       if (mode_saisie_invite) {
         return (
           <SaisieIngredientsInvite 
@@ -175,22 +206,27 @@ function App() {
           />
         );
       }
-      // Fiche détail d'une recette
       if (recette_selectionnee) {
-        return <AfficherRecetteDetail recette={recette_selectionnee} onBack={() => set_recette_selectionnee(null)} />;
+        return (
+          <AfficherRecetteDetail 
+            recette={recette_selectionnee} 
+            onBack={() => set_recette_selectionnee(null)} 
+            utilisateur={null} // Pas d'utilisateur en mode invité
+            est_admin={false} 
+          />
+        );
       }
-      // Grille de suggestions (par ingrédients ou aléatoire)
       return (
         <AffichageRecettes 
           gerer_retour={gerer_retour_accueil} 
           liste_ingredients={ingredients_filtres}
           on_select_recette={(r) => set_recette_selectionnee(r)}
           on_clic_saisir={() => set_mode_saisie_invite(true)}
+          utilisateur={null} // Mode invité
         />
       );
     }
 
-    // Par défaut : Page d'accueil
     return <Home on_clic_bouton={set_action} />;
   };
 

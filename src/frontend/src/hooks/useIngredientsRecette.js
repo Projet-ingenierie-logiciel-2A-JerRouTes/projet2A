@@ -14,7 +14,7 @@ export function useIngredientsRecette(recette) {
     const charger_details = async () => {
       set_chargement_ing(true);
       try {
-        // --- 1. RECHERCHE IMAGE (Même si image_url est vide) ---
+        // --- 1. RECHERCHE IMAGE PIXABAY ---
         if (!recette.image_url) {
           console.log("🔍 Recherche image Pixabay pour:", recette.name);
           const query = encodeURIComponent(recette.name.split(' ').slice(0, 3).join(' '));
@@ -27,18 +27,25 @@ export function useIngredientsRecette(recette) {
           }
         }
 
-        // --- 2. ENRICHISSEMENT INGRÉDIENTS ---
-        // On vérifie si 'ingredients' existe dans l'objet reçu du backend
+        // --- 2. ENRICHISSEMENT DES INGRÉDIENTS ---
         if (recette.ingredients && Array.isArray(recette.ingredients)) {
+          // On récupère le catalogue global (noms et unités)
           const catalogue = await getAllIngredients();
           
           const liste_enrichie = recette.ingredients.map((item) => {
+            // On trouve la correspondance dans le catalogue via l'ID
             const info = catalogue.find((c) => c.ingredient_id === item.ingredient_id);
+            
             return {
               ...item,
+              // ON AJOUTE CES CHAMPS POUR PREPACONSUME :
+              name: info?.name || "Inconnu",
+              unit: info?.unit || "",
+              // ON GARDE TON CHAMP FORMATE POUR LE DETAIL :
               affichage_complet: `${item.quantity} ${info?.unit || ""} de ${info?.name || "Inconnu"}`
             };
           });
+          
           set_ingredients_complets(liste_enrichie);
         } else {
           console.warn("⚠️ Aucun ingrédient trouvé dans l'objet recette:", recette);

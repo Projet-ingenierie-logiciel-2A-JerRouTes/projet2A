@@ -15,7 +15,8 @@ import {
   getAllIngredients, 
   deleteLotsStock, 
   deleteStock,
-  getMyIngredientNames // Import de la fonction d'extraction
+  getMyIngredients,
+  getMyIngredientNames
 } from "../api/stockApi";
 import { userStockTable } from "../hooks/userStockTable";
 import SelecteurStock from "./SelecteurStock";
@@ -34,7 +35,9 @@ const Stock = ({
   set_list_nom_stock, 
   list_nom_stock, 
   set_catalogue,
-  set_ingredients_filtres // Reçu depuis App.jsx
+  set_ingredients_filtres,
+  set_stock_formate,
+  set_liste_ingredients_complet // Prop cruciale pour PrepaConsume
 }) => {
   // --- ÉTATS ---
   const [chargement_initial, set_chargement_initial] = useState(true);
@@ -46,40 +49,53 @@ const Stock = ({
     action: null,
     nom_cible: ""
   });
-
+  
   // --- HOOK MÉTIER ---
   const { formatted_stock, refresh_stock } = userStockTable(id_stock);
 
-  // --- LOGIQUE DE RECHERCHE DE RECETTES (AVEC EXTRACTION) ---
+  // Remontée automatique du stock formaté à App.jsx dès qu'il change
+  useEffect(() => {
+    if (set_stock_formate) {
+      set_stock_formate(formatted_stock);
+    }
+  }, [formatted_stock, set_stock_formate]);
+
+  // --- LOGIQUE DE RECHERCHE DE RECETTES ---
   const gerer_recherche_recettes = async () => {
     try {
       set_chargement_recettes(true);
       
-      // 1. Appel API pour récupérer les objets {ingredient_id, name}
-      const ingredients_complets = await getMyIngredientNames();
+      // 1. Récupération des données API
+      const liste_ingredients_nom = await getMyIngredientNames();
+      const liste_ingredients_complet = await getMyIngredients();
       
-      // 2. Extraction des noms uniquement pour le moteur de recherche
-      const noms_seulement = ingredients_complets.map(item => item.name);
+      // 2. Extraction des noms pour le moteur de recherche
+      const noms_seulement = liste_ingredients_nom.map(item => item.name);
       
-      // 3. Affichage console pour vérification (Format image_a44a3a.png)
-      console.log("Recherche pour :", noms_seulement);
+      console.log("📍 Extraction pour recherche :", noms_seulement);
+      console.log("📦 Données complètes récupérées :", liste_ingredients_complet);
 
-      // 4. Mise à jour de l'état global dans App.jsx
+      // 3. Mise à jour des états globaux dans App.jsx
       if (set_ingredients_filtres) {
         set_ingredients_filtres(noms_seulement);
       }
+      
+      // Envoi de la liste complète pour la comparaison dans PrepaConsume
+      if (set_liste_ingredients_complet) {
+        set_liste_ingredients_complet(liste_ingredients_complet);
+      }
 
-      // 5. Basculement vers la vue AffichageRecettes
+      // 4. Passage à la vue catalogue
       set_chercher_recette(true);
       
     } catch (error) {
-      console.error("❌ Erreur lors de la récupération des ingrédients pour recettes:", error);
+      console.error("❌ Erreur lors de la recherche de recettes :", error);
     } finally {
       set_chargement_recettes(false);
     }
   };
 
-  // --- AUTRES HANDLERS (Stocks) ---
+  // --- HANDLERS STOCKS ---
   const gerer_creation_stock = async (nom) => {
     try {
       const data = await createStock(nom);
@@ -88,7 +104,7 @@ const Stock = ({
       set_id_stock(nouvel_id);
       set_affichage_barre(false);
     } catch (error) {
-      console.error("❌ Erreur création stock:", error);
+      console.error("❌ Erreur création stock :", error);
     }
   };
 
@@ -105,7 +121,7 @@ const Stock = ({
         set_id_stock(nouvelle_liste.length > 0 ? nouvelle_liste[0].stock_id : null);
       }
     } catch (error) {
-      console.error(`❌ Erreur ${etat_confirmation.action}:`, error);
+      console.error(`❌ Erreur ${etat_confirmation.action} :`, error);
     } finally {
       set_etat_confirmation({ ouvert: false, action: null, nom_cible: "" });
     }
@@ -126,7 +142,7 @@ const Stock = ({
           set_id_stock(ids_noms_stock[0].stock_id);
         }
       } catch (err) {
-        console.error("❌ Erreur initialisation:", err);
+        console.error("❌ Erreur initialisation :", err);
       } finally {
         set_chargement_initial(false);
       }
