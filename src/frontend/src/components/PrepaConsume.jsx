@@ -14,19 +14,38 @@ import { useIngredientsRecette } from "../hooks/useIngredientsRecette";
 const PrepaConsume = ({ recette, on_back, stock_utilisateur, liste_ingredients_complet }) => {
   // Debug pour vérifier la réception des données
   console.log("📊 Données brutes reçues :", liste_ingredients_complet);
+  console.log(recette)
 
   const [nb_personnes, set_nb_personnes] = useState(recette?.portions || 2);
   
   // Hook pour obtenir les noms et unités lisibles des ingrédients de la recette
   const { ingredients_complets, chargement_ing } = useIngredientsRecette(recette);
 
+  // ----------------------------------------------------------------------------------------
+  // On va avoir un pb il n'y a pas unit dans la description des ingredients d'une recette
+  // -----------------------------------------------------------------------------
+
   // --- LOGIQUE DE COMPARAISON ---
-  const trouver_dans_stock = (nom_ing) => {
-    if (!stock_utilisateur) return null;
-    // Recherche par nom (insensible à la casse) dans le stock formaté
-    return stock_utilisateur.find(
-      (item) => item.nom_ingredient?.toLowerCase() === nom_ing?.toLowerCase()
+  // On construit la liste à chaque rendu en fonction de nb_personnes
+  const ingredients_necessaires = recette?.ingredients?.map((ing) => {
+    // Calcul de la quantité ajustée : (Qté de base / Portions de base) * Portions voulues
+    const quantite_calculee = (ing.quantity / (recette.portions || 1)) * nb_personnes;
+
+    return {
+      ingredient_id: ing.ingredient_id,
+      quantity: Number(quantite_calculee.toFixed(2)) // On arrondit pour éviter les 0.000000004
+    };
+  }) || [];
+
+  console.log("📋 Ingrédients nécessaires calculés :", ingredients_necessaires);
+
+  // 2. Fonction de recherche dans l'objet AGGRÉGÉ (liste_ingredients_complet)
+  const obtenir_stock_reel = (id_recherche) => {
+    const match = liste_ingredients_complet?.find(
+      (item) => Number(item.ingredient_id) === Number(id_recherche)
     );
+    // On retourne l'objet complet pour avoir accès à total_quantity et unit
+    return match || null;
   };
 
   return (
@@ -77,18 +96,23 @@ const PrepaConsume = ({ recette, on_back, stock_utilisateur, liste_ingredients_c
 
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {ingredients_complets?.map((ing, i) => {
-                const qte_requise = (ing.quantity / recette.portions) * nb_personnes;
-                const item_stock = trouver_dans_stock(ing.name);
+                // Calcul du besoin pour cet ingrédient précis
+                const qte_requise = (ing.quantity / (recette.portions || 1)) * nb_personnes;
                 
-                // Comparaison numérique pour l'icône ✅/❌
-                const est_disponible = item_stock && item_stock.quantite_raw >= qte_requise;
+                // RÉCUPÉRATION DE LA QUANTITÉ DEPUIS TA LISTE COMPLÈTE (Agrégée)
+                const info_stock = obtenir_stock_reel(ing.ingredient_id);
+                const qte_stock = info_stock ? info_stock.total_quantity : 0;
+                
+                const est_disponible = qte_stock >= qte_requise;
 
                 return (
                   <li key={i} style={{ padding: "10px 0", borderBottom: "1px solid #dcfce7", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ display: "flex", flexDirection: "column", textAlign: "left" }}>
                       <span style={{ fontWeight: "600", color: "#166534" }}>{ing.name}</span>
                       <span style={{ fontSize: "0.85rem", color: "#64748b" }}>
-                        {item_stock ? `En stock : ${item_stock.quantite_affichage}` : "Non trouvé en stock"}
+                        {info_stock 
+                          ? `En stock : ${qte_stock} ${info_stock.unit}` 
+                          : "Non trouvé en stock"}
                       </span>
                     </div>
                     {est_disponible ? (
