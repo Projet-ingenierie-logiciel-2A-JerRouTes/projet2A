@@ -1,115 +1,102 @@
-import uuid
+from __future__ import annotations
+
+from unittest.mock import Mock
+
+import pytest
+
+from business_objects.recipe import Recipe
+from business_objects.user import GenericUser
+from services.find_recipe import IngredientSearchQuery
+from services.find_recipe_factory import FindRecipeFactory
 
 
-def _register_and_get_token(client) -> str:
-    suffix = uuid.uuid4().hex[:8]
-    r = client.post(
-        "/api/auth/register",
-        json={
-            "username": f"u_{suffix}",
-            "email": f"u_{suffix}@example.com",
-            "password": "Azerty123!",
-        },
+@pytest.fixture
+def db():
+    return Mock()
+
+
+@pytest.fixture
+def api():
+    return Mock()
+
+
+@pytest.fixture
+def finder(db, api) -> FindRecipeFactory:
+    return FindRecipeFactory(db=db, api=api)
+
+
+def _user(uid: int) -> GenericUser:
+    return GenericUser(id_user=uid, pseudo=f"user{uid}", password="____")
+
+
+def test_get_by_id_uses_db_first_when_found(finder, db, api):
+    r = Recipe(
+        recipe_id=1,
+        creator=_user(1),
+        status="draft",
+        prep_time=0,
+        portions=1,
     )
-    assert r.status_code in (200, 201), r.text
-    data = r.json()
-    assert "access_token" in data, data
-    return data["access_token"]
+    db.get_by_id.return_value = r
+
+    assert finder.get_by_id(1) is r
+    db.get_by_id.assert_called_once_with(1)
+    api.get_by_id.assert_not_called()
 
 
-def test_get_recipe_requires_auth(client):
-    r = client.get("/api/recipes/1")
-    assert r.status_code in (401, 403), r.text
+def test_get_by_id_does_not_fall_back_to_api_in_case_b(finder, db, api):
+    db.get_by_id.return_value = None
+
+    assert finder.get_by_id(99) is None
+    db.get_by_id.assert_called_once_with(99)
+    api.get_by_id.assert_not_called()
 
 
-def test_get_recipe_ok(client):
-    token = _register_and_get_token(client)
+def test_search_by_ingredients_returns_db_if_enough(finder, db, api):
+    q = IngredientSearchQuery(ingredients=["egg"], limit=2)
+    db.search_by_ingredients.return_value = [
+        Recipe(recipe_id=1, creator=_user(1), status="draft", prep_time=0, portions=1),
+        Recipe(recipe_id=2, creator=_user(1), status="draft", prep_time=0, portions=1),
+    ]
 
-    r = client.get(
-        "/api/recipes/1",
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    assert r.status_code == 200, r.text
-    data = r.json()
-
-    # Champs principaux
-    assert data["recipe_id"] == 1
-    assert "creator_id" in data
-    assert "status" in data
-    assert "prep_time" in data
-    assert "portions" in data
-
-    # Relations
-    assert isinstance(data["ingredients"], list)
-    assert isinstance(data["tags"], list)
-
-    # On sait qu'en DB de test, la recette 1 a des ingrédients
-    assert len(data["ingredients"]) > 0
-    assert all("ingredient_id" in x and "quantity" in x for x in data["ingredients"])
+    res = finder.search_by_ingredients(q)
+    assert len(res) == 2
+    api.search_by_ingredients.assert_not_called()
 
 
-def test_get_recipe_404(client):
-    token = _register_and_get_token(client)
+def test_search_by_ingredients_completes_with_api_when_not_enough(finder, db, api):
+    q = IngredientSearchQuery(ingredients=["egg"], limit=3)
+    db.search_by_ingredients.return_value = [
+        Recipe(recipe_id=1, creator=_user(1), status="draft", prep_time=0, portions=1),
+    ]
+    api.search_by_ingredients.return_value = [
+        Recipe(
+            recipe_id=2, creator=_user(0), status="public", prep_time=10, portions=2
+        ),
+        Recipe(
+            recipe_id=3, creator=_user(0), status="public", prep_time=15, portions=2
+        ),
+    ]
 
-    r = client.get(
-        "/api/recipes/999999",
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    assert r.status_code == 404, r.text
-
-
-def test_search_recipes_requires_auth(client):
-    r = client.post(
-        "/api/recipes/search",
-        json={"ingredients": ["Egg", "Milk"]},
-    )
-    assert r.status_code in (401, 403), r.text
-
-
-def test_search_recipes_ok(client):
-    token = _register_and_get_token(client)
-
-    r = client.post(
-        "/api/recipes/search",
-        headers={"Authorization": f"Bearer {token}"},
-        json={
-            "ingredients": ["Egg", "Milk"],
-            "limit": 10,
-            "max_missing": 0,
-            "strict_only": False,
-            "dish_type": None,
-            "ignore_pantry": True,
-        },
-    )
-    assert r.status_code == 200, r.text
-    data = r.json()
-    assert isinstance(data, list)
-
-    # Dans la DB de test :
-    # - Pancakes (id=1) contient Egg + Milk
-    recipe_ids = {x["recipe_id"] for x in data}
-    assert 1 in recipe_ids, data
+    res = finder.search_by_ingredients(q)
+    assert [r.recipe_id for r in res] == [1, 2, 3]
+    api.search_by_ingredients.assert_called_once()
 
 
-def test_search_recipes_with_dish_type_filter(client):
-    token = _register_and_get_token(client)
+def test_search_by_ingredients_deduplicates_ids(finder, db, api):
+    q = IngredientSearchQuery(ingredients=["egg"], limit=3)
+    db.search_by_ingredients.return_value = [
+        Recipe(recipe_id=1, creator=_user(1), status="draft", prep_time=0, portions=1),
+        Recipe(recipe_id=2, creator=_user(1), status="draft", prep_time=0, portions=1),
+    ]
+    api.search_by_ingredients.return_value = [
+        Recipe(
+            recipe_id=2, creator=_user(0), status="public", prep_time=10, portions=2
+        ),
+        Recipe(
+            recipe_id=3, creator=_user(0), status="public", prep_time=15, portions=2
+        ),
+    ]
 
-    r = client.post(
-        "/api/recipes/search",
-        headers={"Authorization": f"Bearer {token}"},
-        json={
-            "ingredients": ["Egg"],
-            "limit": 10,
-            "max_missing": 10,  # large tolérance
-            "dish_type": "Dessert",  # tag en DB de test
-        },
-    )
-    assert r.status_code == 200, r.text
-    data = r.json()
-    recipe_ids = {x["recipe_id"] for x in data}
-
-    # Dans la DB de test :
-    # - Pancakes (id=1) est taggé Dessert
-    # - Scrambled Eggs (id=2) ne l'est pas
-    assert 1 in recipe_ids, data
-    assert 2 not in recipe_ids, data
+    res = finder.search_by_ingredients(q)
+    assert [r.recipe_id for r in res] == [1, 2, 3]

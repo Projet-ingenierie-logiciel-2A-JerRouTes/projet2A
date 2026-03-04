@@ -8,6 +8,11 @@ from api.main import app
 from utils.reset_database import ResetDatabase
 
 
+@pytest.fixture(autouse=True)
+def _disable_external_apis():
+    os.environ["DISABLE_EXTERNAL_APIS"] = "1"
+
+
 @pytest.fixture(scope="session", autouse=True)
 def _force_test_schema_and_reset_db():
     """
