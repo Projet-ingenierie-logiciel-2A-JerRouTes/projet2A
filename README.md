@@ -1,3 +1,4 @@
+
 <h2 id="sommaire">📍 Sommaire</h2>
 
 * [🎯 Objectifs du projet](#-objectifs-du-projet)
@@ -10,12 +11,13 @@
     * [🖥️ BackEnd](#️-backend)
     * [🖥️ FrontEnd](#️-frontend)
 * [⚙️ Lancement du projet](#️-lancement-du-projet)
-    * [🐳 Docker (Conteneurs)](#avec-les-conteneurs)
-    * [🛠️ Installation Manuelle](#manuellement)
 * [🔐 Configuration (.env)](#-configuration-env)
+* [🧪 Tests Backend](#-tests-backend)
 * [🌐 Déploiement en Production (Mode Web)](#-deploiement-web)
 * [🧪 Qualité et outils](#-qualité-et-outils)
 * [📅 Compte-rendus de réunions](#-compte-rendus-de-réunions)
+* [👥 Organisation et méthode de travail](#-organisation-et-méthode-de-travail)
+
 ______________________________________________________________________
 
 # 📦 Projet : Logiciel de gestion et de recherche de recettes
@@ -31,9 +33,10 @@ Le projet est réalisé dans le cadre du **module de création logicielle** et s
 - tests automatisés.
 
 [⬆️ Retour au sommaire](#sommaire)
+
 ______________________________________________________________________
 
-## 🎯 Objectifs du projet
+# 🎯 Objectifs du projet
 
 - Permettre la recherche de recettes à partir d’ingrédients disponibles
 - Gérer un stock d’ingrédients par utilisateur
@@ -42,18 +45,20 @@ ______________________________________________________________________
 - Respecter les conventions de développement (PEP 8, bonnes pratiques JavaScript)
 
 [⬆️ Retour au sommaire](#sommaire)
+
 ______________________________________________________________________
 
-## 🧩 Fonctionnalités
+# 🧩 Fonctionnalités
 
 ### En tant que administateur (après connection)
+
 - Informations sur les utilisateurs
   - Voir tous les utilisateurs
   - Ajouter un admin ou un utilisateur 
   - Voir les informations d'un utilisateur en particulier
   - *A faire* : compléter les informations utilisateur (stock)
-  - *A faire* : Modifier/supprimer un utilisateur
-  
+  - *A faire* : Modifier/supprimer un utilisateur (Fait côté backend)
+
 - Informations sur les ingredients
   - Voir tous les ingredients
   - Ajouter un ingredient
@@ -66,43 +71,34 @@ ______________________________________________________________________
   - Ajouter un stock
   - Voir les informations d'un stock en particulier
   - *A faire* : compléter les informations du stock (utilisateur, contenu)
-  - *A faire* : Modifier/supprimer un stock
+  - Modifier/supprimer un stock
 
 - Informations sur les recettes
   - Voir toutes les recettes
-  - Voir les informations d'une recette en particulier*
+  - Voir les informations d'une recette en particulier
   - *A faire* : ajouter une recette
   - *A faire* : compléter les informations d'une recette étape
-  - *A faire* : Modifier/supprimer une recette (ajouter boutons)
+  - *A faire* : Modifier/supprimer une recette (Fait côté Backend)
 
 ### En tant qu'utilisateur 
 
-- Etape 1 : connection
-- Etape 2 : visualisation des "stocks" disponibles avec leur contenu (menu déroulant)
-  - Création d'un nouveau stock
-  - Ajouter ingredient à stock (avec auto implémentation)
-  - Vider stock
-  - Supprimer stock
-  - *A faire* : Modifier/Supprimer un lot
-- Etape 3 : Recherche de recettes
-  - Recherche de recette dans BDD plus API externe (spoonacular) si plus de endpoint possible recherche uniquement dans BDD
-  - Affichage des recettes trouvée (entre 1 et 6 avec affichage dinamyque) si pas de recette trouvée (choisit aléatoirement 6 recettes dans BDD),
-  Recette avec nom, photo (API externe Pixabay), temps de préparation et nombre de personne. Chaque vignette de recette est cliquable pour avoir plus de détail.
-  - Affichage d'une recette : affichage avec scrolbar si besoin
-  - Réalisation de recette (pour mise à jour du stock **Création en cours**), affichage de la quantité d'ingrédient nécessaire avec quantité qui s'adapte au nombre de personnes, vérification si présence dans le stock, bouton pour mettre à jour le stock (**non opérationnel**) 
+- Connexion utilisateur
+- Visualisation des stocks disponibles
+- Ajout / suppression d’ingrédients
+- Recherche de recettes
+- Consultation des recettes détaillées
+- Mise à jour du stock après réalisation d’une recette (*fonctionnalité en cours*)
 
 ### En tant qu'invité
 
-- Affichage de 6 recettes aléatoires pris dans la base de données (clique sur recette possible pour afficher détail recette)
-- Saisi d'ingrédient (sans quantité)
-- Recherche à partir de la liste d'ingredient
-- Affichage de recette adaptée a liste
+- Affichage de recettes aléatoires
+- Recherche de recettes à partir d’ingrédients
 
 [⬆️ Retour au sommaire](#sommaire)
 
 ______________________________________________________________________
 
-## 🏗️ Architecture générale
+# 🏗️ Architecture générale
 
 L’application repose sur une architecture **MVD (Modèle – Vue – Données)** :
 
@@ -110,148 +106,220 @@ L’application repose sur une architecture **MVD (Modèle – Vue – Données)
 Interface utilisateur  <->  Métier  <->  Base de données
 ```
 
-- **Interface utilisateur (Vue)** : interaction avec l’utilisateur via une application web (React)
-- **Métier (Modèle)** : logique applicative, règles de gestion, authentification
-- **Données** : persistance des utilisateurs, recettes, ingrédients et stocks
+- **Vue** : React
+- **Modèle / logique métier** : FastAPI
+- **Données** : PostgreSQL
 
-### 🗄️ Base de données
+______________________________________________________________________
 
-La base de données PostgreSQL gère les entités principales du projet :
+## 🗄️ Base de données
 
-- Utilisateurs
-- Sessions (authentification JWT)
-- Ingrédients
-- Stocks
-- Recettes
-- Relations utilisateur / stock
+La base PostgreSQL gère :
 
-📌 Diagramme de la base de données :\
+- utilisateurs
+- sessions
+- ingrédients
+- stocks
+- recettes
+
+Diagramme :
+
 ![Diagramme](Documentation/Images/diagramme_bdd.drawio.png)
 
 [⬆️ Retour au sommaire](#sommaire)
-______________________________________________________________________
-
-### 🖥️ BackEnd
-
-Le backend est développé avec **FastAPI (Python)** et constitue le cœur métier de l’application.
-
-Il gère :
-
-- l’authentification sécurisée des utilisateurs (JWT),
-- la logique métier,
-- l’accès à la base PostgreSQL,
-- la gestion des stocks et des ingrédients,
-- l’exposition de l’API REST consommée par le frontend.
-
-📘 Documentation détaillée :  
-[README du backend](src/backend/README.md)
-
-Le backend est totalement indépendant du frontend et peut être exécuté séparément.
-
-[⬆️ Retour au sommaire](#sommaire)
-______________________________________________________________________
-
-### 🖥️ FrontEnd
-
-Le frontend est développé avec **React** et **Vite**.
-
-📘 Documentation détaillée :\
-[README du frontend](src/frontend/README.md)
-
-Fonctionnalités principales :
-
-- Inscription et connexion des utilisateurs (JWT)
-- Communication sécurisée avec l’API backend
-- Gestion du stock et affichage des recettes
-
-[⬆️ Retour au sommaire](#sommaire)
 
 ______________________________________________________________________
 
-### 🖥️ Interface utilisateur
+## 🖥️ BackEnd
 
-L’interface utilisateur permet :
+Backend développé avec **FastAPI (Python)**.
 
-- la création de comptes et la connexion des utilisateurs,
-- la consultation et la gestion du stock personnel,
-- la recherche de recettes en fonction des ingrédients disponibles.
+Responsabilités :
 
-Elle est conçue pour être :
+- authentification JWT
+- logique métier
+- accès base PostgreSQL
+- API REST
 
-- simple d’utilisation,
-- réactive,
-- évolutive.
+Documentation backend :
+
+```
+src/backend/README.md
+```
+
+______________________________________________________________________
+
+## 🖥️ FrontEnd
+
+Frontend développé avec :
+
+- **React**
+- **Vite**
+
+Fonctionnalités :
+
+- authentification utilisateur
+- communication API
+- gestion du stock
+- affichage des recettes
+
+Documentation :
+
+```
+src/frontend/README.md
+```
 
 [⬆️ Retour au sommaire](#sommaire)
 
 ______________________________________________________________________
 
-### ⚙️ Modèle métier
+# ⚙️ Lancement du projet
 
-Le modèle métier regroupe :
+Le projet est conçu pour être **portable et facilement déployable**.  
+L’utilisation de **Docker** est la méthode recommandée pour lancer l'application.
 
-- les règles de gestion des utilisateurs,
-- la logique d’authentification (JWT),
-- la gestion des stocks et des ingrédients,
-- les règles de recherche de recettes.
+Tous les services nécessaires au projet sont conteneurisés.
 
-Il est implémenté côté backend avec **FastAPI** et suit une séparation claire entre :
+---
 
-- objets métiers,
-- accès aux données (DAO),
-- logique applicative (services).
-
-[⬆️ Retour au sommaire](#sommaire)
-
-______________________________________________________________________
-
-## ⚙️ Lancement du projet
+## 🐳 Lancement avec Docker (méthode recommandée)
 
 ### Prérequis
 
-- Node.js 20+
-- npm
-- Python 3.11+
-- Docker & Docker Compose
+Installer :
 
-### Avec les conteneurs
+- Docker
+- Docker Compose
 
-1. Etape 1 : Rendre le script exécutable
+Vérifier :
+
+```bash
+docker --version
+docker compose version
+```
+
+---
+
+### Lancer l’application
+
+Depuis la racine du projet :
+
+```bash
+docker compose up --build
+```
+
+Cette commande :
+
+- construit les images Docker
+- démarre la base de données
+- lance le backend FastAPI
+- lance le frontend React
+
+---
+
+### Accès aux services
+
+Frontend :
+
+```
+http://localhost:5173
+```
+
+Backend :
+
+```
+http://localhost:8000
+```
+
+Documentation API :
+
+```
+http://localhost:8000/docs
+```
+
+---
+
+### Arrêter l'application
+
+```bash
+docker compose down
+```
+
+---
+
+### Voir les logs
+
+```bash
+docker compose logs -f
+```
+
+Ou pour un service spécifique :
+
+```bash
+docker compose logs -f backend
+```
+
+---
+
+### Reconstruction complète
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+---
+
+## 🧪 Lancer les tests
+
+Les tests backend utilisent **pytest** avec **uv**.
+
+Dans le conteneur backend :
+
+```bash
+docker compose exec backend uv run pytest
+```
+
+Ou en local :
+
+```bash
+uv run pytest
+```
+
+---
+
+## 🐧 Script start.sh (Linux uniquement)
+
+Un script `start.sh` est fourni pour simplifier le lancement.
+
+Sous Linux :
 
 ```bash
 chmod +x start.sh
-```
-
-2. Etape 2 : Lancer le script
-
-```bash
 ./start.sh
 ```
 
-Le dashbaord est directement disponible dans votre navigateur
+⚠️ Ce script est optionnel : toutes les commandes nécessaires sont décrites dans ce README afin de garantir que le projet puisse être lancé **sans dépendre d’un script externe**.
 
-Explication des éléments de contenerisation
+---
 
-- [Contenerisation](Documentation/Infos_divers/contenerisation.md)
+## 🛠️ Lancement manuel (développement)
 
-### Manuellement
+Possible si l’on souhaite lancer les services séparément.
 
-#### 1️⃣ Lancer la base de données
+### Base de données
 
 ```bash
-sudo docker compose up -d
+docker compose up -d
 ```
 
-#### 2️⃣ Lancer le backend
+### Backend
 
 ```bash
 uv run uvicorn api.main:app --reload
 ```
 
-Backend accessible sur :\
-👉 http://127.0.0.1:8000
-
-#### 3️⃣ Lancer le frontend
+### Frontend
 
 ```bash
 cd src/frontend
@@ -259,184 +327,190 @@ npm install
 npm run dev
 ```
 
-Frontend accessible sur :\
-👉 http://localhost:5173
-
 [⬆️ Retour au sommaire](#sommaire)
 
 ______________________________________________________________________
 
-## 🔐 Configuration (.env)
+# 🔐 Configuration (.env)
 
-### Backend
+Le backend utilise des variables d’environnement définies dans un fichier `.env`.
 
-Exemple de variables d’environnement :
+Un template est fourni dans :
+
+```
+src/backend/.env.template
+```
+
+Créer votre fichier `.env` :
+
+```bash
+cp src/backend/.env.template src/backend/.env
+```
+
+### Exemple de configuration
 
 ```env
-PYTHONPATH=src
+API_KEY_SPOONACULAR="your_api_key"
 
 POSTGRES_HOST=db
 POSTGRES_PORT=5432
 POSTGRES_DATABASE=projet2a
-POSTGRES_DB=projet2a
 POSTGRES_USER=projet_user
 POSTGRES_PASSWORD=projet_pwd
-POSTGRES_SCHEMA=projet_test_dao
+POSTGRES_SCHEMA=projet_dao
+POSTGRES_DB=projet2a
+
+JWT_SECRET=your_secret_key
+JWT_ISSUER=projet2a
+
+ACCESS_TTL_MINUTES=15
+REFRESH_TTL_DAYS=7
 ```
 
 ### Frontend
 
-Voir le fichier :
-
-```bash
+```
 src/frontend/.env.local.template
 ```
 
-[⬆️ Retour au sommaire](#sommaire)
-
-
 ______________________________________________________________________
 
+# 🧪 Tests Backend
 
-## 🌐 Déploiement en Production (Mode Web)
+Les tests backend utilisent **pytest** et **uv**.
 
-### version et limites
-
-La version de référence du projet est actuellement celle déployée en environnement local.
-De pluss, l’application n’a pas été conçue en responsive design et son affichage n’est pas optimisé pour les appareils mobiles.
-Le projet web complet (répertoire projet2A_web à la racine du dépôt GitHub) est mis à disposition. Toutefois, son déploiement nécessite une configuration spécifique de l’environnement sur la machine cible, incluant notamment la configuration du serveur Nginx (reverse proxy, gestion des ports et du SSL).
-
-### 📍 URL de production
-
-L’application est accessible en production à l’adresse suivante :
-
-👉 [https://www.mongardemanger.fr](https://www.mongardemanger.fr)
-👉 Documentation API : [https://www.mongardemanger.fr/api/docs](https://www.mongardemanger.fr/api/docs)
-
----
-
-### 🏗 Infrastructure d’hébergement
-
-L’application est déployée sur un **VPS Linux** fourni par
-OVHcloud.
-
-#### Architecture de production
-
-```text
-Client (Navigateur)
-        ↓
-DNS (A Record → IP publique VPS)
-        ↓
-VPS OVH (Linux)
-        ↓
-Nginx (Reverse Proxy)
-        ↓
-Application Docker
-        ↓
-Base de données
-```
-
----
-
-### 🐳 Conteneurisation
-
-L’application est exécutée via **Docker** en environnement de production :
-
-* Build de l’image applicative
-* Lancement via `docker compose`
-* Redémarrage automatique des services
-* Isolation des dépendances
-
-Commande de déploiement :
+### Lancer les tests en local
 
 ```bash
-docker compose up -d --build
+uv run pytest
 ```
 
----
+Ou uniquement les tests backend :
 
-### 🌍 Serveur Web & Reverse Proxy
+```bash
+uv run pytest src/backend
+```
 
-Le serveur web utilisé est
-Nginx.
+### Lancer les tests dans Docker
 
-Rôle de Nginx :
+```bash
+docker compose exec backend uv run pytest
+```
 
-* Reverse proxy vers le container applicatif
-* Gestion des requêtes HTTP/HTTPS
-* Redirection automatique HTTP → HTTPS
-* Gestion du certificat SSL
-* Transmission des headers (Host, X-Forwarded-For…)
+### Exemple avec sortie détaillée
 
----
-
-### 🔐 Sécurité
-
-En production, les mesures suivantes sont appliquées :
-
-* HTTPS activé (certificat Let’s Encrypt)
-* Firewall configuré
-* Accès SSH par clé
-* Base de données non exposée publiquement
-* Variables sensibles stockées dans un fichier `.env`
-* Isolation des services via Docker
-
----
-
-### 📘 Documentation API
-
-La documentation interactive de l’API est accessible via :
-
-👉 [https://www.mongardemanger.fr/api/docs](https://www.mongardemanger.fr/api/docs)
-
-Elle permet :
-
-* De consulter les endpoints disponibles
-* De tester les requêtes directement
-* De visualiser les schémas de données
-* De vérifier les codes de réponse
-
----
-
-### 🚀 Mise en Production
-
-Étapes réalisées :
-
-1. Provisionnement du VPS
-2. Installation de Docker
-3. Configuration Nginx
-4. Configuration DNS
-5. Installation du certificat SSL
-6. Déploiement des containers
-7. Tests de validation en environnement réel
-
-
-[⬆️ Retour au sommaire](#sommaire)
+```bash
+uv run pytest -v
+```
 
 ______________________________________________________________________
 
-## 🧪 Qualité et outils
+# 🌐 Déploiement en Production (Mode Web)
 
-- Tests automatisés backend avec **pytest**
-- Linting et formatage via **pre-commit**
-- Workflows CI pour les tests
+Application déployée sur VPS Linux OVH.
 
-📎 Ressources :
+URL :
 
-- [Guide pre-commit](Documentation/Infos_divers/pour_pre_commit.md)
-- [Workflows de tests](Documentation/Infos_divers/worklows.md)
+https://www.mongardemanger.fr
 
-[⬆️ Retour au sommaire](#sommaire)
+Documentation API :
+
+https://www.mongardemanger.fr/api/docs
+
+Architecture :
+
+```
+Client
+↓
+DNS
+↓
+VPS Linux
+↓
+Nginx
+↓
+Docker
+↓
+Base PostgreSQL
+```
+
+Sécurité :
+
+- HTTPS
+- firewall
+- SSH par clé
+- variables sensibles dans `.env`
 
 ______________________________________________________________________
 
-## 📅 Compte-rendus de réunions
+# 🧪 Qualité et outils
 
-- Vendredi 23 janvier : [Réunion 1](Documentation/reunion_construction/reunion1_23_01.md)
-- Vendredi 30 janvier : [Réunion 2](Documentation/reunion_construction/reunion2_30_01.md)
-- Vendredi 1 février : lien perdu
+- tests automatisés **pytest**
+- linting **pre-commit**
+- workflows CI
+
+______________________________________________________________________
+
+# 📅 Compte-rendus de réunions
+
+- Réunion 1
+- Réunion 2
+- Réunion 3
+
+______________________________________________________________________
+
+# 👥 Organisation et méthode de travail
+
+Le projet a été réalisé en équipe en suivant une organisation collaborative afin de faciliter la coordination et le suivi de l’avancement.
+
+### 🏗 Réunions de construction
+
+Des réunions régulières ont été organisées au début du projet afin de :
+
+- définir l’architecture de l’application
+- répartir les tâches entre les membres de l’équipe
+- discuter des choix techniques (frameworks, structure du projet, base de données)
+- planifier les différentes étapes du développement
+
+Les comptes-rendus de ces réunions sont disponibles dans la section dédiée du dépôt.
+
+---
+
+### 💬 Communication
+
+Un **canal de discussion WhatsApp** a été utilisé tout au long du projet afin de :
+
+- poser rapidement des questions techniques
+- partager des ressources et des idées
+- coordonner le travail entre les membres de l’équipe
+
+Cela a permis une communication fluide et réactive pendant toute la durée du projet.
+
+---
+
+### 🐙 Suivi des tâches (GitHub)
+
+En fin de projet, les **Issues GitHub** ont été utilisées pour :
+
+- identifier les bugs
+- suivre certaines tâches restantes
+- organiser les améliorations à apporter
+
+Cela a permis de structurer davantage le suivi du développement.
+
+---
+
+### 🤝 Travail en présentiel
+
+Des séances de **travail en groupe en présentiel** ont également été organisées afin de :
+
+- faire des points d’avancement
+- résoudre certains problèmes techniques plus rapidement
+- synchroniser les développements backend et frontend
+
+Ces moments ont permis d’améliorer la coordination et la cohérence globale du projet.
 
 [⬆️ Retour au sommaire](#sommaire)
+
 ______________________________________________________________________
 
 📌 _Ce README décrit l’état actuel du projet et pourra évoluer avec l’ajout de nouvelles fonctionnalités._
