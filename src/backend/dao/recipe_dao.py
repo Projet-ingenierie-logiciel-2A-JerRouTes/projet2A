@@ -538,10 +538,19 @@ class RecipeDAO:
         # ignore_pantry: bool = True,  # gardé pour compat, non utilisé sans table pantry
     ) -> list[Recipe]:
         """
-        Recherche de recettes par ingrédients (approximative).
+        Recherche de recettes par ingrédients.
+
+        Deux modes :
+        - strict_only=True (mode "frigo strict") :
+            la recette doit contenir (presque) tous les ingrédients demandés.
+            On autorise jusqu'à `max_missing` ingrédients manquants.
+        - strict_only=False (mode "frigo inclusif") :
+            la recette peut utiliser un sous-ensemble des ingrédients demandés.
+            Concrètement : tous les ingrédients de la recette doivent être inclus
+            dans la liste fournie. `max_missing` devient alors une tolérance sur
+            les ingrédients "en trop" dans la recette (0 = aucun ingrédient hors liste).
+
         - ingredients: liste de chaînes (noms d'ingrédients)
-        - max_missing: tolérance (0 = strict)
-        - strict_only: si True, force max_missing=0
         - dish_type: si fourni, filtre par tag (ex: "dessert")
         """
 
@@ -551,8 +560,6 @@ class RecipeDAO:
 
         limit = max(1, min(int(limit), 200))
         max_missing = max(0, int(max_missing))
-        if strict_only:
-            max_missing = 0
 
         # On match chaque terme avec ILIKE %term%
         like_terms = [f"%{s}%" for s in ings]
@@ -573,51 +580,98 @@ class RecipeDAO:
 
         conn = DBConnection().connection
         with conn.cursor() as cur:
-            # 1) Trouver les recipes + matched_count
-            # matched_count = nombre d'ingrédients distincts de la requête présents dans la recette
-            # On compte un terme comme "matched" si la recette a au moins un ingrédient
-            # dont le nom matche ce terme.
-            cur.execute(
-                f"""
-                WITH matched AS (
+            if strict_only:
+                # Mode strict (historique) : la recette doit matcher (presque) tous les termes.
+                cur.execute(
+                    f"""
+                    WITH matched AS (
+                        SELECT
+                            r.recipe_id,
+                            COUNT(DISTINCT q.term) AS matched_count
+                        FROM recipe r
+                        {tag_join}
+                        JOIN recipe_ingredient ri ON ri.fk_recipe_id = r.recipe_id
+                        JOIN ingredient i ON i.ingredient_id = ri.fk_ingredient_id
+                        JOIN (
+                            SELECT UNNEST(%s::text[]) AS term
+                        ) q ON i.name ILIKE q.term
+                        WHERE 1=1
+                        {tag_where}
+                        GROUP BY r.recipe_id
+                    )
                     SELECT
                         r.recipe_id,
-                        COUNT(DISTINCT q.term) AS matched_count
-                    FROM recipe r
-                    {tag_join}
-                    JOIN recipe_ingredient ri ON ri.fk_recipe_id = r.recipe_id
-                    JOIN ingredient i ON i.ingredient_id = ri.fk_ingredient_id
-                    JOIN (
-                        SELECT UNNEST(%s::text[]) AS term
-                    ) q ON i.name ILIKE q.term
-                    WHERE 1=1
-                    {tag_where}
-                    GROUP BY r.recipe_id
+                        r.fk_user_id,
+                        r.name,
+                        r.status,
+                        r.prep_time,
+                        r.portion,
+                        r.description,
+                        r.created_at,
+                        m.matched_count
+                    FROM matched m
+                    JOIN recipe r ON r.recipe_id = m.recipe_id
+                    WHERE (%s - m.matched_count) <= %s
+                    ORDER BY m.matched_count DESC, r.created_at DESC, r.recipe_id DESC
+                    LIMIT %s
+                    """,
+                    (
+                        like_terms,  # %s::text[]
+                        *params,  # éventuellement dish_type
+                        n_terms,  # %s (nb termes)
+                        max_missing,  # %s (tolérance = ingrédients manquants)
+                        limit,  # %s (limit)
+                    ),
                 )
-                SELECT
-                    r.recipe_id,
-                    r.fk_user_id,
-                    r.name,
-                    r.status,
-                    r.prep_time,
-                    r.portion,
-                    r.description,
-                    r.created_at,
-                    m.matched_count
-                FROM matched m
-                JOIN recipe r ON r.recipe_id = m.recipe_id
-                WHERE (%s - m.matched_count) <= %s
-                ORDER BY m.matched_count DESC, r.created_at DESC, r.recipe_id DESC
-                LIMIT %s
-                """,
-                (
-                    like_terms,  # %s::text[]
-                    *params,  # éventuellement dish_type
-                    n_terms,  # %s (nb termes)
-                    max_missing,  # %s (tolérance)
-                    limit,  # %s (limit)
-                ),
-            )
+            else:
+                # Mode inclusif : on renvoie les recettes dont les ingrédients sont inclus
+                # dans la liste fournie (sous-ensemble). `max_missing` = tolérance sur
+                # les ingrédients "en trop" (non présents dans la liste fournie).
+                #
+                # total_count     = nombre d'ingrédients distincts de la recette
+                # in_query_count  = nombre d'ingrédients distincts de la recette qui matchent la requête
+                # On garde si (total_count - in_query_count) <= max_missing
+                cur.execute(
+                    f"""
+                    WITH recipe_counts AS (
+                        SELECT
+                            r.recipe_id,
+                            COUNT(DISTINCT i.ingredient_id) AS total_count,
+                            COUNT(DISTINCT i.ingredient_id) FILTER (
+                                WHERE i.name ILIKE ANY(%s::text[])
+                            ) AS in_query_count
+                        FROM recipe r
+                        {tag_join}
+                        JOIN recipe_ingredient ri ON ri.fk_recipe_id = r.recipe_id
+                        JOIN ingredient i ON i.ingredient_id = ri.fk_ingredient_id
+                        WHERE 1=1
+                        {tag_where}
+                        GROUP BY r.recipe_id
+                    )
+                    SELECT
+                        r.recipe_id,
+                        r.fk_user_id,
+                        r.name,
+                        r.status,
+                        r.prep_time,
+                        r.portion,
+                        r.description,
+                        r.created_at,
+                        rc.in_query_count AS matched_count
+                    FROM recipe_counts rc
+                    JOIN recipe r ON r.recipe_id = rc.recipe_id
+                    WHERE (rc.total_count - rc.in_query_count) <= %s
+                    AND rc.total_count > 0
+                    ORDER BY rc.in_query_count DESC, r.created_at DESC, r.recipe_id DESC
+                    LIMIT %s
+                    """,
+                    (
+                        like_terms,  # %s::text[] pour ILIKE ANY(...)
+                        *params,  # éventuellement dish_type
+                        max_missing,  # %s (tolérance = ingrédients "en trop")
+                        limit,  # %s (limit)
+                    ),
+                )
 
             rows = cur.fetchall()
 

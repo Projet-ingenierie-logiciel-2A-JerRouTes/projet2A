@@ -690,6 +690,9 @@ def test_find_recipes_by_ingredients_clamps_limit_and_max_missing(dao, mock_db):
     - max_missing est >= 0
     - strict_only force max_missing à 0
     Et vérifie les paramètres passés à la requête SQL.
+
+    NB: depuis la nouvelle logique, strict_only=False utilise le mode "inclusif"
+    (WITH recipe_counts AS ...) et ne passe plus n_terms dans les params.
     """
     _conn, cur = mock_db
 
@@ -723,16 +726,16 @@ def test_find_recipes_by_ingredients_clamps_limit_and_max_missing(dao, mock_db):
 
     assert len(res) == 1
 
-    # Vérifie les paramètres transmis au cur.execute (requête principale)
-    # call_args_list[0] correspond à la requête CTE matched
-    _sql, params = (
+    sql, params = (
         cur.execute.call_args_list[0][0][0],
         cur.execute.call_args_list[0][0][1],
     )
 
-    # params = (like_terms, *tag_params, n_terms, max_missing, limit)
+    # Mode inclusif => WITH recipe_counts AS
+    assert "WITH recipe_counts AS" in sql
+
+    # params = (like_terms, *tag_params, max_missing, limit)
     assert params[0] == ["%lait%"]
-    assert params[-3] == 1  # n_terms
     assert params[-2] == 0  # max_missing clampé
     assert params[-1] == 200  # limit clampé
 
@@ -821,6 +824,9 @@ def test_find_recipes_by_ingredients_loads_relations_per_recipe(dao, mock_db):
     """
     Vérifie que, pour chaque recette retournée par la requête principale,
     la DAO recharge ingrédients + tags via get_recipe_ingredients/get_recipe_tags.
+
+    NB: depuis la nouvelle logique, strict_only=False utilise le mode inclusif
+    (WITH recipe_counts AS ...).
     """
     _conn, cur = mock_db
 
@@ -863,10 +869,12 @@ def test_find_recipes_by_ingredients_loads_relations_per_recipe(dao, mock_db):
     res = dao.find_recipes_by_ingredients(["oeuf"], limit=10, max_missing=0)
     assert len(res) == 2
 
-    # La 1ère execute = requête principale
-    # Ensuite, par recette : 1 execute pour ingredients + 1 execute pour tags
     executed_sql = [str(c[0][0]) for c in cur.execute.call_args_list]
-    assert any("WITH matched AS" in s for s in executed_sql)  # requête principale
+
+    # requête principale = recipe_counts (mode inclusif)
+    assert any("WITH recipe_counts AS" in s for s in executed_sql)
+
+    # Ensuite, par recette : 1 execute pour ingredients + 1 execute pour tags
     assert sum("FROM recipe_ingredient" in s for s in executed_sql) == 2
     assert sum("FROM recipe_tag rt" in s for s in executed_sql) == 2
 
