@@ -7,6 +7,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from api.config import settings
+from dao.ingredient_dao import IngredientDAO
 from dao.recipe_dao import RecipeDAO
 from services.find_recipe import FindRecipe, IngredientSearchQuery
 from services.find_recipe_api import ApiFindRecipe
@@ -232,6 +233,11 @@ def get_recipe_finder() -> FindRecipe:
     if not settings.api_key_spoonacular:
         api_finder = _NoApiFindRecipe()
     else:
-        api_finder = ApiFindRecipe(api_key=settings.api_key_spoonacular, dao=recipe_dao)
+        ingredient_dao = IngredientDAO()
+        api_finder = ApiFindRecipe(
+            api_key=settings.api_key_spoonacular,
+            dao=recipe_dao,
+            ingredient_dao=ingredient_dao,
+        )
 
     return FindRecipeFactory(db=db_finder, api=api_finder)
