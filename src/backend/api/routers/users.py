@@ -170,3 +170,24 @@ def update_user_as_admin(
             status=user.status,
         )
     )
+
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(
+    user_id: int,
+    cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+) -> None:
+    """Supprime un utilisateur (admin uniquement)."""
+
+    if not cu.is_admin():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès réservé aux administrateurs.",
+        )
+
+    user_service = UserService()
+
+    try:
+        user_service.delete_user(user_id)
+    except UserNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
