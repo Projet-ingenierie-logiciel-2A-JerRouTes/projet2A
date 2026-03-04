@@ -180,6 +180,27 @@ def consume_fefo(
         raise _map_service_errors(exc) from exc
 
 
+@router.post("/consume", response_model=dict)
+def consume_fefo_all_stocks(
+    payload: ConsumeIn,
+    cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+    service: StockService = Depends(get_stock_service),  # noqa: B008
+):
+    try:
+        res = service.consume_fefo_all_stocks(
+            user_id=cu.user_id,
+            ingredient_id=payload.ingredient_id,
+            quantity=payload.quantity,
+        )
+        return {
+            "ingredient_id": res.ingredient_id,
+            "consumed_quantity": res.consumed_quantity,
+            "by_stock": res.by_stock,  # optionnel mais super utile
+        }
+    except Exception as exc:  # noqa: BLE001
+        raise _map_service_errors(exc) from exc
+
+
 @router.delete("/{stock_id}", response_model=dict)
 def delete_stock(
     stock_id: int,

@@ -41,6 +41,13 @@ class ConsumeResult:
     consumed_quantity: float
 
 
+@dataclass(frozen=True, slots=True)
+class ConsumeAllStocksResult:
+    ingredient_id: int
+    consumed_quantity: float
+    by_stock: dict[int, float]  # stock_id -> qty consommée
+
+
 class StockService:
     """Service métier pour relier stock, lots (stock_item) et ingrédients.
 
@@ -313,6 +320,7 @@ class StockService:
     def list_user_ingredient_names(self, *, user_id: int):
         return self._stock_dao.list_user_ingredient_names(user_id)
 
+    @log
     def update_stock_name(self, *, stock_id: int, name: str):
         name = (name or "").strip()
         if not name:
@@ -326,3 +334,26 @@ class StockService:
             raise NotFoundError("Stock introuvable.")
 
         return updated
+
+    @log
+    def consume_fefo_all_stocks(
+        self,
+        *,
+        user_id: int,
+        ingredient_id: int,
+        quantity: float,
+    ) -> ConsumeAllStocksResult:
+        self._assert_positive(quantity, "quantity")
+        self._require_ingredient_exists(ingredient_id)
+
+        by_stock = self._stock_item_dao.consume_quantity_fefo_for_user(
+            user_id=user_id,
+            ingredient_id=ingredient_id,
+            quantity_to_consume=float(quantity),
+        )
+
+        return ConsumeAllStocksResult(
+            ingredient_id=ingredient_id,
+            consumed_quantity=float(quantity),
+            by_stock=by_stock,
+        )

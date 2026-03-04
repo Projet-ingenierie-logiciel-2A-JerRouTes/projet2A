@@ -473,3 +473,49 @@ def test_empty_stock_success(service, mocked_daos, mock_db_ownership):
 
     assert deleted_count == 3
     stock_item_dao.delete_stock_items_by_stock.assert_called_once_with(stock_id=1)
+
+
+# ---------------------------------------------------------------------
+# Tests: consume_fefo_all_stocks
+# ---------------------------------------------------------------------
+
+
+def test_consume_fefo_all_stocks_invalid_quantity(service, mocked_daos):
+    _stock_dao, stock_item_dao, ingredient_dao = mocked_daos
+
+    with pytest.raises(ValidationError):
+        service.consume_fefo_all_stocks(user_id=1, ingredient_id=7, quantity=0)
+
+    stock_item_dao.consume_quantity_fefo_for_user.assert_not_called()
+    ingredient_dao.get_ingredient_by_id.assert_not_called()
+
+
+def test_consume_fefo_all_stocks_ingredient_not_found(service, mocked_daos):
+    _stock_dao, stock_item_dao, ingredient_dao = mocked_daos
+
+    ingredient_dao.get_ingredient_by_id.return_value = None
+
+    with pytest.raises(NotFoundError):
+        service.consume_fefo_all_stocks(user_id=42, ingredient_id=999, quantity=1.0)
+
+    stock_item_dao.consume_quantity_fefo_for_user.assert_not_called()
+
+
+def test_consume_fefo_all_stocks_success(service, mocked_daos):
+    _stock_dao, stock_item_dao, ingredient_dao = mocked_daos
+
+    ingredient_dao.get_ingredient_by_id.return_value = object()  # exists
+    stock_item_dao.consume_quantity_fefo_for_user.return_value = {1: 1.5, 2: 0.5}
+
+    result = service.consume_fefo_all_stocks(user_id=42, ingredient_id=7, quantity=2.0)
+
+    # Selon la classe de retour (ConsumeAllStocksResult)
+    assert result.ingredient_id == 7
+    assert result.consumed_quantity == 2.0
+    assert result.by_stock == {1: 1.5, 2: 0.5}
+
+    stock_item_dao.consume_quantity_fefo_for_user.assert_called_once_with(
+        user_id=42,
+        ingredient_id=7,
+        quantity_to_consume=2.0,
+    )
