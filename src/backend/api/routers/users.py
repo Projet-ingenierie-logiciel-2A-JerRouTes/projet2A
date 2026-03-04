@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from api.config import settings
 from api.deps import CurrentUser, get_current_user_checked_exists
 from api.schemas.users import (
+    AdminUpdateUserRequest,
+    AdminUpdateUserResponse,
     ChangePasswordRequest,
     MeResponse,
     UpdateMeRequest,
@@ -130,19 +132,12 @@ def get_all_users() -> list[UserPublic]:
     ]
 
 
-@router.patch("/{user_id}", response_model=MeResponse)
+@router.patch("/{user_id}", response_model=AdminUpdateUserResponse)
 def update_user_as_admin(
     user_id: int,
-    req: UpdateMeRequest,
+    req: AdminUpdateUserRequest,
     cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
-) -> MeResponse:
-    """
-    Modifie le profil d'un utilisateur (admin uniquement).
-
-    - **user_id**: Identifiant de l'utilisateur à modifier
-    - **username**: Nouveau pseudo (optionnel)
-    - **email**: Nouvel email (optionnel)
-    """
+) -> AdminUpdateUserResponse:
     if not cu.is_admin():
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -152,23 +147,26 @@ def update_user_as_admin(
     user_service = UserService()
 
     try:
-        user = user_service.update_profile(
+        user, generated_password = user_service.admin_update_user(
             user_id,
             username=req.username,
             email=req.email,
+            status=req.status,
+            reset_password=req.reset_password,
         )
     except UserAlreadyExistsError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     except UserNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
-    return MeResponse(
+    return AdminUpdateUserResponse(
         user=UserPublic(
             user_id=user.user_id,
             username=user.username,
             email=user.email,
             status=user.status,
-        )
+        ),
+        generated_password=generated_password,
     )
 
 

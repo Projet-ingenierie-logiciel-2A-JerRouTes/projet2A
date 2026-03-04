@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import secrets
+import string
 
 from business_objects.user import User
 from dao.user_dao import UserDAO, UserRow
@@ -277,3 +279,50 @@ class UserService:
         if updated is None:
             raise UserNotFoundError(f"Utilisateur {user_id} introuvable.")
         return updated
+
+    @staticmethod
+    def _generate_password(*, length: int = 12) -> str:
+        alphabet = string.ascii_letters + string.digits
+        return "".join(secrets.choice(alphabet) for _ in range(length))
+
+    @log
+    def admin_update_user(
+        self,
+        user_id: int,
+        *,
+        username: str | None = None,
+        email: str | None = None,
+        status: str | None = None,
+        reset_password: bool = False,
+    ) -> tuple[User, str | None]:
+        row = self._user_dao.get_user_row_by_id(user_id)
+        if row is None:
+            raise UserNotFoundError(f"Utilisateur {user_id} introuvable.")
+
+        if email is not None:
+            existing = self._user_dao.get_user_row_by_email(email)
+            if existing is not None and existing.user_id != user_id:
+                raise UserAlreadyExistsError("Email déjà utilisé.")
+
+        if username is not None:
+            existing = self._user_dao.get_user_row_by_username(username)
+            if existing is not None and existing.user_id != user_id:
+                raise UserAlreadyExistsError("Nom d’utilisateur déjà utilisé.")
+
+        generated_password: str | None = None
+        password_hash: str | None = None
+        if reset_password:
+            generated_password = self._generate_password(length=12)
+            password_hash = hash_password(generated_password)
+
+        updated = self._user_dao.update_user(
+            user_id,
+            username=username,
+            email=email,
+            status=status,
+            password_hash=password_hash,
+        )
+        if updated is None:
+            raise UserNotFoundError(f"Utilisateur {user_id} introuvable.")
+
+        return updated, generated_password
