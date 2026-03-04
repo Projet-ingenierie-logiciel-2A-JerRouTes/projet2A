@@ -153,3 +153,29 @@ export async function getMyIngredientNames() {
     return [];
   }
 }
+
+/**
+ * Consomme une quantité d'ingrédient selon la logique FEFO
+ * @param {string} ingredient_id - L'ID de l'ingrédient à consommer
+ * @param {number} quantity - La quantité à déduire du stock
+ */
+export async function consumeIngredientFefo(ingredient_id, quantity) {
+  try {
+    const payload = {
+      ingredient_id: ingredient_id,
+      quantity: quantity
+    };
+
+    console.log("📤 Requête : POST /api/stocks/consume", payload);
+    
+    // On utilise .post car ton décorateur FastAPI est @router.post
+    const res = await API.post("/api/stocks/consume", payload);
+    
+    // La réponse contient { ingredient_id, consumed_quantity, by_stock }
+    return res.data;
+  } catch (erreur) {
+    console.error("❌ Erreur lors de la consommation (FEFO) :", erreur.message);
+    // Optionnel : renvoyer l'erreur pour la gérer dans le composant UI
+    throw erreur; 
+  }
+}

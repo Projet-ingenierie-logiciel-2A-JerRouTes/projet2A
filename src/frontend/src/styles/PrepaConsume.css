@@ -1,0 +1,150 @@
+/* Conteneur principal (la carte blanche) */
+.carte-centrale-detail {
+  background: white;
+  border-radius: 30px; /* Coins très arrondis comme sur l'image */
+  padding: 30px;
+  width: 90%;
+  max-width: 550px;
+  margin: auto;
+  color: #1e293b;
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh; /* Pour éviter que ça sorte de l'écran */
+}
+
+/* Titre */
+.titre-principal {
+  color: #000;
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 0;
+  text-align: center;
+}
+
+/* Zone de scroll interne */
+.scroll-contenu {
+  overflow-y: auto;
+  flex-grow: 1;
+  margin-top: 20px;
+  padding-right: 5px; /* Petit espace pour la barre de scroll */
+}
+
+/* Sections (Besoins et Stocks) */
+.section-besoins {
+  background-color: #f8fafc;
+  padding: 20px;
+  border-radius: 15px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 25px;
+}
+
+.section-stocks {
+  background-color: #f0fdf4;
+  padding: 20px;
+  border-radius: 15px;
+  border: 1px solid #dcfce7;
+  margin-bottom: 25px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+/* Listes d'ingrédients */
+.liste-ing {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.item-ing, .item-stock {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ing-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ing-qte {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+/* Sélecteur de portions */
+.selecteur-portions-container {
+  background-color: #f1f5f9;
+  padding: 20px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.input-portions {
+  width: 70px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 2px solid #3b82f6;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+/* Pied de page et Boutons */
+.prepa-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.bouton-action {
+  background-color: #3b82f6;
+  padding: 12px 60px;
+  border-radius: 30px;
+  color: white;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+/* État désactivé (Stock insuffisant ou Loading) */
+.bouton-action:disabled {
+  background-color: #94a3b8 !important;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.bouton-retour-gestion {
+  background: none;
+  border: none;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* Couleurs spécifiques */
+.text-green { color: #166534; font-weight: 600; }
+.subtext-gray { font-size: 0.85rem; color: #64748b; }

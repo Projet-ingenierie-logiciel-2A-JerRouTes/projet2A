@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { 
   Undo2, 
   Utensils, 
@@ -10,99 +10,125 @@ import {
   XCircle 
 } from "lucide-react";
 import { useIngredientsRecette } from "../hooks/useIngredientsRecette";
+// Import mis à jour selon ta consigne
+import { consumeIngredientFefo } from "../api/stockApi";
+import Confirmation from "./Confirmation"; 
 
-const PrepaConsume = ({ recette, on_back, stock_utilisateur, liste_ingredients_complet }) => {
-  // Debug pour vérifier la réception des données
-  console.log("📊 Données brutes reçues :", liste_ingredients_complet);
-  console.log(recette)
-
+const PrepaConsume = ({ recette, on_back, liste_ingredients_complet }) => {
   const [nb_personnes, set_nb_personnes] = useState(recette?.portions || 2);
+  const [en_cours_de_consommation, set_en_cours_de_consommation] = useState(false);
   
-  // Hook pour obtenir les noms et unités lisibles des ingrédients de la recette
+  // État pour gérer l'affichage de ta modale de confirmation
+  const [modale_ouverte, set_modale_ouverte] = useState(false);
+  
   const { ingredients_complets, chargement_ing } = useIngredientsRecette(recette);
 
-  // ----------------------------------------------------------------------------------------
-  // On va avoir un pb il n'y a pas unit dans la description des ingredients d'une recette
-  // -----------------------------------------------------------------------------
-
-  // --- LOGIQUE DE COMPARAISON ---
-  // On construit la liste à chaque rendu en fonction de nb_personnes
-  const ingredients_necessaires = recette?.ingredients?.map((ing) => {
-    // Calcul de la quantité ajustée : (Qté de base / Portions de base) * Portions voulues
-    const quantite_calculee = (ing.quantity / (recette.portions || 1)) * nb_personnes;
-
-    return {
-      ingredient_id: ing.ingredient_id,
-      quantity: Number(quantite_calculee.toFixed(2)) // On arrondit pour éviter les 0.000000004
-    };
-  }) || [];
-
-  console.log("📋 Ingrédients nécessaires calculés :", ingredients_necessaires);
-
-  // 2. Fonction de recherche dans l'objet AGGRÉGÉ (liste_ingredients_complet)
+  // --- LOGIQUE DE STOCK ---
   const obtenir_stock_reel = (id_recherche) => {
     const match = liste_ingredients_complet?.find(
       (item) => Number(item.ingredient_id) === Number(id_recherche)
     );
-    // On retourne l'objet complet pour avoir accès à total_quantity et unit
     return match || null;
   };
 
+  // Calcul automatique de la disponibilité et préparation du payload
+  const { tout_est_disponible, liste_a_consommer } = useMemo(() => {
+    if (!ingredients_complets) return { tout_est_disponible: false, liste_a_consommer: [] };
+
+    let ok = true;
+    const liste = ingredients_complets.map(ing => {
+      const qte_requise = (ing.quantity / (recette.portions || 1)) * nb_personnes;
+      const info_stock = obtenir_stock_reel(ing.ingredient_id);
+      
+      // Si l'ingrédient n'est pas en stock ou en quantité insuffisante
+      if (!info_stock || info_stock.total_quantity < qte_requise) ok = false;
+
+      return {
+        ingredient_id: ing.ingredient_id,
+        quantity: Number(qte_requise.toFixed(2))
+      };
+    });
+    return { tout_est_disponible: ok, liste_a_consommer: liste };
+  }, [ingredients_complets, nb_personnes, liste_ingredients_complet]);
+
+  // --- ACTION DE CONSOMMATION (Déclenchée par "on_confirmer" de la modale) ---
+  const gerer_consommation_totale = async () => {
+    set_modale_ouverte(false); // Ferme la modale
+    set_en_cours_de_consommation(true);
+    
+    try {
+      // Boucle sur les ingrédients pour appeler l'API de manière séquentielle
+      for (const item of liste_a_consommer) {
+        await consumeIngredientFefo(item.ingredient_id, item.quantity);
+      }
+      // Succès : on retourne à la fiche
+      on_back(); 
+    } catch (err) {
+      console.error("❌ Erreur lors de la consommation :", err);
+      alert("Une erreur est survenue lors de la mise à jour des stocks.");
+    } finally {
+      set_en_cours_de_consommation(false);
+    }
+  };
+
   return (
-    <div className="carte-centrale-detail shadow-2xl animate-fade">
-      {/* TITRE FIXE (Ne défile pas) */}
+    <div className="carte-centrale-detail shadow-2xl animate-fade" style={{ background: "white", borderRadius: "30px", padding: "30px" }}>
+      
+      {/* MODALE DE CONFIRMATION PERSONNALISÉE */}
+      <Confirmation 
+        ouvert={modale_ouverte}
+        on_annuler={() => set_modale_ouverte(false)}
+        on_confirmer={gerer_consommation_totale}
+        titre="Confirmer la préparation"
+        message={`Voulez-vous déduire du stock les ingrédients pour ${nb_personnes} personnes ?`}
+        texte_confirmer="Oui, consommer"
+        couleur_confirmer="bleu"
+      />
+
+      {/* TITRE */}
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
-        <h1 className="titre-principal" style={{ color: "#000", fontSize: "2.2rem", fontWeight: "800", marginBottom: "0" }}>
+        <h1 style={{ color: "#000", fontSize: "2.2rem", fontWeight: "800", marginBottom: "0" }}>
           Préparation : {recette.name}
         </h1>
       </div>
 
-      {/* --- ZONE DE SCROLL INTERNE (CSS: .scroll-contenu) --- */}
-      <div className="scroll-contenu">
-        <div className="details-container" style={{ padding: "0 10px", display: "flex", flexDirection: "column", gap: "25px" }}>
+      {/* ZONE DE SCROLL */}
+      <div className="scroll-contenu" style={{ overflowY: "auto", maxHeight: "60vh" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "25px", padding: "0 10px" }}>
           
           {/* SECTION 1 : BESOINS CALCULÉS */}
-          <div style={{ backgroundColor: "#f8fafc", padding: "20px", borderRadius: "15px", border: "1px solid #e2e8f0", width: "100%" }}>
+          <div style={{ backgroundColor: "#f8fafc", padding: "20px", borderRadius: "15px", border: "1px solid #e2e8f0" }}>
             <h3 style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px", color: "#334155" }}>
               <ClipboardList size={20} color="#3b82f6" /> Ingrédients nécessaires
             </h3>
-
             {chargement_ing ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "#64748b" }}>
-                <Loader2 className="animate-spin" size={18} /> Calcul des besoins...
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <Loader2 className="animate-spin" size={18} /> Calcul...
               </div>
             ) : (
               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                {ingredients_complets?.map((ing, i) => {
-                  const qte_requise = (ing.quantity / recette.portions) * nb_personnes;
-                  return (
-                    <li key={i} style={{ padding: "10px 0", borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between" }}>
-                      <strong style={{ color: "#1e293b" }}>{ing.name}</strong> 
-                      <span style={{ color: "#3b82f6", fontWeight: "600" }}>
-                        {qte_requise.toFixed(1)} {ing.unit}
-                      </span>
-                    </li>
-                  );
-                })}
+                {ingredients_complets?.map((ing, i) => (
+                  <li key={i} style={{ padding: "10px 0", borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between" }}>
+                    <strong style={{ color: "#1e293b" }}>{ing.name}</strong> 
+                    <span style={{ color: "#3b82f6", fontWeight: "600" }}>
+                      {((ing.quantity / recette.portions) * nb_personnes).toFixed(1)} {ing.unit}
+                    </span>
+                  </li>
+                ))}
               </ul>
             )}
           </div>
 
           {/* SECTION 2 : DISPONIBILITÉ RÉELLE */}
-          <div style={{ backgroundColor: "#f0fdf4", padding: "20px", borderRadius: "15px", border: "1px solid #dcfce7", width: "100%" }}>
+          <div style={{ backgroundColor: "#f0fdf4", padding: "20px", borderRadius: "15px", border: "1px solid #dcfce7" }}>
             <h3 style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px", color: "#166534" }}>
               <Database size={20} color="#22c55e" /> Vos stocks actuels
             </h3>
-
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {ingredients_complets?.map((ing, i) => {
-                // Calcul du besoin pour cet ingrédient précis
                 const qte_requise = (ing.quantity / (recette.portions || 1)) * nb_personnes;
-                
-                // RÉCUPÉRATION DE LA QUANTITÉ DEPUIS TA LISTE COMPLÈTE (Agrégée)
                 const info_stock = obtenir_stock_reel(ing.ingredient_id);
                 const qte_stock = info_stock ? info_stock.total_quantity : 0;
-                
                 const est_disponible = qte_stock >= qte_requise;
 
                 return (
@@ -110,16 +136,10 @@ const PrepaConsume = ({ recette, on_back, stock_utilisateur, liste_ingredients_c
                     <div style={{ display: "flex", flexDirection: "column", textAlign: "left" }}>
                       <span style={{ fontWeight: "600", color: "#166534" }}>{ing.name}</span>
                       <span style={{ fontSize: "0.85rem", color: "#64748b" }}>
-                        {info_stock 
-                          ? `En stock : ${qte_stock} ${info_stock.unit}` 
-                          : "Non trouvé en stock"}
+                        {info_stock ? `En stock : ${qte_stock} ${info_stock.unit}` : "Absent du stock"}
                       </span>
                     </div>
-                    {est_disponible ? (
-                      <CheckCircle size={22} color="#22c55e" />
-                    ) : (
-                      <XCircle size={22} color="#ef4444" />
-                    )}
+                    {est_disponible ? <CheckCircle size={22} color="#22c55e" /> : <XCircle size={22} color="#ef4444" />}
                   </li>
                 );
               })}
@@ -142,19 +162,23 @@ const PrepaConsume = ({ recette, on_back, stock_utilisateur, liste_ingredients_c
           </div>
         </div>
       </div>
-      {/* --- FIN DE LA ZONE DE SCROLL --- */}
 
-      {/* PIED DE PAGE FIXE (Boutons toujours visibles) */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", marginTop: "20px", paddingBottom: "10px" }}>
+      {/* PIED DE PAGE FIXE */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", marginTop: "20px" }}>
         <button 
           className="bouton-action" 
-          style={{ backgroundColor: "#3b82f6", padding: "12px 60px", borderRadius: "30px", color: "white", fontWeight: "700", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}
-          onClick={() => console.log("Action : Soustraction des stocks demandée")}
+          disabled={!tout_est_disponible || en_cours_de_consommation}
+          style={{ 
+            backgroundColor: (!tout_est_disponible || en_cours_de_consommation) ? "#94a3b8" : "#3b82f6", 
+            padding: "12px 60px", borderRadius: "30px", color: "white", fontWeight: "700", border: "none", cursor: (tout_est_disponible && !en_cours_de_consommation) ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: "10px" 
+          }}
+          onClick={() => set_modale_ouverte(true)}
         >
-          <Utensils size={20} /> Mise à jour stock pour {nb_personnes} pers.
+          {en_cours_de_consommation ? <Loader2 className="animate-spin" size={20} /> : <Utensils size={20} />}
+          {!tout_est_disponible ? "Stock insuffisant" : en_cours_de_consommation ? "Mise à jour..." : `Valider pour ${nb_personnes} pers.`}
         </button>
 
-        <button className="bouton-retour-gestion" onClick={on_back}>
+        <button onClick={on_back} style={{ background: "none", border: "none", color: "#64748b", textDecoration: "underline", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px" }}>
           <Undo2 size={18} /> Retour à la fiche
         </button>
       </div>
