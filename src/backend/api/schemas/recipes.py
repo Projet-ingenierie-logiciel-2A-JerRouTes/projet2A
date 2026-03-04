@@ -23,6 +23,8 @@ class RecipeOut(BaseModel):
     name: str = ""
     description: str = ""
 
+    steps: list[str] = Field(default_factory=list)
+
     ingredients: list[RecipeIngredientOut] = Field(default_factory=list)
     tags: list[RecipeTagOut] = Field(default_factory=list)
 

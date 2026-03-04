@@ -37,6 +37,7 @@ class Recipe:
         self.ingredients = []  # Liste de tuples (id_ingredient, quantite)
         self.tags = []
         self.translations = {}
+        self.steps: list[str] = []  # Liste de textes représentant les étapes
 
     @property
     def recipe_id(self) -> int:

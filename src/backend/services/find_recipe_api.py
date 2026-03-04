@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import inspect
 import logging
 from typing import Protocol
 
 from business_objects.recipe import Recipe
+from business_objects.unit import Unit
 from business_objects.user import GenericUser
 from clients.spoonacular_client import (
     SpoonacularRateLimitError,
     fetch_detailed_recipes_by_ingredients,
 )
+from dao.ingredient_dao import IngredientDAO
 from services.find_recipe import FindRecipe, IngredientSearchQuery
 
 
@@ -39,9 +42,16 @@ class RecipeWriteDao(Protocol):
 
 
 class ApiFindRecipe(FindRecipe):
-    def __init__(self, api_key: str, *, dao: RecipeWriteDao | None = None):
+    def __init__(
+        self,
+        api_key: str,
+        *,
+        dao: RecipeWriteDao | None = None,
+        ingredient_dao: IngredientDAO | None = None,
+    ):
         self._api_key = api_key
         self._dao = dao
+        self._ingredient_dao = ingredient_dao
 
     def get_by_id(self, _recipe_id: int) -> Recipe | None:
         """Lookup par id."""
@@ -93,6 +103,10 @@ class ApiFindRecipe(FindRecipe):
         )
         recipe.add_translation("en", r.title, "")
 
+        recipe.steps = [
+            st.step for st in sorted((r.steps or []), key=lambda s: s.number)
+        ]
+
         if r.steps:
             text = "\n".join(f"{st.number}. {st.step}" for st in r.steps)
             recipe.add_translation("en_steps", r.title, text)
@@ -128,14 +142,62 @@ class ApiFindRecipe(FindRecipe):
             "\n\n".join(p for p in description_parts if p and str(p).strip()) or None
         )
 
-        created = self._dao.create_recipe(
-            fk_user_id=None,
-            name=title or "(Sans titre)",
-            status="public",
-            prep_time=int(getattr(r, "ready_in_minutes", 0) or 0),
-            portion=int(getattr(r, "servings", 1) or 1),
-            description=description,
-        )
+        ingredient_items = []
+        if self._ingredient_dao is not None:
+            for ing in getattr(r, "ingredients", None) or []:
+                ing_name = (getattr(ing, "name", None) or "").strip()
+                ing_unit = getattr(ing, "unit", None) or None
+                ing_amount = float(getattr(ing, "amount", 0.0) or 0.0)
 
+                if not ing_name:
+                    continue
+
+                ing_id = self._get_or_create_ingredient_id(ing_name, ing_unit)
+                ingredient_items.append((ing_id, ing_amount))
+
+        # modif: compat avec FakeRecipeDAO (_ingredient_items) et vrai DAO (ingredient_items)
+        create_kwargs = {
+            "fk_user_id": None,
+            "name": title or "(Sans titre)",
+            "status": "public",
+            "prep_time": int(getattr(r, "ready_in_minutes", 0) or 0),
+            "portion": int(getattr(r, "servings", 1) or 1),
+            "description": description,
+        }
+        params = inspect.signature(self._dao.create_recipe).parameters
+        if "ingredient_items" in params:
+            create_kwargs["ingredient_items"] = ingredient_items or None
+        elif "_ingredient_items" in params:
+            create_kwargs["_ingredient_items"] = ingredient_items or None
+
+        created = self._dao.create_recipe(**create_kwargs)
+
+        created.steps = [
+            st.step
+            for st in sorted((getattr(r, "steps", None) or []), key=lambda s: s.number)
+        ]
         created.add_translation("en", title, description or "")
         return created
+
+    def _get_or_create_ingredient_id(self, name: str, unit_raw: str | None) -> int:
+        assert self._ingredient_dao is not None
+
+        clean_name = (name or "").strip()
+        if not clean_name:
+            raise ValueError("Ingredient name is empty")
+
+        existing = self._ingredient_dao.get_ingredient_by_name(clean_name)
+        if existing:
+            return int(existing.id_ingredient)
+
+        unit_value = None
+        if unit_raw:
+            try:
+                unit_value = Unit.from_any(unit_raw)
+            except Exception:
+                unit_value = None
+
+        created = self._ingredient_dao.create_ingredient(
+            name=clean_name, unit=unit_value
+        )
+        return int(created.id_ingredient)
