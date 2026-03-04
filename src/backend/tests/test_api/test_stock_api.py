@@ -392,3 +392,98 @@ def mocker_consume_all_result(
             self.by_stock = by_stock
 
     return _Res()
+
+
+# ---------------------------------------------------------------------
+# admin_get_stocks_by_name (/by-name-admin/{name})
+# ---------------------------------------------------------------------
+
+
+def test_admin_get_stocks_by_name_ok(client, stock_service_mock):
+    # ⚠️ Pour cet endpoint, cu doit avoir is_admin()
+    class _AdminUser(FakeUser):
+        def is_admin(self) -> bool:
+            return True
+
+    def _override():
+        return _AdminUser(user_id=1, status="admin")
+
+    app.dependency_overrides[get_current_user_checked_exists] = _override
+    app.dependency_overrides[get_stock_service] = lambda: stock_service_mock
+
+    stock_service_mock.admin_list_stocks_by_name.return_value = [
+        FakeStock(id_stock=3, nom="Frigo"),
+        FakeStock(id_stock=8, nom="Frigo"),
+    ]
+
+    resp = client.get("api/stocks/by-name-admin/Frigo")
+    assert resp.status_code == 200
+    assert resp.json() == [
+        {"stock_id": 3, "name": "Frigo"},
+        {"stock_id": 8, "name": "Frigo"},
+    ]
+
+    stock_service_mock.admin_list_stocks_by_name.assert_called_once_with(
+        name="Frigo",
+        with_items=False,
+    )
+
+
+def test_admin_get_stocks_by_name_empty_returns_empty_list(client, stock_service_mock):
+    class _AdminUser(FakeUser):
+        def is_admin(self) -> bool:
+            return True
+
+    def _override():
+        return _AdminUser(user_id=1, status="admin")
+
+    app.dependency_overrides[get_current_user_checked_exists] = _override
+    app.dependency_overrides[get_stock_service] = lambda: stock_service_mock
+
+    stock_service_mock.admin_list_stocks_by_name.return_value = []
+
+    resp = client.get("api/stocks/by-name-admin/Inconnu")
+    assert resp.status_code == 200
+    assert resp.json() == []
+
+    stock_service_mock.admin_list_stocks_by_name.assert_called_once_with(
+        name="Inconnu",
+        with_items=False,
+    )
+
+
+def test_admin_get_stocks_by_name_forbidden_if_not_admin(client, stock_service_mock):
+    # ⚠️ user non-admin doit aussi avoir is_admin()
+    class _User(FakeUser):
+        def is_admin(self) -> bool:
+            return False
+
+    def _override():
+        return _User(user_id=42, status="user")
+
+    app.dependency_overrides[get_current_user_checked_exists] = _override
+    app.dependency_overrides[get_stock_service] = lambda: stock_service_mock
+
+    resp = client.get("api/stocks/by-name-admin/Frigo")
+    assert resp.status_code == 403
+    assert resp.json()["detail"] == "Accès réservé aux administrateurs."
+
+    stock_service_mock.admin_list_stocks_by_name.assert_not_called()
+
+
+def test_admin_get_stocks_by_name_validation_error(client, stock_service_mock):
+    class _AdminUser(FakeUser):
+        def is_admin(self) -> bool:
+            return True
+
+    def _override():
+        return _AdminUser(user_id=1, status="admin")
+
+    app.dependency_overrides[get_current_user_checked_exists] = _override
+    app.dependency_overrides[get_stock_service] = lambda: stock_service_mock
+
+    stock_service_mock.admin_list_stocks_by_name.side_effect = ValidationError("bad")
+
+    resp = client.get("api/stocks/by-name-admin/%20%20")  # "  "
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "bad"

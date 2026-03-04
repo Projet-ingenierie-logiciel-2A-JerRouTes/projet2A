@@ -357,3 +357,17 @@ class StockService:
             consumed_quantity=float(quantity),
             by_stock=by_stock,
         )
+
+    @log
+    def admin_list_stocks_by_name(self, *, name: str, with_items: bool = False):
+        """Admin: récupère tous les stocks ayant ce nom, même s'ils ne sont pas au user.
+
+        Note: plusieurs stocks peuvent partager le même nom.
+        """
+        name = (name or "").strip()
+        if not name:
+            raise ValidationError("Le nom du stock ne peut pas être vide.")
+
+        return self._stock_dao.list_stocks_by_exact_name(
+            name=name, with_items=with_items
+        )

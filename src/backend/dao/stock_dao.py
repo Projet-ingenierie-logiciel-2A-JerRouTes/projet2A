@@ -443,3 +443,36 @@ class StockDAO:
                 (user_id,),
             )
             return cur.fetchall()
+
+    @log
+    def list_stocks_by_exact_name(
+        self,
+        *,
+        name: str,
+        with_items: bool = False,
+    ) -> list[Stock]:
+        """Liste tous les stocks ayant exactement ce nom (insensible à la casse).
+
+        Utile pour les endpoints admin : on ne filtre pas par propriétaire.
+        """
+        conn = DBConnection().connection
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT s.stock_id, s.name
+                FROM stock s
+                WHERE LOWER(s.name) = LOWER(%s)
+                ORDER BY s.stock_id ASC
+                """,
+                (name,),
+            )
+            rows = [StockRow(**r) for r in cur.fetchall()]
+
+            if not with_items:
+                return [self._row_to_bo(r) for r in rows]
+
+            out: list[Stock] = []
+            for r in rows:
+                items = self._fetch_stock_items(cur, r.stock_id)
+                out.append(self._row_to_bo(r, item_rows=items))
+            return out

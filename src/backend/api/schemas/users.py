@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -42,3 +44,19 @@ class UpdateUserRequest(BaseModel):
     # Mot de passe
     old_password: str | None = Field(default=None, min_length=1, max_length=200)
     new_password: str | None = Field(default=None, min_length=6, max_length=200)
+
+
+class AdminUpdateUserRequest(BaseModel):
+    """Mise à jour d'un utilisateur (admin uniquement)."""
+
+    username: str | None = Field(default=None, min_length=3, max_length=50)
+    email: EmailStr | None = None
+    status: Literal["admin", "user"] | None = None
+    reset_password: bool = False
+
+
+class AdminUpdateUserResponse(BaseModel):
+    """Si reset_password=true, le nouveau mot de passe est renvoyé."""
+
+    user: UserPublic
+    generated_password: str | None = None
