@@ -239,3 +239,61 @@ def test_delete_stock_success(dao, mock_db):
 
     sqls = executed_sql_list(cur)
     assert any("DELETE FROM stock" in s for s in sqls)
+
+
+# ---------------------------------------------------------------------
+# list_stocks_by_exact_name (admin)
+# ---------------------------------------------------------------------
+
+
+def test_list_stocks_by_exact_name_without_items(dao, mock_db):
+    _conn, cur = mock_db
+
+    cur.fetchall.return_value = [
+        stock_row(stock_id=3, name="Frigo"),
+        stock_row(stock_id=8, name="Frigo"),
+    ]
+
+    stocks = dao.list_stocks_by_exact_name(name="fRiGo", with_items=False)
+
+    assert len(stocks) == 2
+    assert stocks[0].id_stock == 3
+    assert stocks[0].nom == "Frigo"
+    assert stocks[1].id_stock == 8
+    assert stocks[1].nom == "Frigo"
+
+    sqls = executed_sql_list(cur)
+    assert any("FROM stock s" in s for s in sqls)
+    assert any("LOWER(s.name) = LOWER(%s)" in s for s in sqls)
+    # sans items => pas de requête sur stock_item
+    assert not any("FROM stock_item" in s for s in sqls)
+
+
+def test_list_stocks_by_exact_name_with_items(dao, mock_db):
+    _conn, cur = mock_db
+
+    # 1) SELECT stocks -> fetchall
+    # 2) items stock 3 -> fetchall
+    # 3) items stock 8 -> fetchall
+    cur.fetchall.side_effect = [
+        [
+            stock_row(stock_id=3, name="Frigo"),
+            stock_row(stock_id=8, name="Frigo"),
+        ],
+        [
+            stock_item_lite_row(stock_item_id=1, fk_ingredient_id=7, quantity=2.0),
+        ],
+        [
+            stock_item_lite_row(stock_item_id=2, fk_ingredient_id=8, quantity=1.0),
+        ],
+    ]
+
+    stocks = dao.list_stocks_by_exact_name(name="Frigo", with_items=True)
+
+    assert len(stocks) == 2
+    assert stocks[0].id_stock == 3
+    assert stocks[1].id_stock == 8
+
+    sqls = executed_sql_list(cur)
+    # avec items => on doit interroger stock_item
+    assert any("FROM stock_item" in s for s in sqls)

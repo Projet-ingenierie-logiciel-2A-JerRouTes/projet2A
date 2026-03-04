@@ -519,3 +519,32 @@ def test_consume_fefo_all_stocks_success(service, mocked_daos):
         ingredient_id=7,
         quantity_to_consume=2.0,
     )
+
+
+# ---------------------------------------------------------------------
+# Tests: admin_list_stocks_by_name
+# ---------------------------------------------------------------------
+
+
+def test_admin_list_stocks_by_name_rejects_empty(service, mocked_daos):
+    stock_dao, _, _ = mocked_daos
+
+    with pytest.raises(ValidationError):
+        service.admin_list_stocks_by_name(name="   ", with_items=False)
+
+    stock_dao.list_stocks_by_exact_name.assert_not_called()
+
+
+def test_admin_list_stocks_by_name_delegates(service, mocked_daos):
+    stock_dao, _, _ = mocked_daos
+
+    expected = [FakeStock(id_stock=3, nom="Frigo"), FakeStock(id_stock=8, nom="Frigo")]
+    stock_dao.list_stocks_by_exact_name.return_value = expected
+
+    got = service.admin_list_stocks_by_name(name="  Frigo  ", with_items=True)
+
+    assert got == expected
+    stock_dao.list_stocks_by_exact_name.assert_called_once_with(
+        name="Frigo",
+        with_items=True,
+    )

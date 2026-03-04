@@ -318,3 +318,28 @@ def update_stock_name(
         return {"updated": True}
     except Exception as exc:  # noqa: BLE001
         raise _map_service_errors(exc) from exc
+
+
+@router.get("/by-name-admin/{name}", response_model=list[StockOut])
+def admin_get_stocks_by_name(
+    name: str,
+    cu: CurrentUser = Depends(get_current_user_checked_exists),  # noqa: B008
+    service: StockService = Depends(get_stock_service),  # noqa: B008
+):
+    """Admin: récupère tous les stocks ayant un nom donné (même si ce n'est pas le sien).
+
+    Gestion des conflits : plusieurs stocks peuvent partager le même nom,
+    l'endpoint renvoie donc une liste (potentiellement vide).
+    """
+
+    if not cu.is_admin():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès réservé aux administrateurs.",
+        )
+
+    try:
+        stocks = service.admin_list_stocks_by_name(name=name, with_items=False)
+        return [StockOut(stock_id=s.id_stock, name=s.nom) for s in stocks]
+    except Exception as exc:  # noqa: BLE001
+        raise _map_service_errors(exc) from exc
