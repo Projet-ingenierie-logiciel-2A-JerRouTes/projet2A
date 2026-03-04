@@ -188,3 +188,4 @@ docker-compose.override.yml
 # Local DB files (si SQLite en local)
 *.sqlite3
 *.sqlite3-journal
+.nvm/

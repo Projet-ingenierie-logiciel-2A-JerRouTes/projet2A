@@ -13,6 +13,7 @@
     * [🐳 Docker (Conteneurs)](#avec-les-conteneurs)
     * [🛠️ Installation Manuelle](#manuellement)
 * [🔐 Configuration (.env)](#-configuration-env)
+* [🌐 Déploiement en Production (Mode Web)](#-deploiement-web)
 * [🧪 Qualité et outils](#-qualité-et-outils)
 * [📅 Compte-rendus de réunions](#-compte-rendus-de-réunions)
 ______________________________________________________________________
@@ -290,6 +291,125 @@ Voir le fichier :
 ```bash
 src/frontend/.env.local.template
 ```
+
+[⬆️ Retour au sommaire](#sommaire)
+
+
+______________________________________________________________________
+
+
+## 🌐 Déploiement en Production (Mode Web)
+
+### version et limites
+
+La version de référence du projet est actuellement celle déployée en environnement local.
+De pluss, l’application n’a pas été conçue en responsive design et son affichage n’est pas optimisé pour les appareils mobiles.
+Le projet web complet (répertoire projet2A_web à la racine du dépôt GitHub) est mis à disposition. Toutefois, son déploiement nécessite une configuration spécifique de l’environnement sur la machine cible, incluant notamment la configuration du serveur Nginx (reverse proxy, gestion des ports et du SSL).
+
+### 📍 URL de production
+
+L’application est accessible en production à l’adresse suivante :
+
+👉 [https://www.mongardemanger.fr](https://www.mongardemanger.fr)
+👉 Documentation API : [https://www.mongardemanger.fr/api/docs](https://www.mongardemanger.fr/api/docs)
+
+---
+
+### 🏗 Infrastructure d’hébergement
+
+L’application est déployée sur un **VPS Linux** fourni par
+OVHcloud.
+
+#### Architecture de production
+
+```text
+Client (Navigateur)
+        ↓
+DNS (A Record → IP publique VPS)
+        ↓
+VPS OVH (Linux)
+        ↓
+Nginx (Reverse Proxy)
+        ↓
+Application Docker
+        ↓
+Base de données
+```
+
+---
+
+### 🐳 Conteneurisation
+
+L’application est exécutée via **Docker** en environnement de production :
+
+* Build de l’image applicative
+* Lancement via `docker compose`
+* Redémarrage automatique des services
+* Isolation des dépendances
+
+Commande de déploiement :
+
+```bash
+docker compose up -d --build
+```
+
+---
+
+### 🌍 Serveur Web & Reverse Proxy
+
+Le serveur web utilisé est
+Nginx.
+
+Rôle de Nginx :
+
+* Reverse proxy vers le container applicatif
+* Gestion des requêtes HTTP/HTTPS
+* Redirection automatique HTTP → HTTPS
+* Gestion du certificat SSL
+* Transmission des headers (Host, X-Forwarded-For…)
+
+---
+
+### 🔐 Sécurité
+
+En production, les mesures suivantes sont appliquées :
+
+* HTTPS activé (certificat Let’s Encrypt)
+* Firewall configuré
+* Accès SSH par clé
+* Base de données non exposée publiquement
+* Variables sensibles stockées dans un fichier `.env`
+* Isolation des services via Docker
+
+---
+
+### 📘 Documentation API
+
+La documentation interactive de l’API est accessible via :
+
+👉 [https://www.mongardemanger.fr/api/docs](https://www.mongardemanger.fr/api/docs)
+
+Elle permet :
+
+* De consulter les endpoints disponibles
+* De tester les requêtes directement
+* De visualiser les schémas de données
+* De vérifier les codes de réponse
+
+---
+
+### 🚀 Mise en Production
+
+Étapes réalisées :
+
+1. Provisionnement du VPS
+2. Installation de Docker
+3. Configuration Nginx
+4. Configuration DNS
+5. Installation du certificat SSL
+6. Déploiement des containers
+7. Tests de validation en environnement réel
+
 
 [⬆️ Retour au sommaire](#sommaire)
 
