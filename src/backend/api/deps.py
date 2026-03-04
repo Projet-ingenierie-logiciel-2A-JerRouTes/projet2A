@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import os
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -39,6 +40,16 @@ class CurrentUser:
     def is_admin(self) -> bool:
         """Retourne True si l'utilisateur courant est administrateur."""
         return self.status == "admin"
+
+
+class _NoApiFindRecipe(FindRecipe):
+    """Fallback API désactivé (aucun appel externe)."""
+
+    def get_by_id(self, _recipe_id: int):
+        return None
+
+    def search_by_ingredients(self, _query: IngredientSearchQuery):
+        return []
 
 
 def get_user_service() -> UserService:
@@ -197,25 +208,29 @@ class _DbFindRecipe(FindRecipe):
         )
 
 
-class _NoApiFindRecipe(FindRecipe):
-    """Fallback API désactivé (pas de clé)."""
-
-    def get_by_id(self, _recipe_id: int):
-        return None
-
-    def search_by_ingredients(self, _query: IngredientSearchQuery):
-        return []
+def _running_under_pytest() -> bool:
+    # PYTEST_CURRENT_TEST est automatiquement défini pendant l'exécution des tests
+    return bool(os.getenv("PYTEST_CURRENT_TEST"))
 
 
 def get_recipe_finder() -> FindRecipe:
-    """Fournit le finder de recettes (orchestration DB + API)."""
+    """Fournit le finder de recettes (orchestration DB + API).
 
+    - En prod/dev normal : DB + Spoonacular (si clé)
+    - Sous pytest : DB only (pour ne jamais consommer le quota)
+    """
     recipe_dao = RecipeDAO()
     db_finder: FindRecipe = _DbFindRecipe(recipe_dao)
 
-    # Si pas de clé Spoonacular, on désactive simplement le fallback API.
-    if not settings.api_key_spoonacular:
+    # ✅ Pendant les tests: on coupe l’API externe quoi qu’il arrive
+    # (pour ne jamais consommer les 50 requêtes/jour)
+    if _running_under_pytest() and not os.getenv("FORCE_SPOONACULAR_IN_TESTS"):
         api_finder: FindRecipe = _NoApiFindRecipe()
+        return FindRecipeFactory(db=db_finder, api=api_finder)
+
+    # Hors tests: comportement normal
+    if not settings.api_key_spoonacular:
+        api_finder = _NoApiFindRecipe()
     else:
         api_finder = ApiFindRecipe(api_key=settings.api_key_spoonacular, dao=recipe_dao)
 

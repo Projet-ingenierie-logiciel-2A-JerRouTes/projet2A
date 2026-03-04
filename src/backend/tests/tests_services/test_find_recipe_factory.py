@@ -21,7 +21,9 @@ def api():
 
 
 @pytest.fixture
-def finder(db, api) -> FindRecipeFactory:
+def finder(db, api, monkeypatch) -> FindRecipeFactory:
+    # IMPORTANT : on active l’API AVANT de créer FindRecipeFactory
+    monkeypatch.setenv("DISABLE_EXTERNAL_APIS", "0")
     return FindRecipeFactory(db=db, api=api)
 
 
@@ -64,7 +66,12 @@ def test_search_by_ingredients_returns_db_if_enough(finder, db, api):
     api.search_by_ingredients.assert_not_called()
 
 
-def test_search_by_ingredients_completes_with_api_when_not_enough(finder, db, api):
+def test_search_by_ingredients_completes_with_api_when_not_enough(
+    finder, db, api, monkeypatch
+):
+    # ✅ Force l’API activée pour ce test unitaire (sinon la factory fait DB-only)
+    monkeypatch.setenv("DISABLE_EXTERNAL_APIS", "0")
+
     q = IngredientSearchQuery(ingredients=["egg"], limit=3)
     db.search_by_ingredients.return_value = [
         Recipe(recipe_id=1, creator=_user(1), status="draft", prep_time=0, portions=1),
@@ -83,7 +90,10 @@ def test_search_by_ingredients_completes_with_api_when_not_enough(finder, db, ap
     api.search_by_ingredients.assert_called_once()
 
 
-def test_search_by_ingredients_deduplicates_ids(finder, db, api):
+def test_search_by_ingredients_deduplicates_ids(finder, db, api, monkeypatch):
+    # ✅ Force l’API activée pour ce test unitaire (sinon la factory fait DB-only)
+    monkeypatch.setenv("DISABLE_EXTERNAL_APIS", "0")
+
     q = IngredientSearchQuery(ingredients=["egg"], limit=3)
     db.search_by_ingredients.return_value = [
         Recipe(recipe_id=1, creator=_user(1), status="draft", prep_time=0, portions=1),
@@ -100,3 +110,4 @@ def test_search_by_ingredients_deduplicates_ids(finder, db, api):
 
     res = finder.search_by_ingredients(q)
     assert [r.recipe_id for r in res] == [1, 2, 3]
+    api.search_by_ingredients.assert_called_once()

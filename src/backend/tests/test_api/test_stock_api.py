@@ -342,3 +342,53 @@ def test_empty_stock_forbidden(client, auth_user_override, stock_service_mock):
     resp = client.delete("api/stocks/1/lots")
     assert resp.status_code == 403
     assert resp.json()["detail"] == "nope"
+
+
+def test_consume_all_stocks_ok(client, auth_user_override, stock_service_mock):
+    app.dependency_overrides[get_current_user_checked_exists] = auth_user_override
+    app.dependency_overrides[get_stock_service] = lambda: stock_service_mock
+
+    stock_service_mock.consume_fefo_all_stocks.return_value = mocker_consume_all_result(
+        ingredient_id=7,
+        consumed_quantity=2.0,
+        by_stock={1: 1.5, 2: 0.5},
+    )
+
+    resp = client.post("api/stocks/consume", json={"ingredient_id": 7, "quantity": 2.0})
+    assert resp.status_code == 200
+    assert resp.json() == {
+        "ingredient_id": 7,
+        "consumed_quantity": 2.0,
+        "by_stock": {"1": 1.5, "2": 0.5},  # JSON => clés en str
+    }
+
+    stock_service_mock.consume_fefo_all_stocks.assert_called_once_with(
+        user_id=42,
+        ingredient_id=7,
+        quantity=2.0,
+    )
+
+
+def test_consume_all_stocks_validation_error(
+    client, auth_user_override, stock_service_mock
+):
+    app.dependency_overrides[get_current_user_checked_exists] = auth_user_override
+    app.dependency_overrides[get_stock_service] = lambda: stock_service_mock
+
+    stock_service_mock.consume_fefo_all_stocks.side_effect = ValidationError("bad qty")
+
+    resp = client.post("api/stocks/consume", json={"ingredient_id": 7, "quantity": 0})
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "bad qty"
+
+
+def mocker_consume_all_result(
+    ingredient_id: int, consumed_quantity: float, by_stock: dict[int, float]
+):
+    class _Res:
+        def __init__(self):
+            self.ingredient_id = ingredient_id
+            self.consumed_quantity = consumed_quantity
+            self.by_stock = by_stock
+
+    return _Res()

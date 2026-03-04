@@ -1,6 +1,4 @@
-"""Factory / façade unifiée de recherche de recettes.
-...
-"""
+"""Factory / façade unifiée de recherche de recettes."""
 
 from __future__ import annotations
 
@@ -14,54 +12,10 @@ from services.find_recipe import FindRecipe, IngredientSearchQuery
 
 logger = logging.getLogger(__name__)
 
-"""Factory / façade unifiée de recherche de recettes.
-
-Cette classe implémente l’interface `FindRecipe` et orchestre deux sources
-de données :
-
-- une source locale (BDD), considérée comme cache et source de vérité interne ;
-- une source externe (API), utilisée en complément si nécessaire.
-
-Architecture
-------------
-Le reste de l’application dépend uniquement de l’abstraction `FindRecipe`.
-Cette factory encapsule la logique de fallback afin d’éviter que les couches
-supérieures ne connaissent les détails d’implémentation (DB vs API).
-
-Stratégie de résolution
-------------------------
-1. `get_by_id(recipe_id)`
-   - L’identifiant `recipe_id` est un identifiant **interne BDD**.
-   - Aucun fallback API n’est effectué (IDs API ≠ IDs internes).
-   - La méthode délègue uniquement à la couche DB.
-
-2. `search_by_ingredients(query)`
-   - On interroge d’abord la BDD.
-   - Si le nombre de résultats est insuffisant par rapport à `query.limit`,
-     on complète via l’API.
-   - Les résultats sont fusionnés et dédupliqués.
-   - Selon la configuration de `api`, les recettes externes peuvent être
-     persistées en BDD (logique de cache applicatif).
-
-Contexte :
---------------------------
-Dans ce projet, les identifiants internes BDD sont distincts des identifiants
-externes fournis par l’API. Il serait donc incohérent de tenter un fallback
-API à partir d’un `recipe_id` interne.
-"""
-
 
 @dataclass(slots=True)
 class FindRecipeFactory(FindRecipe):
-    """Implémentation composite de `FindRecipe` (DB + API).
-
-    Attributs
-    ---------
-    db : FindRecipe
-        Implémentation basée sur la base de données (cache interne).
-    api : FindRecipe
-        Implémentation basée sur l’API externe (source complémentaire).
-    """
+    """Implémentation composite de `FindRecipe` (DB + API)."""
 
     db: FindRecipe
     api: FindRecipe
@@ -69,20 +23,17 @@ class FindRecipeFactory(FindRecipe):
     def get_by_id(self, recipe_id: int) -> Recipe | None:
         """Retourne une recette par identifiant interne BDD.
 
-        Aucun fallback API n’est effectué car `recipe_id`
-        correspond exclusivement à une clé primaire interne.
+        Aucun fallback API n’est effectué car `recipe_id` est une clé interne.
         """
         return self.db.get_by_id(recipe_id)
 
     def search_by_ingredients(self, query: IngredientSearchQuery) -> list[Recipe]:
         """Recherche des recettes par ingrédients avec fallback API.
 
-        La BDD est interrogée en priorité. Si le nombre de résultats
-        est inférieur à la limite demandée, l’API est utilisée pour
-        compléter les résultats.
-
-        Les résultats DB et API sont fusionnés puis dédupliqués
-        sur la base de l’identifiant de recette.
+        - DB d'abord
+        - si pas assez, complète via API
+        - merge + déduplication
+        - si quota Spoonacular dépassé => on garde juste la DB
         """
         from_db = self.db.search_by_ingredients(query)
         logger.info(
@@ -106,6 +57,7 @@ class FindRecipeFactory(FindRecipe):
             dish_type=query.dish_type,
             ignore_pantry=query.ignore_pantry,
         )
+
         logger.info("FindRecipeFactory: calling API for remaining=%s", remaining)
         try:
             from_api = self.api.search_by_ingredients(api_query)

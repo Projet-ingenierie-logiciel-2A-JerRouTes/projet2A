@@ -331,3 +331,82 @@ def test_delete_stock_items_by_stock_rollback_on_error(dao, mock_db):
 
     conn.rollback.assert_called_once()
     conn.commit.assert_not_called()
+
+
+# ---------------------------------------------------------------------
+# consume_quantity_fefo_for_user
+# ---------------------------------------------------------------------
+
+
+def test_consume_quantity_fefo_for_user_invalid_quantity_raises(dao):
+    with pytest.raises(ValueError):
+        dao.consume_quantity_fefo_for_user(
+            user_id=42, ingredient_id=7, quantity_to_consume=0
+        )
+
+
+def test_consume_quantity_fefo_for_user_insufficient_stock_raises_and_rollbacks(
+    dao, mock_db
+):
+    conn, cur = mock_db
+    cur.fetchall.return_value = [
+        {"stock_item_id": 1, "fk_stock_id": 10, "quantity": 1.0},
+        {"stock_item_id": 2, "fk_stock_id": 11, "quantity": 1.0},
+    ]
+
+    with pytest.raises(ValueError):
+        dao.consume_quantity_fefo_for_user(
+            user_id=42, ingredient_id=7, quantity_to_consume=3.0
+        )
+
+    conn.rollback.assert_called_once()
+    conn.commit.assert_not_called()
+
+
+def test_consume_quantity_fefo_for_user_partial_on_first_lot(dao, mock_db):
+    conn, cur = mock_db
+    cur.fetchall.return_value = [
+        {"stock_item_id": 1, "fk_stock_id": 10, "quantity": 5.0},
+        {"stock_item_id": 2, "fk_stock_id": 11, "quantity": 2.0},
+    ]
+
+    by_stock = dao.consume_quantity_fefo_for_user(
+        user_id=42, ingredient_id=7, quantity_to_consume=3.0
+    )
+
+    assert by_stock == {10: 3.0}
+
+    sqls = executed_sql_list(cur)
+    assert any("JOIN user_stock" in s for s in sqls)
+    assert any(
+        "ORDER BY" in s and "expiration_date" in s and "NULLS LAST" in s for s in sqls
+    )
+    assert any("FOR UPDATE" in s for s in sqls)
+    assert any("UPDATE stock_item" in s for s in sqls)
+    assert not any("DELETE FROM stock_item" in s for s in sqls)
+
+    conn.commit.assert_called_once()
+    conn.rollback.assert_not_called()
+
+
+def test_consume_quantity_fefo_for_user_delete_first_lot_then_update_second(
+    dao, mock_db
+):
+    conn, cur = mock_db
+    cur.fetchall.return_value = [
+        {"stock_item_id": 1, "fk_stock_id": 10, "quantity": 2.0},
+        {"stock_item_id": 2, "fk_stock_id": 11, "quantity": 5.0},
+    ]
+
+    by_stock = dao.consume_quantity_fefo_for_user(
+        user_id=42, ingredient_id=7, quantity_to_consume=3.0
+    )
+
+    assert by_stock == {10: 2.0, 11: 1.0}
+
+    sqls = executed_sql_list(cur)
+    assert any("DELETE FROM stock_item" in s for s in sqls)
+    assert any("UPDATE stock_item" in s for s in sqls)
+
+    conn.commit.assert_called_once()
+    conn.rollback.assert_not_called()

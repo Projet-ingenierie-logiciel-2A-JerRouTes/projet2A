@@ -337,3 +337,78 @@ class StockItemDAO:
         except Exception:
             conn.rollback()
             raise
+
+    @log
+    def consume_quantity_fefo_for_user(
+        self,
+        *,
+        user_id: int,
+        ingredient_id: int,
+        quantity_to_consume: float,
+    ) -> dict[int, float]:
+        if quantity_to_consume <= 0:
+            raise ValueError("La quantité à consommer doit être strictement positive.")
+
+        conn = DBConnection().connection
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT si.stock_item_id, si.fk_stock_id, si.quantity
+                    FROM stock_item si
+                    JOIN user_stock us ON us.fk_stock_id = si.fk_stock_id
+                    WHERE us.fk_user_id = %s
+                    AND si.fk_ingredient_id = %s
+                    ORDER BY
+                        si.expiration_date ASC NULLS LAST,
+                        si.created_at ASC,
+                        si.stock_item_id ASC
+                    FOR UPDATE
+                    """,
+                    (user_id, ingredient_id),
+                )
+                rows = cur.fetchall()
+
+                total_available = sum(float(r["quantity"]) for r in rows)
+                if quantity_to_consume > total_available:
+                    raise ValueError(
+                        f"Stock insuffisant (ingredient_id={ingredient_id}): "
+                        f"demande={quantity_to_consume}, disponible={total_available}."
+                    )
+
+                remaining = float(quantity_to_consume)
+                by_stock: dict[int, float] = {}
+
+                for r in rows:
+                    if remaining <= 0:
+                        break
+
+                    lot_id = int(r["stock_item_id"])
+                    stock_id = int(r["fk_stock_id"])
+                    lot_qty = float(r["quantity"])
+
+                    take = min(lot_qty, remaining)
+                    by_stock[stock_id] = by_stock.get(stock_id, 0.0) + take
+
+                    if lot_qty > remaining:
+                        cur.execute(
+                            """
+                            UPDATE stock_item
+                            SET quantity = %s
+                            WHERE stock_item_id = %s
+                            """,
+                            (lot_qty - remaining, lot_id),
+                        )
+                        remaining = 0.0
+                    else:
+                        cur.execute(
+                            "DELETE FROM stock_item WHERE stock_item_id = %s",
+                            (lot_id,),
+                        )
+                        remaining -= lot_qty
+
+            conn.commit()
+            return by_stock
+        except Exception:
+            conn.rollback()
+            raise
