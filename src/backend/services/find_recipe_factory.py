@@ -94,10 +94,6 @@ class FindRecipeFactory(FindRecipe):
         if len(from_db) >= query.limit:
             return from_db[: query.limit]
 
-        from_db = self.db.search_by_ingredients(query)
-        if len(from_db) >= query.limit:
-            return from_db[: query.limit]
-
         remaining = max(0, int(query.limit) - len(from_db))
         if remaining == 0:
             return from_db
