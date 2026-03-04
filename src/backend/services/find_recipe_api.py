@@ -93,6 +93,10 @@ class ApiFindRecipe(FindRecipe):
         )
         recipe.add_translation("en", r.title, "")
 
+        recipe.steps = [
+            st.step for st in sorted((r.steps or []), key=lambda s: s.number)
+        ]
+
         if r.steps:
             text = "\n".join(f"{st.number}. {st.step}" for st in r.steps)
             recipe.add_translation("en_steps", r.title, text)
@@ -137,5 +141,9 @@ class ApiFindRecipe(FindRecipe):
             description=description,
         )
 
+        created.steps = [
+            st.step
+            for st in sorted((getattr(r, "steps", None) or []), key=lambda s: s.number)
+        ]
         created.add_translation("en", title, description or "")
         return created

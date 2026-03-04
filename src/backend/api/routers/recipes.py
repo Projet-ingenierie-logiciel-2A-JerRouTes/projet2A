@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from api.deps import CurrentUser, get_current_user_checked_exists, get_recipe_finder
@@ -9,6 +11,44 @@ from services.find_recipe import FindRecipe, IngredientSearchQuery
 
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
+
+
+def _extract_steps(r: Recipe) -> list[str]:
+    # 1) Attribut direct (cas API externe)
+    steps = list(getattr(r, "steps", []) or [])
+    if steps:
+        return [str(s).strip() for s in steps if str(s).strip()]
+
+    # 2) Translations dédiées aux étapes (ex: "fr_steps", "en_steps", ...)
+    if getattr(r, "translations", None):
+        for k in ("fr_steps", "en_steps", "steps", "en_steps"):
+            if k in r.translations:
+                raw = str((r.translations.get(k) or {}).get("description") or "")
+                if raw.strip():
+                    return _split_steps_text(raw)
+
+    # 3) Fallback: extraction depuis la description (si on a injecté "Préparation:")
+    desc = ""
+    if getattr(r, "translations", None):
+        trans = r.translations.get("fr") or r.translations.get("en") or {}
+        desc = str(trans.get("description") or "")
+
+    if "Préparation:" in desc:
+        after = desc.split("Préparation:", 1)[1]
+        return _split_steps_text(after)
+
+    return []
+
+
+def _split_steps_text(raw: str) -> list[str]:
+    lines = [ln.strip() for ln in str(raw).splitlines() if ln.strip()]
+    out: list[str] = []
+    for ln in lines:
+        # Retire "1. ..." / "1) ..." / "- ..."
+        ln = re.sub(r"^\s*(?:\d+\s*[\.|\)]\s*|[-•]\s*)", "", ln).strip()
+        if ln:
+            out.append(ln)
+    return out
 
 
 def _bo_to_out(r: Recipe) -> RecipeOut:
@@ -28,6 +68,7 @@ def _bo_to_out(r: Recipe) -> RecipeOut:
         portions=int(r.portions),
         name=name,
         description=description,
+        steps=_extract_steps(r),
         ingredients=[
             {"ingredient_id": int(iid), "quantity": float(qty)}
             for iid, qty in (getattr(r, "ingredients", []) or [])
