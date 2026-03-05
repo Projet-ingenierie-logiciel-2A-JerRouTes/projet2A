@@ -13,29 +13,6 @@ export async function findRecipeAlea(idRecipe) {
  * Recherche des recettes basées sur une liste d'ingrédients
  * Correspond à l'endpoint FastAPI : POST /api/recipes/search
  */
-/*
-export async function findRecipe(liste_ingredients) {
-   try {
-    // On garde les ingrédients tels que saisis (sans forcer le lowercase si possible)
-    const payload = { 
-      ingredients: liste_ingredients 
-    };
-
-    console.log("🚀 Tentative d'appel avec payload local :");
-    console.log(JSON.stringify(payload));
-
-    const res = await API.post("/api/recipes/search", payload);
-    
-    // On log la réponse brute pour voir si c'est un tableau vide [] ou autre chose
-    console.log("📡 Réponse brute du serveur :", res.data);
-    
-    return res.data;
-  } catch (erreur) {
-    console.error("❌ Erreur lors de la recherche :", erreur.response?.data || erreur);
-    return [];
-  }
-}*/
-
 export async function findRecipe(liste_ingredients) {
   try {
     const payload = { ingredients: liste_ingredients };

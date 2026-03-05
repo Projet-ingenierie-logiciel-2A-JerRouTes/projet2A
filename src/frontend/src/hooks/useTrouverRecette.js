@@ -38,7 +38,15 @@ export const useTrouverRecette = (liste_ingredients = []) => {
           .sort(() => 0.5 - Math.random())
           .slice(0, 6);
         const promesses = ids.map(id => findRecipeAlea(id));
-        resultats = (await Promise.all(promesses)).filter(r => r !== null);
+        
+        // On stocke d'abord le résultat brut du Promise.all
+        const reponses_brutes = await Promise.all(promesses);
+        
+        // AJOUTE CETTE LIGNE ICI :
+        console.log("📥 Résultat du premier appel simultané (brut) :", reponses_brutes);
+
+        // Puis on continue le filtrage habituel
+        resultats = reponses_brutes.filter(r => r !== null);
       }
 
       // --- FILTRE ANTI-DOUBLONS (Correction PB2) ---

@@ -5,6 +5,7 @@ import "../styles/AfficherRecettes.css";
 
 const AfficherRecetteDetail = ({ recette, onBack, est_admin, utilisateur, onRealiser }) => {
   const { ingredients_complets, chargement_ing, image_temp } = useIngredientsRecette(recette);
+  console.log(recette);
 
   if (!recette) return null;
 

@@ -15,6 +15,12 @@ const AffichageRecettes = ({
   
   const { recettes, chargement, mode_aleatoire } = useTrouverRecette(liste_ingredients);
 
+  if (!chargement) {
+    console.log(`[LOG] Méthode utilisée : ${mode_aleatoire ? "🎲 ALÉATOIRE" : "🔍 RECHERCHE INGRÉDIENTS"}`);
+    console.log(`[LOG] Liste des recettes reçues (${recettes.length}) :`, recettes);
+  }
+
+
   const obtenir_classe_grille = () => {
     const nb = recettes.length;
     if (nb >= 5) return "grille-6";
